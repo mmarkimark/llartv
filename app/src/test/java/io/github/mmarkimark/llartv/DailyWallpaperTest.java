@@ -22,14 +22,14 @@ public class DailyWallpaperTest {
     }
 
     @Test public void slidesCarryTitleAndCaption() throws Exception {
-        File dir = dirWith("wallpaper-a.jpg\tLa vida en manada\tDos lobos grises, Yellowstone\nwallpaper-b.jpg\tCórdoba en flor\tPatio cordobés",
+        File dir = dirWith("wallpaper-a.jpg\tLa vida en manada\tDos lobos grises, Yellowstone\nwallpaper-b.jpg\tGirona en flor\tPati florit",
                 "wallpaper-a.jpg", "wallpaper-b.jpg");
         List<DailyWallpaper.Slide> s = DailyWallpaper.slides(dir);
         assertEquals(2, s.size());
         assertEquals("wallpaper-a.jpg", s.get(0).file.getName());
         assertEquals("La vida en manada", s.get(0).title);
         assertEquals("Dos lobos grises, Yellowstone", s.get(0).caption);
-        assertEquals("Córdoba en flor", s.get(1).title);
+        assertEquals("Girona en flor", s.get(1).title);
     }
 
     @Test public void listsFromEarlierVersionsStillWork() throws Exception {
