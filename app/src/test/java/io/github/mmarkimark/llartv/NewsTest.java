@@ -1,0 +1,88 @@
+package io.github.mmarkimark.llartv;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
+public class NewsTest {
+    @Rule public TemporaryFolder tmp = new TemporaryFolder();
+
+    static final long MIN = 60_000L, HOUR = 60 * MIN, DAY = 24 * HOUR;
+
+    // 3Cat-shaped feed; encoded below as ISO-8859-1, as the real feed is.
+    static final String FEED = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
+            + "<rss version=\"2.0\"><channel><title>3Cat Notícies</title><link>https://www.3cat.cat</link>\n"
+            + "<item>\n  <title><![CDATA[Notícies: el Govern aprova <b>els pressupostos</b>]]></title>\n"
+            + "  <link>https://www.3cat.cat/a</link>\n  <pubDate>Sun, 25 Oct 2026 07:30:00 GMT</pubDate>\n</item>\n"
+            + "<item><title>Barça &amp; Espanyol: &quot;derbi&quot; a l&#39;estadi &#x2014; crònica</title>"
+            + "<pubDate>Sat, 24 Oct 2026 21:05:00 +0200</pubDate></item>\n"
+            + "<item><title>  Tercera notícia  </title><pubDate>not a date</pubDate></item>\n"
+            + "</channel></rss>";
+
+    @Test public void parsesIso88591FeedWithCdataAndEntities() {
+        List<News.Item> items = News.parse(FEED.getBytes(StandardCharsets.ISO_8859_1));
+        assertEquals(3, items.size());
+        assertEquals("Notícies: el Govern aprova <b>els pressupostos</b>", items.get(0).title);
+        assertEquals(java.time.Instant.parse("2026-10-25T07:30:00Z").toEpochMilli(), items.get(0).published);
+        assertEquals("Barça & Espanyol: \"derbi\" a l'estadi — crònica", items.get(1).title);
+        assertEquals(java.time.Instant.parse("2026-10-24T19:05:00Z").toEpochMilli(), items.get(1).published);
+        assertEquals("Tercera notícia", items.get(2).title);
+        assertEquals(0L, items.get(2).published);
+    }
+
+    @Test public void utf8FeedWithoutPrologDecodesAsUtf8() {
+        String feed = "<rss><channel><item><title>Notícies d'avui</title></item></channel></rss>";
+        List<News.Item> items = News.parse(feed.getBytes(StandardCharsets.UTF_8));
+        assertEquals(1, items.size());
+        assertEquals("Notícies d'avui", items.get(0).title);
+    }
+
+    @Test public void garbageGivesEmptyList() {
+        assertEquals(0, News.parse("not xml at all".getBytes(StandardCharsets.UTF_8)).size());
+        assertEquals(0, News.parse(new byte[0]).size());
+    }
+
+    @Test public void ageBoundariesInCatalan() {
+        long now = 1_000L * DAY;
+        assertEquals("ara mateix", News.age(now - 59_000, now));
+        assertEquals("ara mateix", News.age(now + 5 * MIN, now));   // clock skew: never "fa -5 min"
+        assertEquals("fa 1 min", News.age(now - MIN, now));
+        assertEquals("fa 5 min", News.age(now - 5 * MIN, now));
+        assertEquals("fa 59 min", News.age(now - HOUR + 1, now));
+        assertEquals("fa 1 h", News.age(now - HOUR, now));
+        assertEquals("fa 3 h", News.age(now - 3 * HOUR - 20 * MIN, now));
+        assertEquals("fa 23 h", News.age(now - DAY + 1, now));
+        assertEquals("ahir", News.age(now - DAY, now));
+        assertEquals("ahir", News.age(now - 2 * DAY + 1, now));
+        assertEquals("fa 2 dies", News.age(now - 2 * DAY, now));
+        assertEquals("", News.age(0, now));
+    }
+
+    @Test public void cacheRoundTrips() throws Exception {
+        File dir = tmp.newFolder();
+        List<News.Item> items = new ArrayList<>(News.parse(FEED.getBytes(StandardCharsets.ISO_8859_1)));
+        News.save(dir, items);
+        List<News.Item> back = News.load(dir);
+        assertEquals(3, back.size());
+        for (int i = 0; i < 3; i++) {
+            assertEquals(items.get(i).title, back.get(i).title);
+            assertEquals(items.get(i).published, back.get(i).published);
+        }
+    }
+
+    @Test public void missingOrCorruptCacheIsNull() throws Exception {
+        File dir = tmp.newFolder();
+        assertNull(News.load(dir));
+        try (FileWriter w = new FileWriter(new File(dir, "news.cache"))) { w.write("no tab here"); }
+        assertNull(News.load(dir));
+    }
+}

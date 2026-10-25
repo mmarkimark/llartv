@@ -1,0 +1,77 @@
+name: Bug report
+description: Something in LlarTV does not work as expected.
+title: "fix: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. Please search existing issues (open and closed) first.
+        Use a short Conventional Commit style title, for example `fix: clock text is clipped at 10:00`.
+  - type: input
+    id: version
+    attributes:
+      label: LlarTV version
+      description: Release tag or commit, e.g. `v1.0`.
+      placeholder: v1.0
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and Android version
+      description: Model and Android TV version.
+      placeholder: Xiaomi MiTV-MSSP3, Android TV 11
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Home screen and navigation
+        - Dock and app grid
+        - Wallpaper
+        - Screensaver
+        - Morning panel (weather and news)
+        - Night mode
+        - Configuration (home.conf)
+        - Installation and update
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the home screen
+        2. Press Down twice
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: Add screenshots if useful (`adb exec-out screencap -p > screen.png`).
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Settings
+      description: Output of `./scripts/config.sh --show`, if you changed any settings.
+      render: text
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Output of `adb logcat -d | grep -i llartv`, especially for crashes.
+      render: text
