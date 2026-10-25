@@ -40,6 +40,7 @@ Branch: feat/llartv-1-0, then a fresh history and a recreated repository. Delive
   clone builds green with the 40 JVM tests and shellcheck. The published dex dump is identical to a fresh build
   of this source (only the dex padding differs). No local state (`.state/`, `local.properties`, `*.apk`) is tracked.
 - L8 (2026-10-25) The public-review pass over this work (CI workflow plus these task logs) came back approved with
-  no blockers. Its four advisories are informational: the CI actions are pinned to version tags rather than commit
+  no blockers. Its four advisories were informational: the CI actions were pinned to version tags rather than commit
   SHAs, the Android SDK step and the shellcheck glob could be tightened, and the claim wording in L7 needed to be
-  exact — corrected above. They are separate later work, not a reason to redo this review.
+  exact — corrected above. The first one is done: the workflow pins every action to its commit SHA and Dependabot
+  keeps them moving. The rest are separate later work, not a reason to redo this review.
