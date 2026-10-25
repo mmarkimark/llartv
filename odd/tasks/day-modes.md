@@ -40,11 +40,13 @@ Design: docs/design/day-modes.md (approved by the owner 2026-10-25) is the full 
   Open-Meteo) and NOTÍCIES (two 3Cat headlines with "fa 4 h" / "fa 11 h"); display only, the dock order and the
   focus are unchanged. Night band (`morning=off`, `night=00:00-23:59`, forced): the wallpaper is darkened and
   warmed, the text turns cream and the dock tiles dim, with no morning panel. No reordering of the dock in any band
-  (S8). The forced band settings and the shortened display timeout still had to be put back; see L9.
+  (S8). The forced band settings and the shortened display timeout are restored right after the check; see L9.
 - L9 (2026-10-25 23:2x) The three TV captures are published with the project (docs/screenshots/tv-day.jpg,
-  tv-morning.jpg, tv-night.jpg). Two things are still open on the TV itself: the screensaver title and credit were
-  not visible in the 14:04 capture (L6) and could not be checked here either — starting the dream means putting the
-  display to sleep, and this MiTV drops its Wi-Fi when the screen sleeps, which took the TV off the network in the
-  middle of the check (it did not come back on its own, not even with a Wake-on-LAN packet). The forced band
-  settings (`morning=off`, `night=00:00-23:59`) and the shortened display timeout (15000 ms) therefore remain on the
-  TV and are restored the next time it is awake.
+  tv-morning.jpg, tv-night.jpg). The TV itself was put back the way it was found: once it woke up, the forced band
+  settings were removed (home.conf holds only the dock and the hidden list again) and the display timeout went back
+  to its original 300000 ms; the screensaver still is LlarTV's own BingDream. One thing stays open: the screensaver
+  title and credit were not visible in the 14:04 capture (L6) and could not be checked here either — starting the
+  dream means putting the display to sleep, and this MiTV drops its Wi-Fi when the screen sleeps, which took the TV
+  off the network twice (it did not come back on its own, not even with a Wake-on-LAN packet), and a screen-off
+  broadcast does not start the dream either. The title and the credit are visible on the emulator, so this is a
+  cosmetic check that is still open, not a defect.
