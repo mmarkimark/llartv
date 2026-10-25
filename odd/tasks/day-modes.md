@@ -19,7 +19,7 @@ Design: docs/design/day-modes.md (approved by the owner 2026-10-25) is the full 
 - T2 [S6] Data sources: Weather (Open-Meteo + WMO→Catalan text), News (RSS, ISO-8859-1, relative age in Catalan), ICal (VEVENT today, all-day, TZID/UTC), shared cache, JVM tests — route: delegated (writer reason: parallel unit with disjoint new files, launched together with T1) — status: done (WeatherTest 8, NewsTest 6, ICalTest 19 green; parent re-ran full suite 53/53)
 - T3 [S3, S4] Night mode visuals (gradual) + photo-tinted dock band — route: inline — status: done (LookTest green; emulator screenshots day/night home and night screensaver)
 - T4 [S2, S5] Morning panel UI + weather line on BingDream, wired to T2 — route: inline — status: done (emulator: panel with live Open-Meteo and 3Cat data, screensaver weather line)
-- T5 [S1-S8] Emulator verification (screenshots per band, navigation and dock order unchanged), then TV when ADB is enabled — route: inline — status: partial (TV 2026-10-25 14:04: installed, day band home + BingDream with live weather OK; morning and night bands still to observe on the TV)
+- T5 [S1-S8] Emulator verification (screenshots per band, navigation and dock order unchanged), then TV when ADB is enabled — route: inline — status: partial (TV 2026-10-25 14:04: installed, day band home + BingDream with live weather OK; morning and night bands still to observe on the TV; retry 2026-10-25 17:2x blocked, the TV was off the network, see L7)
 
 ## Log
 
@@ -29,3 +29,6 @@ Design: docs/design/day-modes.md (approved by the owner 2026-10-25) is the full 
 - L4 T3: gradual change animates over TimeBands.TRANSITION_S when the band flips while home is showing; on resume it jumps to the right mode. nightAmount() was dropped as unused.
 - L5 (2026-10-25) User: "Passe'm del calendari". Calendar card, ICal.java, ICalTest and `calendar_ical` removed. Emulator had shown that three cards do not fit above the dock anyway.
 - L6 (2026-10-25) User: "La TV ja està en mode depuració, posa la nova versió". Installed feat/day-modes build on the TV (adb install -r, <tv-ip>). Screensaver switched from com.google.android.backdrop/.Backdrop to io.github.mmarkimark.llartv/.BingDream (restore: settings put secure screensaver_components com.google.android.backdrop/.Backdrop). Verified on TV: Catalan home (Bona tarda, date), dock order unchanged, BingDream with live Open-Meteo weather. BingDream title/caption not visible in the 14:04 capture (emulator showed them); check on the TV.
+- L7 (2026-10-25 17:21) The TV is off the network: `adb connect <tv-ip>` times out and the host does not answer
+  pings, so the morning and night bands remain unobserved on the TV. It needs the TV powered on and connected to
+  the same network; the day band and the screensaver weather were already confirmed on it (L6).

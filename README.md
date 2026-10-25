@@ -3,6 +3,7 @@
 A lightweight, native home screen for Android TV. (*Llar* is Catalan for "home".)
 
 [![Release](https://img.shields.io/badge/release-v1.0-blue)](https://github.com/mmarkimark/llartv/releases/tag/v1.0)
+[![CI](https://github.com/mmarkimark/llartv/actions/workflows/ci.yml/badge.svg)](https://github.com/mmarkimark/llartv/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 ![Android TV 9+](https://img.shields.io/badge/Android%20TV-9%2B-informational)
 
@@ -114,6 +115,9 @@ the TV's own launcher if it would take the Home button back. Press **Home** on t
 
 To keep the TV's own screensaver, add `--no-screensaver`. To install an APK you built or downloaded yourself, add
 `--apk <file>`.
+
+The released APK is signed with a debug key. If you later install a build signed with a different key, uninstall
+LlarTV first: Android refuses to replace an app signed with another key.
 
 **4. When you are done**, you can turn USB debugging off again on the TV. Turn it back on to change the settings
 or to uninstall.

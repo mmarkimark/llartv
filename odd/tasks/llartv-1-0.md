@@ -18,7 +18,7 @@ Branch: feat/llartv-1-0, then a fresh history and a recreated repository. Delive
 - T1 [S3, S4] scripts/install.sh, config.sh, uninstall.sh + shared helpers; SettingsReceiver so config works where adb cannot write the app folder — route: inline — status: done (shellcheck clean; ConfigFileTest, TimeBandsTest off case)
 - T2 [S1, S2, S4] Version 1.0, Bing wallpaper by default, README/CHANGELOG/CONTRIBUTING/templates/design docs — route: inline — status: done (40 JVM tests green)
 - T3 [S3, S4] End-to-end: emulator (install, uninstall) and TV (install, config, screensaver) — route: inline — status: done (emulator wiped: install disabled tvlauncher, config set/show/reset/dock picker, uninstall restored tvlauncher and Backdrop; TV: install + config with the owner's dock)
-- T4 [S1] Fresh history, recreated repository, release v1.0 with `LlarTV.apk` — route: inline — status: done (single commit 54da47f, tag v1.0; download path of install.sh untestable while the repository is private)
+- T4 [S1] Fresh history, recreated repository, release v1.0 with `LlarTV.apk` — route: inline — status: done (single commit 54da47f, tag v1.0; the repository is now public and the download path is verified, see L7)
 
 ## Log
 
@@ -35,3 +35,7 @@ Branch: feat/llartv-1-0, then a fresh history and a recreated repository. Delive
   previous screensaver com.google.android.backdrop/.Backdrop.
 - L6 Independent security check of SettingsReceiver: no blockers (DUMP cannot be obtained by apps without adb);
   advisories only (no size cap, a failed read returns an empty file).
+- L7 (2026-10-25) The repository is now public. Verified from a clean clone: the release URL used by install.sh
+  (`releases/latest/download/LlarTV.apk`) resolves to the published asset (sha256 ead11383…9a3) and its dex is
+  identical to a fresh build of this source; the 40 JVM tests and shellcheck are green; no local state
+  (`.state/`, `local.properties`, `*.apk`) is tracked.
