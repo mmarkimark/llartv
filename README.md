@@ -72,6 +72,14 @@ broadcasts, and network data is fetched only while the home screen is showing.
 
 *Captured on the Android TV 11 emulator. Wallpapers are Bing images; credits appear on the screensaver.*
 
+The same three bands on the TV itself (Xiaomi MiTV-MSSP3, Android 11):
+
+| Day | Morning (08:00–11:00) | Night (23:00–08:00) |
+| --- | --- | --- |
+| ![Day home on the TV](docs/screenshots/tv-day.jpg) | ![Morning panel on the TV](docs/screenshots/tv-morning.jpg) | ![Night mode on the TV](docs/screenshots/tv-night.jpg) |
+
+*The morning panel shows live weather and headlines; the night palette dims the wallpaper and warms the text.*
+
 ## Requirements
 
 - An Android TV or Google TV with Android 9 or newer.

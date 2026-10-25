@@ -19,7 +19,7 @@ Design: docs/design/day-modes.md (approved by the owner 2026-10-25) is the full 
 - T2 [S6] Data sources: Weather (Open-Meteo + WMO→Catalan text), News (RSS, ISO-8859-1, relative age in Catalan), ICal (VEVENT today, all-day, TZID/UTC), shared cache, JVM tests — route: delegated (writer reason: parallel unit with disjoint new files, launched together with T1) — status: done (WeatherTest 8, NewsTest 6, ICalTest 19 green; parent re-ran full suite 53/53)
 - T3 [S3, S4] Night mode visuals (gradual) + photo-tinted dock band — route: inline — status: done (LookTest green; emulator screenshots day/night home and night screensaver)
 - T4 [S2, S5] Morning panel UI + weather line on BingDream, wired to T2 — route: inline — status: done (emulator: panel with live Open-Meteo and 3Cat data, screensaver weather line)
-- T5 [S1-S8] Emulator verification (screenshots per band, navigation and dock order unchanged), then TV when ADB is enabled — route: inline — status: done (TV 2026-10-25 19:2x, MiTV-MSSP3 / Android 11, LlarTV 1.0: day, morning and night bands all observed, dock order unchanged in all three; see L8)
+- T5 [S1-S8] Emulator verification (screenshots per band, navigation and dock order unchanged), then TV when ADB is enabled — route: inline — status: done (TV 2026-10-25 19:2x, MiTV-MSSP3 / Android 11, LlarTV 1.0: day, morning and night bands all observed and published, dock order unchanged in all three; see L8 and L9)
 
 ## Log
 
@@ -40,4 +40,11 @@ Design: docs/design/day-modes.md (approved by the owner 2026-10-25) is the full 
   Open-Meteo) and NOTÍCIES (two 3Cat headlines with "fa 4 h" / "fa 11 h"); display only, the dock order and the
   focus are unchanged. Night band (`morning=off`, `night=00:00-23:59`, forced): the wallpaper is darkened and
   warmed, the text turns cream and the dock tiles dim, with no morning panel. No reordering of the dock in any band
-  (S8). The forced band settings and the shortened display timeout are restored right after the check.
+  (S8). The forced band settings and the shortened display timeout still had to be put back; see L9.
+- L9 (2026-10-25 23:2x) The three TV captures are published with the project (docs/screenshots/tv-day.jpg,
+  tv-morning.jpg, tv-night.jpg). Two things are still open on the TV itself: the screensaver title and credit were
+  not visible in the 14:04 capture (L6) and could not be checked here either — starting the dream means putting the
+  display to sleep, and this MiTV drops its Wi-Fi when the screen sleeps, which took the TV off the network in the
+  middle of the check (it did not come back on its own, not even with a Wake-on-LAN packet). The forced band
+  settings (`morning=off`, `night=00:00-23:59`) and the shortened display timeout (15000 ms) therefore remain on the
+  TV and are restored the next time it is awake.
