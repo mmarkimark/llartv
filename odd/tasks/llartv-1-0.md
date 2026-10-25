@@ -35,7 +35,11 @@ Branch: feat/llartv-1-0, then a fresh history and a recreated repository. Delive
   previous screensaver com.google.android.backdrop/.Backdrop.
 - L6 Independent security check of SettingsReceiver: no blockers (DUMP cannot be obtained by apps without adb);
   advisories only (no size cap, a failed read returns an empty file).
-- L7 (2026-10-25) The repository is now public. Verified from a clean clone: the release URL used by install.sh
-  (`releases/latest/download/LlarTV.apk`) resolves to the published asset (sha256 ead11383…9a3) and its dex is
-  identical to a fresh build of this source; the 40 JVM tests and shellcheck are green; no local state
-  (`.state/`, `local.properties`, `*.apk`) is tracked.
+- L7 (2026-10-25) The repository is now public. Verified: the release URL used by install.sh
+  (`releases/latest/download/LlarTV.apk`) resolves to the published asset (sha256 ead11383…9a3), and a clean
+  clone builds green with the 40 JVM tests and shellcheck. The published dex dump is identical to a fresh build
+  of this source (only the dex padding differs). No local state (`.state/`, `local.properties`, `*.apk`) is tracked.
+- L8 (2026-10-25) The public-review pass over this work (CI workflow plus these task logs) came back approved with
+  no blockers. Its four advisories are informational: the CI actions are pinned to version tags rather than commit
+  SHAs, the Android SDK step and the shellcheck glob could be tightened, and the claim wording in L7 needed to be
+  exact — corrected above. They are separate later work, not a reason to redo this review.
