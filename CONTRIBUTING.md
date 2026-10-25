@@ -36,6 +36,8 @@ Before opening a pull request, run:
 shellcheck -x -P SCRIPTDIR/.. scripts/*.sh   # when you change the scripts
 ```
 
+CI runs the same checks on every push and pull request.
+
 When a change affects what is shown on screen, test it on an Android TV device or emulator and attach a
 screenshot to the pull request.
 
