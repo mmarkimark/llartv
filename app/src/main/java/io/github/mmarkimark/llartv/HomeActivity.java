@@ -1069,23 +1069,26 @@ public class HomeActivity extends Activity {
         return t;
     }
 
-    /** Shows the panel from the caches in the morning band, and starts any fetch that is due (only while home shows). */
+    /** Shows the panel from the caches, as the content settings ask, and starts any fetch that is due (only while home shows). */
     void refreshMorning() {
         if (panel == null) return;
         File dir = getExternalFilesDir(null);
         long now = System.currentTimeMillis();
         Calendar c = Calendar.getInstance();
         boolean morning = bands.at(c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE)) == TimeBands.Band.MORNING;
-        maybeFetchWeather(dir, now);   // all day: the screensaver shows it too
-        if (!morning) { panel.setVisibility(View.GONE); return; }
-        maybeFetchNews(dir, now);
+        // The weather is only fetched when a surface still wants it; the screensaver only reads the cache.
+        if (ContentPolicy.wants(conf.weatherHome) || ContentPolicy.wants(conf.weatherScreen)) maybeFetchWeather(dir, now);
+        boolean showWx = ContentPolicy.shows(conf.weatherHome, morning);
+        boolean showNews = ContentPolicy.shows(conf.newsHome, morning);
+        if (showNews) maybeFetchNews(dir, now);
+        if (!showWx && !showNews) { panel.setVisibility(View.GONE); return; }
 
-        Weather w = Weather.load(dir);
+        Weather w = showWx ? Weather.load(dir) : null;
         boolean hasWx = w != null && now - w.fetchedAt < 6 * 3600_000L;
         if (hasWx) { wxTemp.setText(w.temp + "°"); wxLine.setText(Weather.describe(w.code)); wxRange.setText(w.range()); }
         wxCard.setVisibility(hasWx ? View.VISIBLE : View.GONE);
 
-        List<News.Item> items = News.load(dir);
+        List<News.Item> items = showNews ? News.load(dir) : null;
         newsList.removeAllViews();
         int shown = 0;
         if (items != null) for (News.Item it : items) {

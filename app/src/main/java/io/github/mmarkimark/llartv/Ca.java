@@ -25,6 +25,12 @@ final class Ca {
     static final String CLOCK_SYSTEM = "Segueix el sistema";
     static final String CLOCK_24 = "24 h";
     static final String CLOCK_12 = "12 h";
+    static final String WEATHER_HOME = "Temps a la pantalla";
+    static final String WEATHER_SCREEN = "Temps al protector";
+    static final String NEWS_HOME = "Notícies a la pantalla";
+    static final String NEVER = "Mai";
+    static final String MORNING_ONLY = "Només matí";
+    static final String ALL_DAY = "Tot el dia";
     static final String CANT_SAVE = "No s'ha pogut desar";
 
     /** Same hour thresholds the English greeting used. */
