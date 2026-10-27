@@ -1,0 +1,76 @@
+# LlarTV performance baseline
+
+The baseline required by [issue #1](https://github.com/mmarkimark/llartv/issues/1), recorded before the v1.1
+settings work changes any code. The same procedure is repeated for every milestone (v1.1, v1.2, v1.3), so the
+numbers stay comparable.
+
+## How to measure
+
+```sh
+./scripts/measure.sh --serial <emulator-5554|192.168.1.50:5555> \
+                      --apk app/build/outputs/apk/debug/app-debug.apk \
+                      --runs 5 --label "<target name>"
+```
+
+The script measures, on the connected device:
+
+| Metric | How it is measured |
+| --- | --- |
+| APK bytes | The size of the APK file that is installed (`wc -c`). |
+| Cold start | `am force-stop` the app, wait one second, then `am start -W` and read `TotalTime`. A warm-up run is discarded. |
+| Home return | Another app is brought to the foreground, then LlarTV is resumed and `am start -W` reports `TotalTime`. The script records whether it dispatched the HOME intent or resumed the activity directly. |
+| RAM | `dumpsys meminfo <package>` and the `TOTAL PSS` line, sampled three times with the app in the foreground. |
+
+Five runs for the latencies and three for the RAM. The script prints every raw value next to the minimum, median
+and maximum. It only reads and starts activities; the default home is changed for the Home-return runs and is
+always restored afterwards, including when the script fails.
+
+## Build variant
+
+The debug APK is the comparison variant, because the published `v1.0` asset is signed with a debug key and is the
+same build: the released `LlarTV.apk` is 3,999,631 bytes and a fresh debug build of the same source is 3,999,635
+bytes. Sizes are therefore comparable between the released app and any later build.
+
+## Targets
+
+| Target | State |
+| --- | --- |
+| AVD `tv11` (AOSP TV on x86, Android 11 / SDK 30) | Measured, 2026-10-27 |
+| Xiaomi MiTV-MSSP3 (Android 11) | **Open**: the TV was not reachable over ADB when the baseline was recorded |
+
+The emulator is a regression guard, not a performance reference: it renders in software, so its cold start is far
+slower than on real hardware. The release gates are the numbers measured on the TV, and the TV baseline is
+recorded before the v1.1 release. Missing TV proof is reported as open, never replaced by emulator numbers.
+
+## Baseline (AVD `tv11`, 2026-10-27)
+
+Build: `main` at 76ac8ba, debug APK, 3,999,635 bytes.
+
+| Metric | Raw values | Min | Median | Max |
+| --- | --- | --- | --- | --- |
+| Cold start (ms) | 1384, 1415, 1360, 1430, 1370 | 1360 | 1384 | 1430 |
+| Home return (ms) | 102, 86, 95, 88, 123 | 86 | 95 | 123 |
+| RAM, TOTAL PSS (KB) | 37999, 38105, 38093 | 37999 | 38093 | 38105 |
+
+The RAM figure agrees with the "about 30–40 MB" claim in the README.
+
+## Regression budgets
+
+A value over a budget is investigated before a release; it is not a reason to lower the budget. The budgets are
+relative to the baseline of the same target and the same build variant.
+
+| Metric | Budget | Emulator limit |
+| --- | --- | --- |
+| APK bytes | +5% | ≤ 4,199,617 bytes |
+| Cold start | +150 ms and +15% | ≤ 1,534 ms |
+| Home return | +40 ms and +40% | ≤ 135 ms |
+| RAM, TOTAL PSS | +4,096 KB and +10% | ≤ 42,189 KB |
+
+The same rules apply to the TV, with its own baseline as the reference. While the TV baseline is open, the emulator
+budgets are the only automatic reference and the TV proof stays an explicit open item.
+
+## Open items
+
+- The baseline on the Xiaomi MiTV-MSSP3 is not recorded yet. It needs the TV powered on and reachable over ADB, and
+  it must be recorded before the v1.1 release gate.
+- The comparison after each milestone is recorded here, one section per version, with the same procedure.
