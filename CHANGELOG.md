@@ -5,6 +5,13 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- LlarTV settings on the TV: a native menu in the top bar (*Configuració*), navigable with the remote, that
+  writes to the same `home.conf` as the ADB scripts. The Android/TV settings stay reachable from it.
+- Clock format preference (`clock`): follow the TV, 24-hour or 12-hour with AM/PM, applied to the home screen,
+  the screensaver and the next-match card.
+
 ## [1.0] - 2026-10-25
 
 First release.

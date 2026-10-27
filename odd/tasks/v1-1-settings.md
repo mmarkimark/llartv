@@ -36,10 +36,12 @@ Roadmap: GitHub issue #10. v1.1 = #1, #2, #3, #4, #5, #12 (the interface-languag
   status: done (scripts/measure.sh, docs/performance/baseline-v1.0.md; shellcheck clean; emulator `tv11` measured
   on 2026-10-27: cold start median 1384 ms, Home return median 95 ms, RAM median 38093 KB, debug APK 3999635
   bytes; the MiTV-MSSP3 baseline is open, the TV was not reachable over ADB)
-- T2 [S5, S8] #2: native remote-friendly settings menu, reusing `Config`/`home.conf`, keeping Android settings
-  reachable, preserving unknown keys and untouched values — route: inline
-- T3 [S5] #3: clock format (follow system / 24-hour / 12-hour) shared by Home, the screensaver and the match card —
-  route: inline
+- T2 [S5, S8] #2 + #3: native remote-friendly settings menu (reusing `Config`/`home.conf`, keeping the Android
+  settings reachable, preserving unknown keys and untouched values) with the clock format as its first control —
+  route: inline — status: done (SettingsActivity + Clock; 58 JVM tests green, shellcheck clean; emulator `tv11`:
+  the menu opens with the remote, the values persist in `home.conf` (`clock=24`, `clock=12` read back through
+  the settings receiver), Home shows 21:01 and 9:02 PM, the 12-hour notation fits the layout; the screensaver
+  clock and the real TV are still open)
 - T4 [S4] #4 + #5: three-state weather and news control per surface, with the request suppression and the unchanged
   defaults — route: inline
 - T5 [S2] #12: news source presets (3Cat, BBC Mundo, BBC World) with attribution and article links, plus the
@@ -55,7 +57,7 @@ Roadmap: GitHub issue #10. v1.1 = #1, #2, #3, #4, #5, #12 (the interface-languag
   (recomanat)".
 - L3 (2026-10-27) Repository state when the review started: `main` clean, no open pull request, 12 open issues
   (#1-#12), milestones v1.1 with 7 issues, v1.2 with 2, v1.3 with 2, no due dates. `./gradlew testDebugUnitTest
-  assembleDebug` is green (38 JVM tests). No ADB device was reachable, so the MiTV-MSSP3 proof is not available
+  assembleDebug` is green (40 JVM tests). No ADB device was reachable, so the MiTV-MSSP3 proof is not available
   yet; the AVD `tv11` is.
 - L4 (2026-10-27) Roadmap recorded: issue #10 body updated with the resolved decisions, the new v1.1/v1.2 split and
   the still-open questions; issue #11 moved to milestone v1.2; the decisions were also posted as comments on #4,
@@ -76,3 +78,21 @@ Roadmap: GitHub issue #10. v1.1 = #1, #2, #3, #4, #5, #12 (the interface-languag
   median, RAM 38093 KB median, debug APK 3999635 bytes; the released `v1.0` asset is 3999631 bytes, so the debug
   build is the comparable variant. Budgets: APK +5%, cold start +150 ms and +15%, Home return +40 ms and +40%,
   RAM +4096 KB and +10%. The MiTV-MSSP3 baseline is open and must be recorded before the v1.1 release gate.
+- L7 (2026-10-27) T2 and T3, the settings menu and the clock format. The menu is a new `SettingsActivity`, so
+  Home never builds it and the Home path stays as it was; it writes to the same `home.conf` through the same atomic
+  write, replacing only the line of the key it changes (`Config.setInText`), so unknown keys, comments and the
+  untouched values survive. The D-pad model: up/down move between the settings, left/right change the value of the
+  focused one, OK opens its list of values, Back closes that list and then the screen. The clock format is a new
+  `clock` key (`system`, `24`, `12`) applied to the big clock, the screensaver clock and the next-match card;
+  `system` keeps the exact behaviour of each surface, so an existing installation does not change, and the explicit
+  12-hour format shows AM/PM. `scripts/config.sh` learned the `clock` key; its help text and its unknown-key error
+  are the only outputs that changed, checked against the previous version.
+- L8 (2026-10-27) T2 and T3 evidence on the AVD `tv11` (Android 11): the menu opens from the *Configuració* pill
+  with the remote, the value list opens with OK and applies with OK, `home.conf` holds `clock=24` and then
+  `clock=12` (read back through the settings receiver), Home shows 21:01 with the 24-hour format and 9:02 PM with
+  the 12-hour one, and the AM/PM text fits the layout. The JVM tests grew from 40 to 58 (`ClockTest`, plus the
+  `clock` key and `Config.setInText` cases) and shellcheck is clean. Still open: the screensaver clock, which
+  cannot be captured over ADB (the dream needs the display off), and the whole thing on the real TV.
+- L9 (2026-10-27) The settings screen is not exported, so the adb shell cannot start it directly; it is reached
+  from Home, which is the only path it needs. The column has a fixed width (52% of the screen) so the values line
+  up on the right; the first version let the column wrap to its content and glued the label to the value.
