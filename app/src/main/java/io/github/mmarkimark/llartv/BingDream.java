@@ -65,7 +65,9 @@ public class BingDream extends DreamService {
         int pad = Math.round(W * 0.05f);
         LinearLayout clockCol = new LinearLayout(this);
         clockCol.setOrientation(LinearLayout.VERTICAL);
-        TextClock time = clock(fonts, 150, 86, 0xFFFFFFFF, "h:mm", "H:mm");
+        // The clock format follows LlarTV's own preference (home.conf "clock"); "system" keeps the TextClock default.
+        Config conf = Config.parse(getExternalFilesDir(null));
+        TextClock time = clock(fonts, 150, 86, 0xFFFFFFFF, Clock.pattern(conf.clock, false), Clock.pattern(conf.clock, true));
         time.setIncludeFontPadding(false);
         date = text(fonts, 300, 21, 0xFFD9D6CF);
         clockCol.addView(time, new LinearLayout.LayoutParams(-2, -2));

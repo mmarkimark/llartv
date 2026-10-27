@@ -179,6 +179,8 @@ public class HomeActivity extends Activity {
 
     @Override protected void onResume() {
         super.onResume();
+        conf = Config.load(this);          // LlarTV's own settings may have changed while we were away
+        bands = conf.bands();
         IntentFilter f = new IntentFilter();
         f.addAction(Intent.ACTION_TIME_TICK);
         f.addAction(Intent.ACTION_TIME_CHANGED);
@@ -807,7 +809,10 @@ public class HomeActivity extends Activity {
     void pillAction(int i) {
         if (i == 0) openMenu();
         else if (i == 1) safeStart(new Intent(Settings.ACTION_WIFI_SETTINGS));
-        else safeStart(new Intent(Settings.ACTION_SETTINGS));
+        else {
+            try { startActivity(new Intent(this, SettingsActivity.class)); }
+            catch (Exception ex) { Toast.makeText(this, Ca.NOT_AVAILABLE, Toast.LENGTH_SHORT).show(); }
+        }
     }
 
     /** Physical inputs (HDMI, AV, ...) on this device. Empty on boxes and sticks, which are themselves an HDMI source. */
@@ -923,8 +928,7 @@ public class HomeActivity extends Activity {
 
     void tick() {
         Date now = new Date();
-        boolean h24 = DateFormat.is24HourFormat(this);
-        clock.setText(new SimpleDateFormat(h24 ? "H:mm" : "h:mm", Locale.getDefault()).format(now));
+        clock.setText(new SimpleDateFormat(Clock.pattern(conf.clock, DateFormat.is24HourFormat(this)), Locale.getDefault()).format(now));
         date.setText(Ca.date(now));
         int h = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
         greeting.setText(Ca.greeting(h));
@@ -1192,7 +1196,7 @@ public class HomeActivity extends Activity {
         else if (sameDay(k, tomorrow)) day = Ca.TOMORROW;
         else if (m.kickoff - now < 6L * 24 * 3600_000L) day = Ca.format("EEEE", new Date(m.kickoff));
         else day = Ca.format("EEE d MMM", new Date(m.kickoff));
-        String time = new SimpleDateFormat(DateFormat.is24HourFormat(this) ? "HH:mm" : "h:mm a", Locale.getDefault()).format(new Date(m.kickoff));
+        String time = new SimpleDateFormat(Clock.matchPattern(conf.clock, DateFormat.is24HourFormat(this)), Locale.getDefault()).format(new Date(m.kickoff));
         mWhen.setText(day + "  \u00B7  " + time);
         long mins = (m.kickoff - now) / 60_000L;
         mCountdown.setText(Ca.countdown(mins));
