@@ -11,6 +11,9 @@ All notable changes to LlarTV are documented in this file. The format is based o
   writes to the same `home.conf` as the ADB scripts. The Android/TV settings stay reachable from it.
 - Clock format preference (`clock`): follow the TV, 24-hour or 12-hour with AM/PM, applied to the home screen,
   the screensaver and the next-match card.
+- Weather and news controls (`weather_home`, `weather_screen`, `news_home`): never, only in the morning band or all
+  day, for the home screen and for the screensaver. What is switched off on every surface is not downloaded any
+  more, and a hidden card leaves no empty space.
 
 ## [1.0] - 2026-10-25
 
