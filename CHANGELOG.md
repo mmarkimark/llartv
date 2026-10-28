@@ -5,6 +5,11 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [1.1] - 2026-10-29
+
+The lightweight settings release: LlarTV gains its own settings menu, and the weather, the news and the clock
+become the owner's choice instead of the TV's.
+
 ### Added
 
 - LlarTV settings on the TV: a native menu in the top bar (*Configuració*), navigable with the remote, that
