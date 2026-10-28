@@ -57,6 +57,11 @@ final class Config {
 
     TimeBands bands() { return TimeBands.parse(morning, night); }
 
+    /** The one rule for "a custom feed is in effect": home.conf set news_rss to a non-empty value. */
+    boolean newsRssIsCustom() {
+        return newsRssCustom && newsRss != null && !newsRss.trim().isEmpty();
+    }
+
     static Config load(Context c) {
         Config k = new Config();
         k.teamId = c.getString(R.string.fixture_team_id).trim();
@@ -113,7 +118,7 @@ final class Config {
             }
             case "news_rss": newsRss = v; newsRssCustom = true; break;
             case "news_source": {
-                String p = v.trim().toLowerCase(java.util.Locale.ROOT);
+                String p = NewsSource.canonicalId(v);
                 newsSource = p.isEmpty() ? NewsSource.AUTOMATIC : NewsSource.isPreset(p) ? p : newsSource;
                 break;
             }

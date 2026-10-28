@@ -171,7 +171,6 @@ final class News {
     static List<Item> load(File dir, NewsSource source) {
         try {
             String[] lines = new String(Files.readAllBytes(new File(dir, CACHE).toPath()), StandardCharsets.UTF_8).split("\n");
-            if (lines.length == 0) return null;
             String head = lines[0];
             if (!head.startsWith(CACHE_HEADER)) return null;   // a cache from an older version is not reused
             int tab = head.indexOf('\t');

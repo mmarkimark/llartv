@@ -74,6 +74,28 @@ public class NewsSourceTest {
         assertEquals(NewsSource.URL_3CAT, NewsSource.resolve(k).url);
     }
 
+    @Test public void theMenuLabelsMatchThePresetOrder() {
+        assertEquals(NewsSource.OPTIONS.length, Ca.NEWS_SOURCE_LABELS.length);
+        assertEquals(NewsSource.AUTOMATIC, NewsSource.OPTIONS[0]);
+        assertEquals(NewsSource.THREE_CAT, NewsSource.OPTIONS[1]);
+        assertEquals(NewsSource.BBC_MUNDO, NewsSource.OPTIONS[2]);
+        assertEquals(NewsSource.BBC_WORLD, NewsSource.OPTIONS[3]);
+        assertEquals(Ca.NEWS_SOURCE_AUTO, Ca.NEWS_SOURCE_LABELS[0]);
+        assertEquals(Ca.NEWS_SOURCE_3CAT, Ca.NEWS_SOURCE_LABELS[1]);
+        assertEquals(Ca.NEWS_SOURCE_MUNDO, Ca.NEWS_SOURCE_LABELS[2]);
+        assertEquals(Ca.NEWS_SOURCE_WORLD, Ca.NEWS_SOURCE_LABELS[3]);
+    }
+
+    @Test public void theCustomKeyIsWrittenOnOneLine() {
+        NewsSource s = NewsSource.custom("https://example.org/a\tb");
+        assertFalse(s.key.contains("\t"));
+        assertEquals("custom:https://example.org/a b", s.key);
+    }
+
+    @Test public void theHostIsLowerCasedForTheWwwPrefix() {
+        assertEquals("example.org", NewsSource.host("https://WWW.example.org/rss"));
+    }
+
     @Test public void theHostComesFromTheUrl() {
         assertEquals("example.org", NewsSource.host("https://example.org/rss"));
         assertEquals("example.org", NewsSource.host("https://www.example.org/rss"));

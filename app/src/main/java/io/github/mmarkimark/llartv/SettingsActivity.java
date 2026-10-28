@@ -131,11 +131,9 @@ public class SettingsActivity extends Activity {
 
     /** The news source. A custom "news_rss" wins over the presets, so the row shows that instead. */
     void addSourceRow(Config conf) {
-        Row r = new Row(Ca.NEWS_SOURCE, "news_source",
-                new String[]{Ca.NEWS_SOURCE_AUTO, Ca.NEWS_SOURCE_3CAT, Ca.NEWS_SOURCE_MUNDO, Ca.NEWS_SOURCE_WORLD},
-                NewsSource.OPTIONS, null);
+        Row r = new Row(Ca.NEWS_SOURCE, "news_source", Ca.NEWS_SOURCE_LABELS, NewsSource.OPTIONS, null);
         r.selected = Math.max(0, indexOf(r.values, conf.newsSource));
-        r.custom = conf.newsRssCustom && conf.newsRss != null && !conf.newsRss.trim().isEmpty();
+        r.custom = conf.newsRssIsCustom();
         rows.add(r);
     }
 
@@ -158,7 +156,7 @@ public class SettingsActivity extends Activity {
         label.setText(r.label);
         row.addView(label, new LinearLayout.LayoutParams(0, dp(62), 1f));
         TextView value = text(500, 23, 0xFF8E8E93);
-        value.setText(r.isAction() ? "" : r.custom ? Ca.NEWS_SOURCE_CUSTOM : r.options[r.selected]);
+        value.setText(r.isAction() ? "" : r.custom ? Ca.NEWS_SOURCE_CUSTOM : r.options[Math.min(r.selected, r.options.length - 1)]);
         value.setGravity(Gravity.CENTER_VERTICAL);
         row.addView(value, new LinearLayout.LayoutParams(-2, dp(62)));
         r.view = row;

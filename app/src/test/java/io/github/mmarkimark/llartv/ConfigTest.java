@@ -50,6 +50,9 @@ public class ConfigTest {
         k.set("news_rss", "https://example.org/rss");
         assertTrue(k.newsRssCustom);
         assertEquals("https://example.org/rss", k.newsRss);
+        assertTrue(k.newsRssIsCustom());
+        k.set("news_rss", "   ");
+        assertFalse(k.newsRssIsCustom());   // a blank feed is not a custom feed
     }
 
     @Test public void badLocationKeepsTheDefault() {

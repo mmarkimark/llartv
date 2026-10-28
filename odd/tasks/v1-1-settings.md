@@ -180,3 +180,18 @@ Roadmap: GitHub issue #10. v1.1 = #1, #2, #3, #4, #5, #12 (the interface-languag
   branch: the first slice is the settings foundation (the six commits up to 84d4e4b) and the second slice is the
   news source presets (838b2c4); the next commit starts a third slice, and the accumulated branch is not a review
   candidate.
+- L19 (2026-10-29) The native review of the news presets slice (lineage review-e98af4ac9bb40ede, tier high, four
+  lenses) was run because receipt-driven development is on and the assessment found the review due. The facade
+  capture could not be driven from this host (the opaque collect bindings are rejected when they are relayed
+  through it), so the reviewers ran against the provider's own materialized frozen candidate: the risk and the
+  resilience lenses found nothing, the readability lens found two warnings (the custom-feed rule written twice,
+  and a constructor of five same-typed parameters) plus two suggestions (the id normalized in two places, and the
+  menu labels kept in a parallel array), and the reliability lens found one warning (the new per-source fetch
+  gate has no automated test, and that very logic had already produced the ten-minute block) plus two
+  suggestions (the guid fallback for the article link is untested, and the custom-feed menu guard is only
+  verified by hand). No blocker and no critical finding, so the review closed as approved. The warnings were
+  worth taking, so they are fixed in the next commit: the custom-feed rule and the id normalization are one rule
+  each (Config.newsRssIsCustom and NewsSource.canonicalId), the source instances are only built by the factories,
+  the menu labels are pinned to the preset order by a test, the fetch gate moved to its own class
+  (NewsSchedule) with tests for the three rules, the guid fallback has a fixture, the custom cache key is
+  written on one line, and the document states the median convention of the TV cold start exactly.

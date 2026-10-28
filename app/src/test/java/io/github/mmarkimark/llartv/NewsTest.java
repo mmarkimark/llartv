@@ -46,6 +46,21 @@ public class NewsTest {
         assertEquals("", items.get(2).link);
     }
 
+    @Test public void anItemWithOnlyAGuidKeepsTheLink() {
+        String feed = "<rss><channel><item><title>Notícia</title>"
+                + "<guid isPermaLink=\"true\">https://example.org/a</guid></item></channel></rss>";
+        List<News.Item> items = News.parse(feed.getBytes(StandardCharsets.UTF_8));
+        assertEquals(1, items.size());
+        assertEquals("https://example.org/a", items.get(0).link);
+    }
+
+    @Test public void aGuidThatIsNotAUrlIsNotALink() {
+        String feed = "<rss><channel><item><title>Notícia</title><guid>item-123</guid></item></channel></rss>";
+        List<News.Item> items = News.parse(feed.getBytes(StandardCharsets.UTF_8));
+        assertEquals(1, items.size());
+        assertEquals("", items.get(0).link);
+    }
+
     @Test public void utf8FeedWithoutPrologDecodesAsUtf8() {
         String feed = "<rss><channel><item><title>Notícies d'avui</title></item></channel></rss>";
         List<News.Item> items = News.parse(feed.getBytes(StandardCharsets.UTF_8));

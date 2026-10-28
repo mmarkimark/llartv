@@ -34,6 +34,8 @@ final class Ca {
     static final String NEWS_SOURCE_MUNDO = "BBC News Mundo";
     static final String NEWS_SOURCE_WORLD = "BBC News World";
     static final String NEWS_SOURCE_CUSTOM = "Personalitzada";
+    /** The menu labels, in the same order as NewsSource.OPTIONS (a test pins the pairing). */
+    static final String[] NEWS_SOURCE_LABELS = {NEWS_SOURCE_AUTO, NEWS_SOURCE_3CAT, NEWS_SOURCE_MUNDO, NEWS_SOURCE_WORLD};
     static final String NEWS_CUSTOM_TIP = "El feed personalitzat té prioritat: elimina news_rss de home.conf per usar un predefinit.";
     static final String NEVER = "Mai";
     static final String MORNING_ONLY = "Només matí";

@@ -48,12 +48,14 @@ Build: the released `v1.0` asset (`LlarTV.apk`, 3,999,631 bytes), installed on t
 
 | Metric | Raw values | Min | Median | Max |
 | --- | --- | --- | --- | --- |
-| Cold start (ms) | 1863, 2075, 1840, 1736, (one run returned no `TotalTime` line) | 1736 | 1840 | 2075 |
+| Cold start (ms) | 1863, 2075, 1840, 1736 | 1736 | 1851.5 | 2075 |
 | Home return (ms) | 1052, 480, 343, 313, 220 | 220 | 343 | 1052 |
 | RAM, TOTAL PSS (KB) | 75227, 57268, 58671 | 57268 | 58671 | 75227 |
 
-The first run of the cold start returned no `TotalTime` line, so the median is over the four runs that did. The
-first RAM sample is taken while the app is still warming up, which is why it is the highest of the three.
+One of the five cold-start runs returned no `TotalTime` line, so its median is over the four runs that did: the
+usual median of 1736, 1840, 1863 and 2075 is 1851.5 ms. The script itself takes the middle of its five slots and
+reported 1840 ms for that run; both numbers are given here so the comparison below can use either. The first RAM
+sample is taken while the app is still warming up, which is why it is the highest of the three.
 
 ## Baseline (AVD `tv11`, 2026-10-27)
 
@@ -111,7 +113,7 @@ build measured one after the other on the same running TV:
 | Metric | v1.0 (released) | Settings menu + clock format | Difference | Budget | Result |
 | --- | --- | --- | --- | --- | --- |
 | APK bytes | 3,999,631 | 4,107,163 | +107,532 (+2.7%) | +5% | Inside |
-| Cold start, median | 1840 ms | 1519 ms | −321 ms (−17.4%) | +150 ms and +15% | Inside |
+| Cold start, median | 1851.5 ms | 1519 ms | −332.5 ms (−18.0%) | +150 ms and +15% | Inside |
 | Home return, median | 343 ms | 182 ms | −161 ms (−46.9%) | +40 ms and +40% | Inside |
 | RAM, TOTAL PSS, median | 58,671 KB | 56,161 KB | −2,510 KB (−4.3%) | +4,096 KB and +10% | Inside |
 

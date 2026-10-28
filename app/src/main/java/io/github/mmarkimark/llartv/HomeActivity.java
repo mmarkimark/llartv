@@ -105,9 +105,8 @@ public class HomeActivity extends Activity {
     LinearLayout panel, wxCard, newsCard, newsList;
     TextView wxTemp, wxLine, wxRange;
     TextView newsCredit;
-    long lastWx, lastNews, lastNewsAttempt;
-    String lastNewsSource = "";         // the source of the last successful fetch
-    String lastNewsAttemptSource = "";  // the source of the last attempt, successful or not
+    long lastWx;
+    final NewsSchedule newsSchedule = new NewsSchedule();   // when the headlines have to be fetched again
     boolean wxBusy, newsBusy;
     // football fixtures card
     LinearLayout matchCard;
@@ -1138,22 +1137,16 @@ public class HomeActivity extends Activity {
     void maybeFetchNews(File dir, long now) {
         NewsSource source = NewsSource.resolve(conf);
         if (newsBusy || source.url.isEmpty()) return;
-        boolean changed = !source.key.equals(lastNewsSource);   // another source has its own headlines
-        if (changed) {
-            // a source that was never tried fetches straight away; one that just failed waits before trying again
-            if (source.key.equals(lastNewsAttemptSource) && now - lastNewsAttempt < RETRY) return;
-        } else if (now - lastNews < NEWS_EVERY) return;
+        if (!newsSchedule.due(source.key, now, NEWS_EVERY, RETRY)) return;
         newsBusy = true;
-        lastNewsAttempt = now;
-        lastNewsAttemptSource = source.key;
+        newsSchedule.attempt(source.key, now);
         String url = source.url;
         new Thread(() -> {
             boolean ok;
             try { News.save(dir, source, News.fetch(url, 5)); ok = true; } catch (Exception ignored) { ok = false; }
             final boolean fetched = ok;
             ui.post(() -> {
-                lastNews = System.currentTimeMillis();
-                if (fetched) lastNewsSource = source.key;        // a failed fetch is not a fetched source
+                if (fetched) newsSchedule.success(source.key, System.currentTimeMillis());
                 newsBusy = false;
                 refreshMorning();
             });
