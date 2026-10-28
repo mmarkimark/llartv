@@ -195,3 +195,14 @@ Roadmap: GitHub issue #10. v1.1 = #1, #2, #3, #4, #5, #12 (the interface-languag
   the menu labels are pinned to the preset order by a test, the fetch gate moved to its own class
   (NewsSchedule) with tests for the three rules, the guid fallback has a fixture, the custom cache key is
   written on one line, and the document states the median convention of the TV cold start exactly.
+- L20 (2026-10-28) The final comparison of the shipped build on the TV, and the TV's settings put back. The
+  build of the branch (4,112,203 bytes) was installed on the MiTV-MSSP3 and measured with the same script: cold
+  start 1403, 1441, 1546, 1802, 1328 ms (median 1441), Home return 862, 1433, 238, 229, 249 ms (median 249), RAM
+  57170, 58570, 58586 KB (median 58570). Against the v1.0 baseline that is +2.8% of APK (budget +5%) and 22%
+  faster to start, so the whole v1.1 release is inside every budget on the device that will run it; the numbers
+  are in docs/performance/baseline-v1.0.md. The TV's own settings were put back to how they were found (only
+  the dock and the hidden apps). The screensaver proof on the TV is still open: the MiTV screencap cannot write
+  to stdout (the capture over one adb session came back empty), the AOSP TV emulator never starts a dream
+  (screensaver_activate_on_sleep has no effect there), and the only way to start the dream on the TV is to turn
+  the display off, which takes its Wi-Fi down with it, so the next attempt reads the dream window with
+  uiautomator over a single adb session.

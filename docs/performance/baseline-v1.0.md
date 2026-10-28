@@ -119,3 +119,19 @@ build measured one after the other on the same running TV:
 
 The TV is faster than the emulator by a wide margin and both versions are inside every budget, so the settings
 menu costs nothing measurable on the device that will run it.
+
+## The shipped v1.1 build (Xiaomi MiTV-MSSP3, 2026-10-28)
+
+The same script, the same TV, with the final build of the branch (the settings foundation plus the news source
+presets), measured right after the build was installed:
+
+| Metric | v1.0 (released) | v1.1 (shipped) | Difference | Budget | Result |
+| --- | --- | --- | --- | --- | --- |
+| APK bytes | 3,999,631 | 4,112,203 | +112,572 (+2.8%) | +5% | Inside |
+| Cold start, median | 1851.5 ms | 1441 ms | −410.5 ms (−22.2%) | +150 ms and +15% | Inside |
+| Home return, median | 343 ms | 249 ms | −94 ms (−27.4%) | +40 ms and +40% | Inside |
+| RAM, TOTAL PSS, median | 58,671 KB | 58,570 KB | −101 KB (−0.2%) | +4,096 KB and +10% | Inside |
+
+Raw values: cold start 1403, 1441, 1546, 1802, 1328 ms; Home return 862, 1433, 238, 229, 249 ms; RAM 57170,
+58570, 58586 KB. The whole v1.1 release, with the native settings menu and the news source presets, is 2.8% bigger
+than v1.0 and measurably faster on the TV that will run it.
