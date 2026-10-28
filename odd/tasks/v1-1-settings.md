@@ -206,3 +206,13 @@ Roadmap: GitHub issue #10. v1.1 = #1, #2, #3, #4, #5, #12 (the interface-languag
   (screensaver_activate_on_sleep has no effect there), and the only way to start the dream on the TV is to turn
   the display off, which takes its Wi-Fi down with it, so the next attempt reads the dream window with
   uiautomator over a single adb session.
+- L21 (2026-10-29) The screensaver proof on the real TV, the last open item. The MiTV only runs a dream in its
+  ambient mode, where the panel stays on and the Wi-Fi survives; waking it with KEYCODE_SLEEP turns the panel
+  off and takes the network down in the same instant, so that route cannot be captured. Letting the TV idle
+  until its own screen-off timeout fires puts it in the ambient mode (mWakefulness=Dreaming, Display Power:
+  state=ON, mCurrentDreamName=BingDream) with the network up, and then the capture works: the screensaver
+  showed "12:37 a. m." with the clock format of the settings, "dijous, 29 d'octubre" in Catalan, and the
+  weather line "18° · Serè", which is the cached weather of the TV read by the screensaver only. The wallpaper
+  title and its credit were there as well. The TV's own settings were then put back exactly as they were
+  found (only the dock and the hidden apps, and the screen-off timeout back to 300000 ms), and the home screen
+  shows the clock in the system's own 24-hour format again.
