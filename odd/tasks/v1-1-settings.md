@@ -35,24 +35,35 @@ Roadmap: GitHub issue #10. v1.1 = #1, #2, #3, #4, #5, #12 (the interface-languag
   procedure, repetitions, raw results, budgets) and the real-TV proof kept explicitly open — route: inline —
   status: done (scripts/measure.sh, docs/performance/baseline-v1.0.md; shellcheck clean; emulator `tv11` measured
   on 2026-10-27: cold start median 1384 ms, Home return median 95 ms, RAM median 38093 KB, debug APK 3999635
-  bytes; the MiTV-MSSP3 baseline is open, the TV was not reachable over ADB)
+  bytes; the MiTV-MSSP3 baseline was recorded on 2026-10-28 with the released v1.0 asset: cold start median
+  1840 ms, Home return median 343 ms, RAM median 58671 KB, APK 3999631 bytes)
 - T2 [S5, S8] #2 + #3: native remote-friendly settings menu (reusing `Config`/`home.conf`, keeping the Android
   settings reachable, preserving unknown keys and untouched values) with the clock format as its first control —
   route: inline — status: done (SettingsActivity + Clock; 58 JVM tests green, shellcheck clean; emulator `tv11`:
   the menu opens with the remote, the values persist in `home.conf` (`clock=24`, `clock=12` read back through
-  the settings receiver), Home shows 21:01 and 9:02 PM, the 12-hour notation fits the layout; the screensaver
-  clock and the real TV are still open)
+  the settings receiver), Home shows 21:01 and 9:02 PM, the 12-hour notation fits the layout; on the MiTV-MSSP3
+  on 2026-10-28 the menu opens from the *Configuració* pill with the remote, right changes the value,
+  `home.conf` reads `clock=12` and the home clock shows 6:41 p.m.; the screensaver clock is still open)
 - T4 [S4] #4 + #5: three-state weather and news control per surface, with the request suppression and the unchanged
   defaults — route: inline — status: done (`ContentPolicy`, `weather_home`/`weather_screen`/`news_home`; 73 JVM
   tests green, shellcheck clean; emulator `tv11`: the TEMPS card disappears with `weather_home=never` and leaves
   no empty space, and a local proxy shows no request at all when everything is off, only the weather request when
-  the screensaver still wants it, and no RSS request when the news are off; the screensaver line and the real TV
-  are still open)
+  the screensaver still wants it, and no RSS request when the news are off; on the MiTV-MSSP3 on 2026-10-28, with
+  the cache files deleted first, everything off writes neither `weather.cache` nor `news.cache` and shows no
+  panel, everything on writes both and shows the live TEMPS (22°, "Poc ennuvolat") and NOTÍCIES cards, and with
+  the weather off on the home screen but on in the screensaver the TEMPS card disappears without leaving a space
+  while the screensaver keeps the weather request; the screensaver weather line is still open)
 - T5 [S2] #12: news source presets (3Cat, BBC Mundo, BBC World) with attribution and article links, plus the
-  recorded BBC reuse terms before the presets are enabled — route: inline — status: pending (the reuse terms are
-  recorded in docs/news-sources.md; the implementation is not started)
+  recorded BBC reuse terms before the presets are enabled — route: inline — status: done (`NewsSource`,
+  `news_source` in `home.conf` and in the settings menu, the credit line under the headlines, the article link in
+  the cache and the 3Cat terms in docs/news-sources.md; 87 JVM tests green, shellcheck clean; on the emulator
+  `tv11` the menu offers the four sources, BBC News Mundo shows its own headlines with "BBC News" next to each of
+  them and "BBC News Mundo · bbc.co.uk/news" under them, and the 3Cat headlines are not shown under it; the real
+  TV is still open)
 - T6 [S6] Final before/after comparison (APK bytes, cold start, Home return, RAM) and the release notes — route:
-  inline
+  inline — status: pending (the TV comparison of the settings slice is recorded in
+  docs/performance/baseline-v1.0.md; the comparison of the final build on the TV and the release notes are still
+  open)
 
 ## Log
 
@@ -125,3 +136,47 @@ Roadmap: GitHub issue #10. v1.1 = #1, #2, #3, #4, #5, #12 (the interface-languag
   weather request continues (the screensaver only reads the cache) and with the news off there is no RSS request.
   The JVM tests grew from 58 to 73 (`ContentPolicyTest` plus the new `Config` cases) and shellcheck is clean. Still
   open: the screensaver weather line, which cannot be captured over ADB, and the whole thing on the real TV.
+- L14 (2026-10-28) The settings foundation proved on the real TV (MiTV-MSSP3, Android 11). The TV was reachable
+  over ADB at 192.168.1.52:5555 and running the LlarTV screensaver, so the session started with the released v1.0
+  asset installed. The menu opens from the *Configuració* pill with the remote (up, right, right, OK), the focus
+  moves between the settings, right changes the value, and the change is written to `home.conf` by the app itself
+  (`clock=12` read back through the settings receiver). The home clock then shows 6:41 p.m. instead of 18:41, so
+  the clock format reaches the real TV. The content controls were proved with the cache files deleted first: with
+  everything off the app writes neither `weather.cache` nor `news.cache` (the fetch is what writes them) and no
+  panel is shown; with everything on it writes both and shows the live weather (22°, "Poc ennuvolat") and two 3Cat
+  headlines with their age; with the weather off on the home screen but on in the screensaver the TEMPS card
+  disappears and the news card closes over it, without an empty space, while the screensaver keeps the weather
+  request, because the screensaver only reads the cache.
+- L15 (2026-10-28) The missing TV baseline is recorded and the comparison is inside every budget. The released
+  v1.0 asset (3,999,631 bytes) was installed on the TV and measured with scripts/measure.sh, then the branch build
+  (4,107,163 bytes) was installed and measured right after, on the same running TV: cold start 1840 -> 1519 ms,
+  Home return 343 -> 182 ms, RAM 58671 -> 56161 KB. The APK is +2.7% against a +5% budget and the other three
+  metrics are better than the baseline. Both numbers are in docs/performance/baseline-v1.0.md. One of the five
+  cold-start runs of the baseline returned no `TotalTime` line, so that median is over four runs, and this is
+  said in the document instead of being hidden.
+- L16 (2026-10-28) The LlarTV screensaver CAN be captured over ADB, which the earlier notes said was impossible.
+  What fails is *starting* the dream, because that needs the display off, and the MiTV drops its Wi-Fi the moment
+  the screen sleeps. But when the dream is already running and the display is on, `screencap` returns the
+  screensaver: the clock, the Catalan date, the wallpaper title and its credit were all captured on the TV at
+  18:35. The remaining proof of the screensaver (the clock format and the weather line there) needs the TV awake,
+  because sending KEYCODE_SLEEP to start the dream takes the network down with it.
+- L17 (2026-10-28) T5, the news source presets. The stored choice is `news_source` (automatic, 3cat, bbc-mundo,
+  bbc-world); "automatic" follows the interface language and resolves to Catalan until the language selector of
+  issue #11 lands in v1.2. A custom `news_rss` always wins over the preset and is never overwritten by one, and
+  the menu says "Personalitzada" and refuses to change the preset while it is in effect, instead of pretending
+  the preset is in use. Every source is credited next to each headline ("BBC News", "3Cat" or the host of a custom
+  feed) and in one credit line under them ("BBC News Mundo · bbc.co.uk/news"), which is what the terms of those
+  feeds ask for, and the article link is kept in the cache because the home screen is display-only. The cache now
+  carries the source it belongs to and the article link, so the headlines of one source are never shown under
+  another one and a cache from an older version is not reused at all. Two defects were found by running it and
+  fixed: the action row of the settings menu had no value list and crashed the screen, and a source switch was
+  blocked for ten minutes by the attempt of the previous source, so the retry window is now kept per source. The
+  JVM tests grew from 73 to 87 and shellcheck is clean. The 3Cat terms are recorded in docs/news-sources.md:
+  personal and private use only, so a public distribution of the app has to ask the CCMA first, exactly like the
+  BBC feeds need a licence for anything wider than personal use.
+- L18 (2026-10-28) The Catalan text of the app was reviewed. "Relotge" was a Spanishism: Catalan is "Rellotge".
+  "Bon tarda" does not exist in Catalan either: the greeting is "bon dia" until 14:00 and "bon vespre" after it,
+  which is what the app now says. Every other string was checked and left as it is. The slice boundary of the
+  branch: the first slice is the settings foundation (the six commits up to 84d4e4b) and the second slice is the
+  news source presets (838b2c4); the next commit starts a third slice, and the accumulated branch is not a review
+  candidate.
