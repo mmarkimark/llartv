@@ -43,7 +43,8 @@ Roadmap: GitHub issue #10. v1.1 = #1, #2, #3, #4, #5, #12 (the interface-languag
   the menu opens with the remote, the values persist in `home.conf` (`clock=24`, `clock=12` read back through
   the settings receiver), Home shows 21:01 and 9:02 PM, the 12-hour notation fits the layout; on the MiTV-MSSP3
   on 2026-10-28 the menu opens from the *Configuració* pill with the remote, right changes the value,
-  `home.conf` reads `clock=12` and the home clock shows 6:41 p.m.; the screensaver clock is still open)
+  `home.conf` reads `clock=12` and the home clock shows 6:41 p.m.; on the screensaver of the same TV the clock
+  shows 12:37 a. m., so the format reaches the screensaver as well)
 - T4 [S4] #4 + #5: three-state weather and news control per surface, with the request suppression and the unchanged
   defaults — route: inline — status: done (`ContentPolicy`, `weather_home`/`weather_screen`/`news_home`; 73 JVM
   tests green, shellcheck clean; emulator `tv11`: the TEMPS card disappears with `weather_home=never` and leaves
@@ -52,18 +53,19 @@ Roadmap: GitHub issue #10. v1.1 = #1, #2, #3, #4, #5, #12 (the interface-languag
   the cache files deleted first, everything off writes neither `weather.cache` nor `news.cache` and shows no
   panel, everything on writes both and shows the live TEMPS (22°, "Poc ennuvolat") and NOTÍCIES cards, and with
   the weather off on the home screen but on in the screensaver the TEMPS card disappears without leaving a space
-  while the screensaver keeps the weather request; the screensaver weather line is still open)
+  while the screensaver keeps the weather request; the screensaver of the same TV shows its own weather line
+  (18° · Serè) read from the cache)
 - T5 [S2] #12: news source presets (3Cat, BBC Mundo, BBC World) with attribution and article links, plus the
   recorded BBC reuse terms before the presets are enabled — route: inline — status: done (`NewsSource`,
   `news_source` in `home.conf` and in the settings menu, the credit line under the headlines, the article link in
   the cache and the 3Cat terms in docs/news-sources.md; 87 JVM tests green, shellcheck clean; on the emulator
   `tv11` the menu offers the four sources, BBC News Mundo shows its own headlines with "BBC News" next to each of
-  them and "BBC News Mundo · bbc.co.uk/news" under them, and the 3Cat headlines are not shown under it; the real
-  TV is still open)
+  them and "BBC News Mundo · bbc.co.uk/news" under them, and the 3Cat headlines are not shown under it; on the
+  MiTV-MSSP3 the shipped build shows the live 3Cat headlines with "3Cat · 3cat.cat" under them)
 - T6 [S6] Final before/after comparison (APK bytes, cold start, Home return, RAM) and the release notes — route:
-  inline — status: pending (the TV comparison of the settings slice is recorded in
-  docs/performance/baseline-v1.0.md; the comparison of the final build on the TV and the release notes are still
-  open)
+  inline — status: done (the shipped build measured on the TV: APK 4112203 bytes (+2.8% against the +5%
+  budget), cold start median 1441 ms, Home return median 249 ms, RAM median 58570 KB, all inside the budgets;
+  the numbers are in docs/performance/baseline-v1.0.md and the release notes in CHANGELOG.md)
 
 ## Log
 
@@ -216,3 +218,8 @@ Roadmap: GitHub issue #10. v1.1 = #1, #2, #3, #4, #5, #12 (the interface-languag
   title and its credit were there as well. The TV's own settings were then put back exactly as they were
   found (only the dock and the hidden apps, and the screen-off timeout back to 300000 ms), and the home screen
   shows the clock in the system's own 24-hour format again.
+- L22 (2026-10-29) The shipped build on the real TV, last check. With the morning band forced and the night
+  band off (so the panel shows at half past midnight), the home screen of the MiTV-MSSP3 shows the live weather
+  (17°, "Serè", "Màx. 20° · Mín. 16°") and two live 3Cat headlines with their age, and under them the credit
+  line "3Cat · 3cat.cat" that the new news source adds. The TV's own settings were put back again right after
+  (only the dock and the hidden apps), so the TV is exactly as it was found.
