@@ -9,12 +9,13 @@ import java.util.Calendar;
 import java.util.TimeZone;
 
 public class CaTest {
-    @Test public void greetingsKeepTheExistingHourThresholds() {
+    @Test public void greetingsUseTheCatalanForms() {
         assertEquals("Bona nit", Ca.greeting(4));
         assertEquals("Bon dia", Ca.greeting(5));
         assertEquals("Bon dia", Ca.greeting(11));
-        assertEquals("Bona tarda", Ca.greeting(12));
-        assertEquals("Bon vespre", Ca.greeting(17));
+        assertEquals("Bon dia", Ca.greeting(13));
+        assertEquals("Bon vespre", Ca.greeting(14));
+        assertEquals("Bon vespre", Ca.greeting(21));
         assertEquals("Bona nit", Ca.greeting(22));
     }
 

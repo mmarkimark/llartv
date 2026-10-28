@@ -39,6 +39,13 @@ public class NewsTest {
         assertEquals(0L, items.get(2).published);
     }
 
+    @Test public void parsesTheArticleLink() {
+        List<News.Item> items = News.parse(FEED.getBytes(StandardCharsets.ISO_8859_1));
+        assertEquals("https://www.3cat.cat/a", items.get(0).link);
+        assertEquals("", items.get(1).link);
+        assertEquals("", items.get(2).link);
+    }
+
     @Test public void utf8FeedWithoutPrologDecodesAsUtf8() {
         String feed = "<rss><channel><item><title>Notícies d'avui</title></item></channel></rss>";
         List<News.Item> items = News.parse(feed.getBytes(StandardCharsets.UTF_8));
@@ -69,20 +76,40 @@ public class NewsTest {
 
     @Test public void cacheRoundTrips() throws Exception {
         File dir = tmp.newFolder();
+        NewsSource source = NewsSource.preset(NewsSource.THREE_CAT);
         List<News.Item> items = new ArrayList<>(News.parse(FEED.getBytes(StandardCharsets.ISO_8859_1)));
-        News.save(dir, items);
-        List<News.Item> back = News.load(dir);
+        News.save(dir, source, items);
+        List<News.Item> back = News.load(dir, source);
         assertEquals(3, back.size());
         for (int i = 0; i < 3; i++) {
             assertEquals(items.get(i).title, back.get(i).title);
             assertEquals(items.get(i).published, back.get(i).published);
+            assertEquals(items.get(i).link, back.get(i).link);
         }
+    }
+
+    @Test public void theCacheOfAnotherSourceIsNotReused() throws Exception {
+        File dir = tmp.newFolder();
+        NewsSource cat = NewsSource.preset(NewsSource.THREE_CAT);
+        NewsSource mundo = NewsSource.preset(NewsSource.BBC_MUNDO);
+        News.save(dir, cat, News.parse(FEED.getBytes(StandardCharsets.ISO_8859_1)));
+        assertNull(News.load(dir, mundo));   // the headlines of another source are not shown under this one
+        assertEquals(3, News.load(dir, cat).size());
+    }
+
+    @Test public void anOldCacheWithoutTheHeaderIsNotReused() throws Exception {
+        File dir = tmp.newFolder();
+        try (FileWriter w = new FileWriter(new File(dir, "news.cache"))) {
+            w.write("1761364200000\tNotícia antiga\n");
+        }
+        assertNull(News.load(dir, NewsSource.preset(NewsSource.THREE_CAT)));
     }
 
     @Test public void missingOrCorruptCacheIsNull() throws Exception {
         File dir = tmp.newFolder();
-        assertNull(News.load(dir));
+        NewsSource source = NewsSource.preset(NewsSource.THREE_CAT);
+        assertNull(News.load(dir, source));
         try (FileWriter w = new FileWriter(new File(dir, "news.cache"))) { w.write("no tab here"); }
-        assertNull(News.load(dir));
+        assertNull(News.load(dir, source));
     }
 }

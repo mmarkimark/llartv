@@ -16,19 +16,29 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Headlines from an RSS 2.0 feed (home.conf "news_rss", 3Cat's front page by default) for the morning panel.
+ * Headlines from an RSS 2.0 feed (home.conf "news_source" or a custom "news_rss") for the morning panel.
  * Parsed with plain string matching rather than an XML parser so the same code runs on the TV and in JVM tests;
  * the bytes are decoded with the charset the XML prolog declares (3Cat's feed is ISO-8859-1).
+ *
+ * The cache keeps the article link of every headline, and the source it belongs to: the headlines of one
+ * source are never shown under another one, and a cache from an older version is not reused at all.
  */
 final class News {
     private News() {}
 
     static final String CACHE = "news.cache";
+    static final String CACHE_HEADER = "#llartv-news-v2";   // the format version, then the source key
 
     static final class Item {
         final String title;
         final long published;   // epoch ms; 0 when the feed gave no readable pubDate
-        Item(String title, long published) { this.title = title; this.published = published; }
+        final String link;      // the article URL; empty when the feed gave none
+        Item(String title, long published) { this(title, published, ""); }
+        Item(String title, long published, String link) {
+            this.title = title;
+            this.published = published;
+            this.link = link == null ? "" : link;
+        }
     }
 
     private static final Pattern ENCODING = Pattern.compile("^\\s*<\\?xml[^>]*encoding\\s*=\\s*[\"']([A-Za-z0-9._:-]+)[\"']");
@@ -44,9 +54,17 @@ final class News {
             String title = text(m.group(1), "title");
             if (title == null || title.isEmpty()) continue;
             String date = text(m.group(1), "pubDate");
-            items.add(new Item(title, date == null ? 0 : date(date)));
+            items.add(new Item(title, date == null ? 0 : date(date), link(m.group(1))));
         }
         return items;
+    }
+
+    /** The article URL of an item: its <link>, or its <guid> when that one is a URL. */
+    private static String link(String item) {
+        String link = text(item, "link");
+        if (link != null && !link.isEmpty()) return link;
+        String guid = text(item, "guid");
+        return guid != null && guid.startsWith("http") ? guid : "";
     }
 
     /** Decodes with the prolog's encoding (read as ISO-8859-1, which any ASCII-compatible prolog survives), else UTF-8. */
@@ -136,24 +154,38 @@ final class News {
         return days == 1 ? "ahir" : "fa " + days + " dies";
     }
 
-    /** Writes files/news.cache, one "published<TAB>title" line per item, via a temp file. */
-    static void save(File dir, List<Item> items) throws Exception {
+    /** Writes files/news.cache: a header with the format version and the source, then one item per line. */
+    static void save(File dir, NewsSource source, List<Item> items) throws Exception {
         StringBuilder sb = new StringBuilder();
-        for (Item i : items) sb.append(i.published).append('\t').append(DailyWallpaper.oneLine(i.title)).append('\n');
+        sb.append(CACHE_HEADER).append('\t').append(source.key).append('\n');
+        for (Item i : items) {
+            sb.append(i.published).append('\t').append(DailyWallpaper.oneLine(i.title)).append('\t')
+                    .append(DailyWallpaper.oneLine(i.link)).append('\n');
+        }
         File tmp = new File(dir, CACHE + ".part");
         try (FileOutputStream out = new FileOutputStream(tmp)) { out.write(sb.toString().getBytes(StandardCharsets.UTF_8)); }
         if (!tmp.renameTo(new File(dir, CACHE))) { tmp.delete(); throw new Exception("news cache rename failed"); }
     }
 
-    /** The cached items, or null when there is no cache or it can't be read. */
-    static List<Item> load(File dir) {
+    /** The cached items of that source, or null when there are none, they are from another source, or the cache is older. */
+    static List<Item> load(File dir, NewsSource source) {
         try {
+            String[] lines = new String(Files.readAllBytes(new File(dir, CACHE).toPath()), StandardCharsets.UTF_8).split("\n");
+            if (lines.length == 0) return null;
+            String head = lines[0];
+            if (!head.startsWith(CACHE_HEADER)) return null;   // a cache from an older version is not reused
+            int tab = head.indexOf('\t');
+            if (tab < 0 || !head.substring(tab + 1).trim().equals(source.key)) return null;
             List<Item> items = new ArrayList<>();
-            for (String l : new String(Files.readAllBytes(new File(dir, CACHE).toPath()), StandardCharsets.UTF_8).split("\n")) {
+            for (int i = 1; i < lines.length; i++) {
+                String l = lines[i];
                 if (l.isEmpty()) continue;
-                int tab = l.indexOf('\t');
-                if (tab < 0) return null;
-                items.add(new Item(l.substring(tab + 1), Long.parseLong(l.substring(0, tab))));
+                int t1 = l.indexOf('\t');
+                if (t1 < 0) return null;
+                int t2 = l.indexOf('\t', t1 + 1);
+                String title = t2 < 0 ? l.substring(t1 + 1) : l.substring(t1 + 1, t2);
+                String link = t2 < 0 ? "" : l.substring(t2 + 1);
+                items.add(new Item(title, Long.parseLong(l.substring(0, t1)), link));
             }
             return items;
         } catch (Exception e) { return null; }

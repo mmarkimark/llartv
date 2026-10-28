@@ -41,6 +41,7 @@ public class SettingsActivity extends Activity {
         final String[] values;       // what is written to home.conf, null for an action
         final Runnable action;       // for an action row
         int selected;
+        boolean custom;              // a custom feed is in effect, so the presets do not apply
         LinearLayout view;
         TextView value;
 
@@ -121,10 +122,21 @@ public class SettingsActivity extends Activity {
         addPolicyRow(Ca.WEATHER_HOME, "weather_home", conf.weatherHome);
         addPolicyRow(Ca.WEATHER_SCREEN, "weather_screen", conf.weatherScreen);
         addPolicyRow(Ca.NEWS_HOME, "news_home", conf.newsHome);
+        addSourceRow(conf);
         rows.add(new Row(Ca.SYSTEM_SETTINGS, null, null, null, new Runnable() {
             @Override public void run() { openSystemSettings(); }
         }));
         for (Row r : rows) addRowView(r);
+    }
+
+    /** The news source. A custom "news_rss" wins over the presets, so the row shows that instead. */
+    void addSourceRow(Config conf) {
+        Row r = new Row(Ca.NEWS_SOURCE, "news_source",
+                new String[]{Ca.NEWS_SOURCE_AUTO, Ca.NEWS_SOURCE_3CAT, Ca.NEWS_SOURCE_MUNDO, Ca.NEWS_SOURCE_WORLD},
+                NewsSource.OPTIONS, null);
+        r.selected = Math.max(0, indexOf(r.values, conf.newsSource));
+        r.custom = conf.newsRssCustom && conf.newsRss != null && !conf.newsRss.trim().isEmpty();
+        rows.add(r);
     }
 
     /** A row with the three content states: never, only in the morning band, all day. */
@@ -146,7 +158,7 @@ public class SettingsActivity extends Activity {
         label.setText(r.label);
         row.addView(label, new LinearLayout.LayoutParams(0, dp(62), 1f));
         TextView value = text(500, 23, 0xFF8E8E93);
-        value.setText(r.isAction() ? "" : r.options[r.selected]);
+        value.setText(r.isAction() ? "" : r.custom ? Ca.NEWS_SOURCE_CUSTOM : r.options[r.selected]);
         value.setGravity(Gravity.CENTER_VERTICAL);
         row.addView(value, new LinearLayout.LayoutParams(-2, dp(62)));
         r.view = row;
@@ -158,6 +170,8 @@ public class SettingsActivity extends Activity {
         try { startActivity(new Intent(Settings.ACTION_SETTINGS)); }
         catch (Exception ex) { Toast.makeText(this, Ca.NOT_AVAILABLE, Toast.LENGTH_SHORT).show(); }
     }
+
+    void toast(String msg) { Toast.makeText(this, msg, Toast.LENGTH_LONG).show(); }
 
     static int indexOf(String[] values, String v) {
         for (int i = 0; i < values.length; i++) if (values[i].equals(v)) return i;
@@ -239,6 +253,7 @@ public class SettingsActivity extends Activity {
         else if (k == D) { if (focus >= rows.size() - 1) return; focus++; }
         else if (k == L || k == R) {
             if (r.isAction()) return;
+            if (r.custom) { toast(Ca.NEWS_CUSTOM_TIP); return; }
             int next = r.selected + (k == R ? 1 : -1);
             if (next < 0) next = r.values.length - 1;
             if (next >= r.values.length) next = 0;
@@ -246,6 +261,7 @@ public class SettingsActivity extends Activity {
         }
         else if (isOk(k)) {
             if (r.isAction()) { r.action.run(); return; }
+            if (r.custom) { toast(Ca.NEWS_CUSTOM_TIP); return; }
             openPanel(r);
             return;
         }

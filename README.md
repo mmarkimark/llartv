@@ -168,7 +168,8 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 | `morning` | `08:00-11:00` | Morning panel time range; `off` turns it off. |
 | `night` | `23:00-08:00` | Night mode time range; `off` turns it off. |
 | `location` | `41.4235,2.2010` (Barcelona) | `latitude,longitude` used for the weather. |
-| `news_rss` | 3Cat front page | RSS feed for the morning headlines. |
+| `news_source` | `automatic` | News source: `automatic` (follows the interface language, Catalan until the language selector in v1.2), `3cat`, `bbc-mundo` or `bbc-world`. |
+| `news_rss` | empty | Custom RSS feed for the morning headlines; it wins over `news_source` and is never overwritten by it. Remove the line to use a preset again. |
 | `dock_tint` | `on` | Tint the dock band from the wallpaper; `off` uses a plain band. |
 | `clock` | `system` | Clock format: `system` follows the TV, `24` is 24-hour, `12` is 12-hour with AM/PM. |
 | `weather_home` | `morning` | Weather on the home screen: `never`, `morning` or `all`. |
@@ -179,6 +180,9 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 
 Settings are stored on the TV in LlarTV's `home.conf` (one `key=value` per line). Remote wallpapers are refreshed
 at most every six hours, and only new Bing images are downloaded.
+
+The news source can also be changed from the TV itself: **Configuració → Font de notícies** offers the presets.
+A custom `news_rss` feed has priority over them; remove it from `home.conf` to use a preset again.
 
 ## Screensaver
 

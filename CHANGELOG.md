@@ -14,6 +14,14 @@ All notable changes to LlarTV are documented in this file. The format is based o
 - Weather and news controls (`weather_home`, `weather_screen`, `news_home`): never, only in the morning band or all
   day, for the home screen and for the screensaver. What is switched off on every surface is not downloaded any
   more, and a hidden card leaves no empty space.
+- News source presets (`news_source`): 3Cat (Catalan), BBC News Mundo (Spanish) and BBC News World (English),
+  plus `automatic` (the default), which follows the interface language and resolves to 3Cat until the language
+  selector lands in v1.2. The source is credited next to the headlines and the article link is kept in the
+  cache.
+- The reuse terms of the 3Cat feed recorded in `docs/news-sources.md`, next to the BBC ones: personal and
+  private use only, so a wider distribution of the app has to ask the CCMA first.
+- Catalan fixes: the settings menu row for the clock is spelled "Rellotge", and the afternoon greeting is the
+  Catalan "bon vespre" from 14:00 instead of the Spanishism "bon tarda".
 
 ## [1.0] - 2026-10-25
 
