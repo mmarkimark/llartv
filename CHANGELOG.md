@@ -25,6 +25,9 @@ become the owner's choice instead of the TV's.
   cache.
 - The reuse terms of the 3Cat feed recorded in `docs/news-sources.md`, next to the BBC ones: personal and
   private use only, so a wider distribution of the app has to ask the CCMA first.
+
+### Fixed
+
 - Catalan fixes: the settings menu row for the clock is spelled "Rellotge", and the afternoon greeting is the
   Catalan "bon vespre" from 14:00 instead of the Spanishism "bon tarda".
 

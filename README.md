@@ -54,6 +54,15 @@ broadcasts, and network data is fetched only while the home screen is showing.
   gradually when the band changes.
 - **Photo-tinted dock**: the dock band takes a dark colour from the current wallpaper.
 
+**Settings**
+
+- A native settings menu on the TV (**Configuració** in the top bar), navigable with the remote. It writes to the
+  same `home.conf` as the ADB scripts, and the Android/TV settings stay reachable from it.
+- Clock format: follow the TV, 24-hour or 12-hour with AM/PM, applied to the home screen, the screensaver and the
+  next-match card.
+- News source: 3Cat (Catalan), BBC News Mundo (Spanish) or BBC News World (English), with the source credited next
+  to the headlines and the article link kept with them. A custom RSS feed always wins over the preset.
+
 **Wallpapers and screensaver**
 
 - Daily wallpapers from Bing (the last eight images, optionally rotating) or from any image URL.
@@ -81,7 +90,14 @@ The same three bands on the TV itself (Xiaomi MiTV-MSSP3, Android 11):
 | --- | --- | --- |
 | ![Day home on the TV](docs/screenshots/tv-day.jpg) | ![Morning panel on the TV](docs/screenshots/tv-morning.jpg) | ![Night mode on the TV](docs/screenshots/tv-night.jpg) |
 
-*The morning panel shows live weather and headlines; the night palette dims the wallpaper and warms the text.*
+*The morning panel shows live weather and headlines with the source credited under them; the night palette dims the
+wallpaper and warms the text.*
+
+The settings menu and the screensaver on the TV:
+
+| Settings | Screensaver |
+| --- | --- |
+| ![The LlarTV settings menu on the TV](docs/screenshots/tv-settings.jpg) | ![The screensaver with the 12-hour clock and the weather on the TV](docs/screenshots/tv-screensaver.jpg) |
 
 ## Requirements
 
