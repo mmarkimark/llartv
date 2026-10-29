@@ -1,13 +1,8 @@
 package io.github.mmarkimark.llartv;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.GradientDrawable;
-import android.media.AudioAttributes;
-import android.media.AudioFocusRequest;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Looper;
 import android.service.dreams.DreamService;
@@ -29,7 +24,8 @@ import java.util.concurrent.Executors;
 /**
  * Screensaver: the downloaded wallpapers (wallpaper=bing, see DailyWallpaper) shown full screen with a slow
  * zoom-and-drift ("Ken Burns") and a cross-fade, plus the clock, the date and each image's title and caption.
- * Everything runs on the TV: no network, no extra downloads. Any remote key closes it.
+ * Images and weather use the local cache; optional music streams from the configured HTTPS URL.
+ * Any remote key closes it.
  * Enable with: adb shell settings put secure screensaver_components io.github.mmarkimark.llartv/.BingDream
  */
 public class BingDream extends DreamService {
@@ -127,65 +123,22 @@ public class BingDream extends DreamService {
         for (TextView t : inks) t.setTextColor(Look.ink((Integer) t.getTag(), a));
     }
 
-    /** The screensaver music (issue #17): the platform player and the audio focus, nothing else. */
-    MediaPlayer music;
-    AudioManager audio;
-    AudioFocusRequest musicFocus;
-    boolean musicPaused;
+    DreamMusic music;
 
-    /** Plays the stream the owner configured. A stream that fails leaves the screensaver silent and quiet about it. */
     void startMusic(Config conf) {
+        stopMusic();
         if (!Music.shouldPlay(conf)) return;
         try {
-            music = new MediaPlayer();
-            music.setAudioAttributes(new AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .build());
-            music.setOnPreparedListener(mp -> { android.util.Log.i("LlarTV", "screensaver music: playing " + conf.musicUrl); mp.start(); });
-            music.setOnErrorListener((mp, what, extra) -> {
-                android.util.Log.i("LlarTV", "screensaver music: the stream failed (" + what + "), staying silent");
-                ui.post(this::stopMusic);
-                return true;
-            });
-            music.setDataSource(conf.musicUrl.trim());
-            music.prepareAsync();
-            audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-            musicFocus = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
-                    .setOnAudioFocusChangeListener(f -> onMusicFocus(f))
-                    .build();
-            audio.requestAudioFocus(musicFocus);
-        } catch (Exception e) {
-            android.util.Log.i("LlarTV", "screensaver music: could not start (" + e + "), staying silent");
-            stopMusic();   // no stream, no sound and no error: the screensaver is still the screensaver
+            music = new DreamMusic(this, ui, conf.musicUrl);
+            music.begin();
+        } catch (RuntimeException e) {
+            android.util.Log.i("LlarTV", "screensaver music: unavailable, staying silent");
+            stopMusic();
         }
     }
 
-    /** Another app took the sound: wait for it, and pick the music up again when it is gone. */
-    void onMusicFocus(int change) {
-        if (music == null) return;
-        try {
-            if (change == AudioManager.AUDIOFOCUS_GAIN) {
-                if (musicPaused) { musicPaused = false; music.start(); }
-            } else if (change <= AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
-                music.pause();
-                musicPaused = true;
-            }
-        } catch (Exception ignored) {}
-    }
-
-    /** Stops the music and gives the sound back, so nothing is left playing in the background. */
     void stopMusic() {
-        if (music != null) {
-            try { music.stop(); } catch (Exception ignored) {}
-            music.release();
-            music = null;
-        }
-        if (audio != null && musicFocus != null) {
-            audio.abandonAudioFocusRequest(musicFocus);
-            musicFocus = null;
-        }
-        musicPaused = false;
+        if (music != null) { music.stop(); music = null; }
     }
 
     @Override public void onDreamingStarted() {
