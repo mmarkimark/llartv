@@ -35,4 +35,34 @@ public class ConfigFileTest {
         assertEquals("", Config.read(dir));
         assertEquals("bing", Config.parse(dir).wallpaper);
     }
+
+    @Test public void setInTextReplacesTheValueAndKeepsEveryOtherLine() {
+        String text = "# LlarTV settings\ncolumns=5\nclock=system\nteam_name=LIVERPOOL FC\nfuture_key=1\n";
+        assertEquals("# LlarTV settings\ncolumns=5\nclock=24\nteam_name=LIVERPOOL FC\nfuture_key=1\n",
+                Config.setInText(text, "clock", "24"));
+    }
+
+    @Test public void setInTextAppendsAMissingKeyWithATrailingNewline() {
+        assertEquals("columns=5\nclock=24\n", Config.setInText("columns=5\n", "clock", "24"));
+        assertEquals("columns=5\nclock=24\n", Config.setInText("columns=5", "clock", "24"));   // no trailing newline: one is added
+    }
+
+    @Test public void setInTextOnAnEmptyFileStartsTheFile() {
+        assertEquals("clock=24\n", Config.setInText("", "clock", "24"));   // no leading blank line
+    }
+
+    @Test public void setInTextMatchesTheKeyCaseInsensitivelyAndOnlyTheFirstLine() {
+        String text = "# clock=12 commented out\nClock=system\nclock=12\n";
+        assertEquals("# clock=12 commented out\nCLOCK=24\nclock=12\n", Config.setInText(text, "CLOCK", "24"));
+    }
+
+    @Test public void setInTextRoundTripsThroughTheFile() throws Exception {
+        File dir = tmp.getRoot();
+        Config.write(dir, "columns=5\nclock=system\n");
+        Config.write(dir, Config.setInText(Config.read(dir), "clock", "24"));
+        assertEquals("columns=5\nclock=24\n", Config.read(dir));
+        Config k = Config.parse(dir);
+        assertEquals("24", k.clock);
+        assertEquals(5, k.columns);
+    }
 }

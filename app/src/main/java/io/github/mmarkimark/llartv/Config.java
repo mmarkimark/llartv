@@ -29,6 +29,7 @@ import java.util.Set;
  *   morning=08:00-11:00          (empty turns the morning panel off)
  *   night=23:00-08:00            (empty turns night mode off)
  *   dock_tint=on                 (dock band takes a dark colour from the wallpaper)
+ *   clock=system                 (system, 24 or 12: the clock format)
  * Push it with adb, then: adb shell am force-stop io.github.mmarkimark.llartv && adb shell input keyevent KEYCODE_HOME
  */
 final class Config {
@@ -43,6 +44,7 @@ final class Config {
     String newsRss = "https://api.3cat.cat/noticies?_format=rss&origen=frontal&frontal=n324-portada-noticia&version=2.0";
     String morning = TimeBands.DEFAULT_MORNING, night = TimeBands.DEFAULT_NIGHT;
     boolean dockTint = true;
+    String clock = Clock.SYSTEM;    // "system", "24" or "12"
 
     TimeBands bands() { return TimeBands.parse(morning, night); }
 
@@ -104,7 +106,31 @@ final class Config {
             case "morning": morning = v; break;
             case "night": night = v; break;
             case "dock_tint": dockTint = !v.equalsIgnoreCase("off") && !v.equalsIgnoreCase("false") && !v.equals("0"); break;
+            case "clock": {
+                String p = v.trim().toLowerCase(java.util.Locale.ROOT);
+                if (p.isEmpty()) p = Clock.SYSTEM;
+                if (Clock.SYSTEM.equals(p) || Clock.H24.equals(p) || Clock.H12.equals(p)) clock = p;
+                break;
+            }
         }
+    }
+
+    /** Replaces one key=value line in the raw configuration text, keeping every other line; appends it when missing. */
+    static String setInText(String text, String key, String value) {
+        String[] lines = text.split("\n", -1);
+        String line = key + "=" + value;
+        for (int i = 0; i < lines.length; i++) {
+            String l = lines[i];
+            int hash = l.indexOf('#');
+            String head = (hash >= 0 ? l.substring(0, hash) : l).trim();
+            int eq = head.indexOf('=');
+            if (eq < 0) continue;
+            if (!head.substring(0, eq).trim().equalsIgnoreCase(key)) continue;
+            lines[i] = line;
+            return String.join("\n", lines);
+        }
+        String prefix = text.isEmpty() || text.endsWith("\n") ? "" : "\n";
+        return text + prefix + line + "\n";
     }
 
     static List<String> split(String v) {

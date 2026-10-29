@@ -18,6 +18,15 @@ final class Ca {
     static final String HOME = "A casa", AWAY = "Fora", VS = "contra ";
     static final String WEATHER = "Temps", NEWS = "Notícies";
 
+    // LlarTV settings
+    static final String SETTINGS_TITLE = "Configuració de LlarTV";
+    static final String SYSTEM_SETTINGS = "Configuració del sistema";
+    static final String CLOCK = "Relotge";
+    static final String CLOCK_SYSTEM = "Segueix el sistema";
+    static final String CLOCK_24 = "24 h";
+    static final String CLOCK_12 = "12 h";
+    static final String CANT_SAVE = "No s'ha pogut desar";
+
     /** Same hour thresholds the English greeting used. */
     static String greeting(int hour) {
         return hour < 5 ? "Bona nit" : hour < 12 ? "Bon dia" : hour < 17 ? "Bona tarda" : hour < 22 ? "Bon vespre" : "Bona nit";

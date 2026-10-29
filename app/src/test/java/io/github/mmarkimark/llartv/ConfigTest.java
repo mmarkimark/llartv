@@ -61,4 +61,26 @@ public class ConfigTest {
         assertEquals("", empty.wallpaper);
         assertEquals("", off.wallpaper);
     }
+
+    @Test public void clockDefaultsToSystem() {
+        assertEquals(Clock.SYSTEM, new Config().clock);
+    }
+
+    @Test public void explicitClockFormatsAreRead() {
+        Config k24 = new Config(), k12 = new Config();
+        k24.set("clock", "24");
+        k12.set("clock", "12");
+        assertEquals("24", k24.clock);
+        assertEquals("12", k12.clock);
+    }
+
+    @Test public void unknownClockKeepsSystemAndEmptyMeansSystem() {
+        Config k = new Config();
+        k.set("clock", "25");
+        assertEquals(Clock.SYSTEM, k.clock);
+        k.set("clock", "abc");
+        assertEquals(Clock.SYSTEM, k.clock);
+        k.set("clock", "");
+        assertEquals(Clock.SYSTEM, k.clock);
+    }
 }
