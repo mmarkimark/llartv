@@ -123,6 +123,7 @@ public class SettingsActivity extends Activity {
         addPolicyRow(Ca.WEATHER_SCREEN, "weather_screen", conf.weatherScreen);
         addPolicyRow(Ca.NEWS_HOME, "news_home", conf.newsHome);
         addSourceRow(conf);
+        addMusicRow(conf);
         rows.add(new Row(Ca.SYSTEM_SETTINGS, null, null, null, new Runnable() {
             @Override public void run() { openSystemSettings(); }
         }));
@@ -144,6 +145,13 @@ public class SettingsActivity extends Activity {
                 new String[]{ContentPolicy.value(ContentPolicy.NEVER), ContentPolicy.value(ContentPolicy.MORNING),
                         ContentPolicy.value(ContentPolicy.ALL)}, null);
         r.selected = policy;   // NEVER, MORNING and ALL are 0, 1 and 2, the same order as the options
+        rows.add(r);
+    }
+
+    /** The screensaver music: on or off. The stream itself comes from the configuration, not from the remote. */
+    void addMusicRow(Config conf) {
+        Row r = new Row(Ca.MUSIC_SCREEN, "music_screen", new String[]{Ca.ON, Ca.OFF}, new String[]{"on", "off"}, null);
+        r.selected = conf.musicScreen ? 0 : 1;
         rows.add(r);
     }
 
