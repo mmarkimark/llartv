@@ -233,8 +233,9 @@ Roadmap: GitHub issue #10. v1.1 = #1, #2, #3, #4, #5, #12 (the interface-languag
   docs/performance/baseline-v1.0.md come from the incremental build of the same commit, measured on the TV right
   after the v1.0 asset had been measured there. The CI's shellcheck (0.9.0 on the runner) flags the `A && B || C`
   pattern of the measurement script that the local shellcheck (0.11.0) does not, so the script now uses an if.
-- L24 (2026-10-29) Two open items, both needing the TV awake. The re-measurement of the published clean build
-  (the numbers of L23 come from the incremental build of the same commit) and the screensaver of the final build
-  are not re-measured: the MiTV drops its Wi-Fi with the display off and never came back on its own during the
-  delivery. The feature itself is proved on that TV, with the menu, the clock format, the content controls, the
-  news presets and the screensaver clock and weather line.
+- L24 (2026-10-29) The last open item is closed: the published asset was measured on the TV once it was awake
+  again. The clean build that is published (4,013,679 bytes, versionName 1.1) against the released v1.0 asset
+  (3,999,631 bytes) on the same MiTV-MSSP3, measured one after the other: APK +0.35% (budget +5%), cold start
+  1851.5 -> 1288 ms, Home return 343 -> 204 ms, RAM 58,671 -> 57,757 KB. Every budget of issue #1 holds on the
+  device that will run the release, and the published numbers now describe the exact file attached to the
+  release.

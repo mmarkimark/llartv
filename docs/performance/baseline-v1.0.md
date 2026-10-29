@@ -120,27 +120,18 @@ build measured one after the other on the same running TV:
 The TV is faster than the emulator by a wide margin and both versions are inside every budget, so the settings
 menu costs nothing measurable on the device that will run it.
 
-## The shipped v1.1 build (Xiaomi MiTV-MSSP3, 2026-10-28)
+## The shipped v1.1 build (Xiaomi MiTV-MSSP3, 2026-10-29)
 
-Two builds of the same commit are involved, and they differ only in how Gradle packaged them:
+The published asset is a clean build of the tagged commit, 4,013,679 bytes, and it is the build that was installed
+and measured on the TV, right after the released v1.0 asset had been measured there:
 
-| Build | APK bytes | Note |
-| --- | --- | --- |
-| Released v1.0 asset | 3,999,631 | the published asset of v1.0 |
-| v1.1, incremental | 4,112,203 | the build that was installed on the TV and measured |
-| v1.1, clean | 4,013,679 | the published asset of v1.1: a clean build is the reproducible one, like the v1.0 asset was |
-
-The published asset is 14,048 bytes bigger than the v1.0 one, **+0.35%** against the +5% budget. The latency and the
-RAM below were measured with the incremental build of the same commit, on the same TV, right after the v1.0 asset
-had been measured there:
-
-| Metric | v1.0 (released) | v1.1 | Difference | Budget | Result |
+| Metric | v1.0 (released) | v1.1 (published) | Difference | Budget | Result |
 | --- | --- | --- | --- | --- | --- |
-| APK bytes | 3,999,631 | 4,112,203 | +112,572 (+2.8%) | +5% | Inside |
-| Cold start, median | 1851.5 ms | 1441 ms | −410.5 ms (−22.2%) | +150 ms and +15% | Inside |
-| Home return, median | 343 ms | 249 ms | −94 ms (−27.4%) | +40 ms and +40% | Inside |
-| RAM, TOTAL PSS, median | 58,671 KB | 58,570 KB | −101 KB (−0.2%) | +4,096 KB and +10% | Inside |
+| APK bytes | 3,999,631 | 4,013,679 | +14,048 (+0.35%) | +5% | Inside |
+| Cold start, median | 1851.5 ms | 1288 ms | −563.5 ms (−30.4%) | +150 ms and +15% | Inside |
+| Home return, median | 343 ms | 204 ms | −139 ms (−40.5%) | +40 ms and +40% | Inside |
+| RAM, TOTAL PSS, median | 58,671 KB | 57,757 KB | −914 KB (−1.6%) | +4,096 KB and +10% | Inside |
 
-Raw values: cold start 1403, 1441, 1546, 1802, 1328 ms; Home return 862, 1433, 238, 229, 249 ms; RAM 57170,
-58570, 58586 KB. The whole v1.1 release, with the native settings menu and the news source presets, is inside every
-budget on the device that will run it, and it starts faster than v1.0 did.
+Raw values: cold start 1607, 1590, 1269, 1288, 1284 ms; Home return 766, 209, 173, 184, 204 ms; RAM 56106,
+57761, 57757 KB. The whole v1.1 release, with the native settings menu and the news source presets, is a third of
+a percent bigger than v1.0 and starts a third faster on the device that will run it.
