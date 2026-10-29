@@ -11,6 +11,9 @@ import java.util.Locale;
  *
  * Every source carries the attribution the terms of use ask for: the BBC feeds need the text "BBC News"
  * and a hyperlink to bbc.co.uk/news near the headlines, and 3Cat needs no confusion about who wrote them.
+ *
+ * The instances are only built by the factories below, so the values of a source cannot be mixed up
+ * at a call site, and the id is canonicalized in one place (canonicalId).
  */
 final class NewsSource {
     static final String AUTOMATIC = "automatic";
@@ -26,13 +29,13 @@ final class NewsSource {
     /** The options the settings menu offers, in the order it shows them. */
     static final String[] OPTIONS = {AUTOMATIC, THREE_CAT, BBC_MUNDO, BBC_WORLD};
 
-    final String id;       // the stored id, or "custom"
+    final String id;       // the resolved id: the preset that won, or "custom"
     final String url;      // the feed to read
     final String label;    // the attribution next to each headline
     final String credit;   // the credit line under the headlines: the source and its site
     final String key;      // the cache key: the id, or "custom:" + the URL
 
-    NewsSource(String id, String url, String label, String credit, String key) {
+    private NewsSource(String id, String url, String label, String credit, String key) {
         this.id = id;
         this.url = url;
         this.label = label;
@@ -42,13 +45,13 @@ final class NewsSource {
 
     /** The source in effect: the custom feed when there is one, the preset otherwise. */
     static NewsSource resolve(Config conf) {
-        if (conf.newsRssCustom && conf.newsRss != null && !conf.newsRss.trim().isEmpty()) return custom(conf.newsRss.trim());
+        if (conf.newsRssIsCustom()) return custom(conf.newsRss.trim());
         return preset(conf.newsSource);
     }
 
     /** The preset for a stored id. An unknown or empty id keeps the default. */
     static NewsSource preset(String id) {
-        String p = id == null ? "" : id.trim().toLowerCase(Locale.ROOT);
+        String p = canonicalId(id);
         if (BBC_MUNDO.equals(p)) return new NewsSource(BBC_MUNDO, URL_BBC_MUNDO, "BBC News", "BBC News Mundo · bbc.co.uk/news", BBC_MUNDO);
         if (BBC_WORLD.equals(p)) return new NewsSource(BBC_WORLD, URL_BBC_WORLD, "BBC News", "BBC News World · bbc.co.uk/news", BBC_WORLD);
         return new NewsSource(THREE_CAT, URL_3CAT, "3Cat", "3Cat · 3cat.cat", THREE_CAT);
@@ -57,11 +60,17 @@ final class NewsSource {
     /** A feed the user set by hand; it is credited with its own host. */
     static NewsSource custom(String url) {
         String host = host(url);
-        return new NewsSource(CUSTOM, url, host, host, CUSTOM + ":" + url);
+        // The key goes into the cache header, which is split on tabs, so it is written on one line.
+        return new NewsSource(CUSTOM, url, host, host, CUSTOM + ":" + DailyWallpaper.oneLine(url));
+    }
+
+    /** The one rule for a stored id: trimmed and lowercased. */
+    static String canonicalId(String id) {
+        return id == null ? "" : id.trim().toLowerCase(Locale.ROOT);
     }
 
     static boolean isPreset(String id) {
-        for (String o : OPTIONS) if (o.equals(id)) return true;
+        for (String o : OPTIONS) if (o.equals(canonicalId(id))) return true;
         return false;
     }
 
@@ -80,7 +89,7 @@ final class NewsSource {
         if (at >= 0) s = s.substring(at + 1);
         int colon = s.indexOf(':');
         if (colon >= 0) s = s.substring(0, colon);
-        if (s.startsWith("www.")) s = s.substring(4);
+        if (s.length() > 4 && s.substring(0, 4).equalsIgnoreCase("www.")) s = s.substring(4);
         return s;
     }
 }
