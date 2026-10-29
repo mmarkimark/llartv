@@ -74,3 +74,20 @@ budgets are the only automatic reference and the TV proof stays an explicit open
 - The baseline on the Xiaomi MiTV-MSSP3 is not recorded yet. It needs the TV powered on and reachable over ADB, and
   it must be recorded before the v1.1 release gate.
 - The comparison after each milestone is recorded here, one section per version, with the same procedure.
+
+## After the settings menu and the clock format (v1.1, first slice)
+
+Measured on the AVD `tv11` with the same script, on 2026-10-27, with the released `v1.0` APK and the new build
+measured one after the other on the same running emulator, so both see the same conditions:
+
+| Metric | v1.0 (released) | Settings menu + clock format | Difference | Budget | Result |
+| --- | --- | --- | --- | --- | --- |
+| APK bytes | 3,999,631 | 4,105,239 | +105,608 (+2.6%) | +5% | Inside |
+| Cold start, median | 1495 ms | 1572 ms | +77 ms (+5.1%) | +150 ms and +15% | Inside |
+| Home return, median | 118 ms | 125 ms | +7 ms (+5.9%) | +40 ms and +40% | Inside |
+| RAM, TOTAL PSS, median | 39,778 KB | 40,061 KB | +283 KB (+0.7%) | +4,096 KB and +10% | Inside |
+
+The first baseline was recorded on a freshly booted emulator and the cold start then looked 188 ms slower than the
+baseline; measuring the released APK again on the same running emulator showed the difference is 77 ms. The
+comparison is therefore always made against the previous version measured at the same time, not against a baseline
+taken in different conditions.

@@ -48,6 +48,8 @@ broadcasts, and network data is fetched only while the home screen is showing.
 
 - **Morning panel** (default 08:00–11:00): current weather from [Open-Meteo](https://open-meteo.com/) and the
   latest headlines from an RSS feed.
+- The weather and the news are controlled separately, for the home screen and for the screensaver: never, only in
+  the morning band or all day. What is switched off everywhere is not downloaded either.
 - **Night mode** (default 23:00–08:00): a dimmer, warmer palette on the home screen and the screensaver, applied
   gradually when the band changes.
 - **Photo-tinted dock**: the dock band takes a dark colour from the current wallpaper.
@@ -169,6 +171,9 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 | `news_rss` | 3Cat front page | RSS feed for the morning headlines. |
 | `dock_tint` | `on` | Tint the dock band from the wallpaper; `off` uses a plain band. |
 | `clock` | `system` | Clock format: `system` follows the TV, `24` is 24-hour, `12` is 12-hour with AM/PM. |
+| `weather_home` | `morning` | Weather on the home screen: `never`, `morning` or `all`. |
+| `weather_screen` | `all` | Weather on the screensaver: `never`, `morning` or `all`. |
+| `news_home` | `morning` | News on the home screen: `never`, `morning` or `all`. |
 | `team_id` | empty | ESPN team id for the next-match card (for example `83` for FC Barcelona). |
 | `team_name` | empty | Name shown on the next-match card. |
 

@@ -30,6 +30,9 @@ import java.util.Set;
  *   night=23:00-08:00            (empty turns night mode off)
  *   dock_tint=on                 (dock band takes a dark colour from the wallpaper)
  *   clock=system                 (system, 24 or 12: the clock format)
+ *   weather_home=morning         (never, morning or all: the weather on the home screen)
+ *   weather_screen=all           (never, morning or all: the weather on the screensaver)
+ *   news_home=morning            (never, morning or all: the news on the home screen)
  * Push it with adb, then: adb shell am force-stop io.github.mmarkimark.llartv && adb shell input keyevent KEYCODE_HOME
  */
 final class Config {
@@ -45,6 +48,9 @@ final class Config {
     String morning = TimeBands.DEFAULT_MORNING, night = TimeBands.DEFAULT_NIGHT;
     boolean dockTint = true;
     String clock = Clock.SYSTEM;    // "system", "24" or "12"
+    int weatherHome = ContentPolicy.MORNING;   // the weather on the home screen
+    int weatherScreen = ContentPolicy.ALL;      // the weather on the screensaver
+    int newsHome = ContentPolicy.MORNING;      // the news on the home screen
 
     TimeBands bands() { return TimeBands.parse(morning, night); }
 
@@ -112,6 +118,9 @@ final class Config {
                 if (Clock.SYSTEM.equals(p) || Clock.H24.equals(p) || Clock.H12.equals(p)) clock = p;
                 break;
             }
+            case "weather_home": weatherHome = ContentPolicy.parse(v, weatherHome); break;
+            case "weather_screen": weatherScreen = ContentPolicy.parse(v, weatherScreen); break;
+            case "news_home": newsHome = ContentPolicy.parse(v, newsHome); break;
         }
     }
 

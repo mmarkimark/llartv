@@ -99,9 +99,13 @@ public class BingDream extends DreamService {
         setContentView(root);
     }
 
-    /** Weather the home screen last fetched (the screensaver never goes online itself); hidden when stale. */
+    /** Weather the home screen last fetched (the screensaver never goes online itself); hidden when stale or off. */
     void showWeather() {
-        Weather w = Weather.load(getExternalFilesDir(null));
+        Config conf = Config.parse(getExternalFilesDir(null));
+        java.util.Calendar c = java.util.Calendar.getInstance();
+        boolean morning = bands != null
+                && bands.at(c.get(java.util.Calendar.HOUR_OF_DAY) * 60 + c.get(java.util.Calendar.MINUTE)) == TimeBands.Band.MORNING;
+        Weather w = ContentPolicy.shows(conf.weatherScreen, morning) ? Weather.load(getExternalFilesDir(null)) : null;
         boolean fresh = w != null && System.currentTimeMillis() - w.fetchedAt < 6 * 3600_000L;
         if (fresh) weather.setText(w.line());
         weather.setVisibility(fresh ? View.VISIBLE : View.GONE);

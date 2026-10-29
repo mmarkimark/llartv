@@ -43,9 +43,14 @@ Roadmap: GitHub issue #10. v1.1 = #1, #2, #3, #4, #5, #12 (the interface-languag
   the settings receiver), Home shows 21:01 and 9:02 PM, the 12-hour notation fits the layout; the screensaver
   clock and the real TV are still open)
 - T4 [S4] #4 + #5: three-state weather and news control per surface, with the request suppression and the unchanged
-  defaults — route: inline
+  defaults — route: inline — status: done (`ContentPolicy`, `weather_home`/`weather_screen`/`news_home`; 73 JVM
+  tests green, shellcheck clean; emulator `tv11`: the TEMPS card disappears with `weather_home=never` and leaves
+  no empty space, and a local proxy shows no request at all when everything is off, only the weather request when
+  the screensaver still wants it, and no RSS request when the news are off; the screensaver line and the real TV
+  are still open)
 - T5 [S2] #12: news source presets (3Cat, BBC Mundo, BBC World) with attribution and article links, plus the
-  recorded BBC reuse terms before the presets are enabled — route: inline
+  recorded BBC reuse terms before the presets are enabled — route: inline — status: pending (the reuse terms are
+  recorded in docs/news-sources.md; the implementation is not started)
 - T6 [S6] Final before/after comparison (APK bytes, cold start, Home return, RAM) and the release notes — route:
   inline
 
@@ -96,3 +101,27 @@ Roadmap: GitHub issue #10. v1.1 = #1, #2, #3, #4, #5, #12 (the interface-languag
 - L9 (2026-10-27) The settings screen is not exported, so the adb shell cannot start it directly; it is reached
   from Home, which is the only path it needs. The column has a fixed width (52% of the screen) so the values line
   up on the right; the first version let the column wrap to its content and glued the label to the value.
+- L10 (2026-10-27) Performance after the settings menu and the clock format, measured with the same script on the
+  AVD `tv11`, with the released `v1.0` APK and the new build measured one after the other on the same running
+  emulator: APK 3999631 -> 4105239 bytes (+2.6%), cold start 1495 -> 1572 ms (+5.1%), Home return 118 -> 125 ms
+  (+5.9%), RAM 39778 -> 40061 KB (+0.7%). All four are inside the budgets of issue #1. The first comparison against
+  the freshly booted baseline looked 188 ms slower on the cold start; measuring the released APK again in the same
+  conditions showed the real difference is 77 ms, so every comparison is made against the previous version measured
+  at the same time.
+- L11 (2026-10-27) Delivery strategy for the v1.1 slices: the work is committed in reviewable units of about 400
+  authored lines. The menu and the clock format are one unit and it is bigger than that (a new activity, the clock
+  preference and 18 new JVM tests): it is the foundation the next units reuse, and it is split from the
+  documentation commit. The weather/news controls and the news presets stay inside the budget.
+- L12 (2026-10-27) The reuse terms for the BBC feeds are recorded in docs/news-sources.md, checked against the
+  BBC's own pages on 2026-10-27. In short: the feeds can be added to your own app with three conditions (do not
+  change the feed, credit the BBC with the text and a hyperlink near the headlines, add no BBC branding), the
+  article link has to be kept because the home screen is display-only, and any business or non-personal use needs a
+  licence and may cost money. LlarTV is a personal project, which is the "for people" path; a wider distribution
+  has to ask the BBC first. The terms of the default 3Cat feed are still open.
+- L13 (2026-10-27) T4 evidence on the AVD `tv11`: with the morning band forced, the panel shows TEMPS and NOTÍCIES
+  as before; with `weather_home=never` the TEMPS card disappears and the panel closes over the news card without
+  an empty space; the request suppression was measured with a local proxy on the emulator (10.0.2.2:8899): with
+  everything off there is no request at all, with the weather off on the home screen but on in the screensaver the
+  weather request continues (the screensaver only reads the cache) and with the news off there is no RSS request.
+  The JVM tests grew from 58 to 73 (`ContentPolicyTest` plus the new `Config` cases) and shellcheck is clean. Still
+  open: the screensaver weather line, which cannot be captured over ADB, and the whole thing on the real TV.

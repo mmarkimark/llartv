@@ -118,10 +118,23 @@ public class SettingsActivity extends Activity {
                 new String[]{Ca.CLOCK_SYSTEM, Ca.CLOCK_24, Ca.CLOCK_12},
                 new String[]{Clock.SYSTEM, Clock.H24, Clock.H12}, null));
         rows.get(0).selected = Math.max(0, indexOf(rows.get(0).values, conf.clock));
+        addPolicyRow(Ca.WEATHER_HOME, "weather_home", conf.weatherHome);
+        addPolicyRow(Ca.WEATHER_SCREEN, "weather_screen", conf.weatherScreen);
+        addPolicyRow(Ca.NEWS_HOME, "news_home", conf.newsHome);
         rows.add(new Row(Ca.SYSTEM_SETTINGS, null, null, null, new Runnable() {
             @Override public void run() { openSystemSettings(); }
         }));
         for (Row r : rows) addRowView(r);
+    }
+
+    /** A row with the three content states: never, only in the morning band, all day. */
+    void addPolicyRow(String label, String key, int policy) {
+        Row r = new Row(label, key,
+                new String[]{Ca.NEVER, Ca.MORNING_ONLY, Ca.ALL_DAY},
+                new String[]{ContentPolicy.value(ContentPolicy.NEVER), ContentPolicy.value(ContentPolicy.MORNING),
+                        ContentPolicy.value(ContentPolicy.ALL)}, null);
+        r.selected = policy;   // NEVER, MORNING and ALL are 0, 1 and 2, the same order as the options
+        rows.add(r);
     }
 
     void addRowView(Row r) {

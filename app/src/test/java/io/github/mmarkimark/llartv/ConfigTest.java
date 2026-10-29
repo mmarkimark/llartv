@@ -83,4 +83,45 @@ public class ConfigTest {
         k.set("clock", "");
         assertEquals(Clock.SYSTEM, k.clock);
     }
+
+    @Test public void contentPolicyDefaultsAreUnchanged() {
+        Config k = new Config();
+        assertEquals(ContentPolicy.MORNING, k.weatherHome);
+        assertEquals(ContentPolicy.ALL, k.weatherScreen);
+        assertEquals(ContentPolicy.MORNING, k.newsHome);
+    }
+
+    @Test public void contentPolicyKeysAreRead() {
+        Config k = new Config();
+        k.set("weather_home", "never");
+        k.set("weather_screen", "never");
+        k.set("weather_screen", "all");   // after moving away from the default, so "all" is really read back
+        k.set("news_home", "never");
+        assertEquals(ContentPolicy.NEVER, k.weatherHome);
+        assertEquals(ContentPolicy.ALL, k.weatherScreen);
+        assertEquals(ContentPolicy.NEVER, k.newsHome);
+    }
+
+    @Test public void unknownPolicyValueKeepsTheCurrentValue() {
+        Config k = new Config();
+        k.set("weather_home", "all");
+        k.set("weather_screen", "never");
+        k.set("news_home", "all");
+        k.set("weather_home", "sometimes");
+        k.set("weather_screen", "sometimes");
+        k.set("news_home", "sometimes");
+        assertEquals(ContentPolicy.ALL, k.weatherHome);
+        assertEquals(ContentPolicy.NEVER, k.weatherScreen);
+        assertEquals(ContentPolicy.ALL, k.newsHome);
+    }
+
+    @Test public void emptyPolicyValueKeepsTheDefault() {
+        Config k = new Config();
+        k.set("weather_home", "");
+        k.set("weather_screen", "");
+        k.set("news_home", "");
+        assertEquals(ContentPolicy.MORNING, k.weatherHome);
+        assertEquals(ContentPolicy.ALL, k.weatherScreen);
+        assertEquals(ContentPolicy.MORNING, k.newsHome);
+    }
 }
