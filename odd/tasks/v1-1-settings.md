@@ -43,7 +43,8 @@ Roadmap: GitHub issue #10. v1.1 = #1, #2, #3, #4, #5, #12 (the interface-languag
   the menu opens with the remote, the values persist in `home.conf` (`clock=24`, `clock=12` read back through
   the settings receiver), Home shows 21:01 and 9:02 PM, the 12-hour notation fits the layout; on the MiTV-MSSP3
   on 2026-10-28 the menu opens from the *Configuració* pill with the remote, right changes the value,
-  `home.conf` reads `clock=12` and the home clock shows 6:41 p.m.; the screensaver clock is still open)
+  `home.conf` reads `clock=12` and the home clock shows 6:41 p.m.; on the screensaver of the same TV the clock
+  shows 12:37 a. m., so the format reaches the screensaver as well)
 - T4 [S4] #4 + #5: three-state weather and news control per surface, with the request suppression and the unchanged
   defaults — route: inline — status: done (`ContentPolicy`, `weather_home`/`weather_screen`/`news_home`; 73 JVM
   tests green, shellcheck clean; emulator `tv11`: the TEMPS card disappears with `weather_home=never` and leaves
@@ -52,18 +53,19 @@ Roadmap: GitHub issue #10. v1.1 = #1, #2, #3, #4, #5, #12 (the interface-languag
   the cache files deleted first, everything off writes neither `weather.cache` nor `news.cache` and shows no
   panel, everything on writes both and shows the live TEMPS (22°, "Poc ennuvolat") and NOTÍCIES cards, and with
   the weather off on the home screen but on in the screensaver the TEMPS card disappears without leaving a space
-  while the screensaver keeps the weather request; the screensaver weather line is still open)
+  while the screensaver keeps the weather request; the screensaver of the same TV shows its own weather line
+  (18° · Serè) read from the cache)
 - T5 [S2] #12: news source presets (3Cat, BBC Mundo, BBC World) with attribution and article links, plus the
   recorded BBC reuse terms before the presets are enabled — route: inline — status: done (`NewsSource`,
   `news_source` in `home.conf` and in the settings menu, the credit line under the headlines, the article link in
   the cache and the 3Cat terms in docs/news-sources.md; 87 JVM tests green, shellcheck clean; on the emulator
   `tv11` the menu offers the four sources, BBC News Mundo shows its own headlines with "BBC News" next to each of
-  them and "BBC News Mundo · bbc.co.uk/news" under them, and the 3Cat headlines are not shown under it; the real
-  TV is still open)
+  them and "BBC News Mundo · bbc.co.uk/news" under them, and the 3Cat headlines are not shown under it; on the
+  MiTV-MSSP3 the shipped build shows the live 3Cat headlines with "3Cat · 3cat.cat" under them)
 - T6 [S6] Final before/after comparison (APK bytes, cold start, Home return, RAM) and the release notes — route:
-  inline — status: pending (the TV comparison of the settings slice is recorded in
-  docs/performance/baseline-v1.0.md; the comparison of the final build on the TV and the release notes are still
-  open)
+  inline — status: done (the shipped build measured on the TV: APK 4112203 bytes (+2.8% against the +5%
+  budget), cold start median 1441 ms, Home return median 249 ms, RAM median 58570 KB, all inside the budgets;
+  the numbers are in docs/performance/baseline-v1.0.md and the release notes in CHANGELOG.md)
 
 ## Log
 
@@ -195,3 +197,45 @@ Roadmap: GitHub issue #10. v1.1 = #1, #2, #3, #4, #5, #12 (the interface-languag
   the menu labels are pinned to the preset order by a test, the fetch gate moved to its own class
   (NewsSchedule) with tests for the three rules, the guid fallback has a fixture, the custom cache key is
   written on one line, and the document states the median convention of the TV cold start exactly.
+- L20 (2026-10-28) The final comparison of the shipped build on the TV, and the TV's settings put back. The
+  build of the branch (4,112,203 bytes) was installed on the MiTV-MSSP3 and measured with the same script: cold
+  start 1403, 1441, 1546, 1802, 1328 ms (median 1441), Home return 862, 1433, 238, 229, 249 ms (median 249), RAM
+  57170, 58570, 58586 KB (median 58570). Against the v1.0 baseline that is +2.8% of APK (budget +5%) and 22%
+  faster to start, so the whole v1.1 release is inside every budget on the device that will run it; the numbers
+  are in docs/performance/baseline-v1.0.md. The TV's own settings were put back to how they were found (only
+  the dock and the hidden apps). The screensaver proof on the TV is still open: the MiTV screencap cannot write
+  to stdout (the capture over one adb session came back empty), the AOSP TV emulator never starts a dream
+  (screensaver_activate_on_sleep has no effect there), and the only way to start the dream on the TV is to turn
+  the display off, which takes its Wi-Fi down with it, so the next attempt reads the dream window with
+  uiautomator over a single adb session.
+- L21 (2026-10-29) The screensaver proof on the real TV, the last open item. The MiTV only runs a dream in its
+  ambient mode, where the panel stays on and the Wi-Fi survives; waking it with KEYCODE_SLEEP turns the panel
+  off and takes the network down in the same instant, so that route cannot be captured. Letting the TV idle
+  until its own screen-off timeout fires puts it in the ambient mode (mWakefulness=Dreaming, Display Power:
+  state=ON, mCurrentDreamName=BingDream) with the network up, and then the capture works: the screensaver
+  showed "12:37 a. m." with the clock format of the settings, "dijous, 29 d'octubre" in Catalan, and the
+  weather line "18° · Serè", which is the cached weather of the TV read by the screensaver only. The wallpaper
+  title and its credit were there as well. The TV's own settings were then put back exactly as they were
+  found (only the dock and the hidden apps, and the screen-off timeout back to 300000 ms), and the home screen
+  shows the clock in the system's own 24-hour format again.
+- L22 (2026-10-29) The shipped build on the real TV, last check. With the morning band forced and the night
+  band off (so the panel shows at half past midnight), the home screen of the MiTV-MSSP3 shows the live weather
+  (17°, "Serè", "Màx. 20° · Mín. 16°") and two live 3Cat headlines with their age, and under them the credit
+  line "3Cat · 3cat.cat" that the new news source adds. The TV's own settings were put back again right after
+  (only the dock and the hidden apps), so the TV is exactly as it was found.
+- L23 (2026-10-29) The delivery of v1.1. The work is cut into six review slices and pushed as a chain of pull
+  requests on top of main (#14 the baseline and the measurement script, #15 the settings menu with the clock
+  format, #16 the weather and news controls, #18 the news source presets with the Catalan fixes, #19 the response
+  to the native review, #20 the release evidence), each one building, passing its own tests (40, 58, 73, 87, 98,
+  98) and showing only its own slice. The version was cut to 1.1 (versionCode 2), the release notes were cut from
+  Unreleased to v1.1 and the screens of the shipped build were added to the README. The published asset is a
+  clean build, 4,013,679 bytes, 0.35% bigger than the v1.0 asset; the latency and the RAM recorded in
+  docs/performance/baseline-v1.0.md come from the incremental build of the same commit, measured on the TV right
+  after the v1.0 asset had been measured there. The CI's shellcheck (0.9.0 on the runner) flags the `A && B || C`
+  pattern of the measurement script that the local shellcheck (0.11.0) does not, so the script now uses an if.
+- L24 (2026-10-29) The last open item is closed: the published asset was measured on the TV once it was awake
+  again. The clean build that is published (4,013,679 bytes, versionName 1.1) against the released v1.0 asset
+  (3,999,631 bytes) on the same MiTV-MSSP3, measured one after the other: APK +0.35% (budget +5%), cold start
+  1851.5 -> 1288 ms, Home return 343 -> 204 ms, RAM 58,671 -> 57,757 KB. Every budget of issue #1 holds on the
+  device that will run the release, and the published numbers now describe the exact file attached to the
+  release.

@@ -5,6 +5,11 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [1.1] - 2026-10-29
+
+The lightweight settings release: LlarTV gains its own settings menu, and the weather, the news and the clock
+become the owner's choice instead of the TV's.
+
 ### Added
 
 - LlarTV settings on the TV: a native menu in the top bar (*Configuració*), navigable with the remote, that
@@ -20,6 +25,9 @@ All notable changes to LlarTV are documented in this file. The format is based o
   cache.
 - The reuse terms of the 3Cat feed recorded in `docs/news-sources.md`, next to the BBC ones: personal and
   private use only, so a wider distribution of the app has to ask the CCMA first.
+
+### Fixed
+
 - Catalan fixes: the settings menu row for the clock is spelled "Rellotge", and the afternoon greeting is the
   Catalan "bon vespre" from 14:00 instead of the Spanishism "bon tarda".
 
