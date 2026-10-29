@@ -104,7 +104,10 @@ public class HomeActivity extends Activity {
     // morning panel (weather, news), top right under the pills
     LinearLayout panel, wxCard, newsCard, newsList;
     TextView wxTemp, wxLine, wxRange;
-    long lastWx, lastNews;
+    TextView newsCredit;
+    long lastWx, lastNews, lastNewsAttempt;
+    String lastNewsSource = "";         // the source of the last successful fetch
+    String lastNewsAttemptSource = "";  // the source of the last attempt, successful or not
     boolean wxBusy, newsBusy;
     // football fixtures card
     LinearLayout matchCard;
@@ -381,6 +384,11 @@ public class HomeActivity extends Activity {
         newsList = new LinearLayout(this);
         newsList.setOrientation(LinearLayout.VERTICAL);
         newsCard.addView(newsList);
+        newsCredit = text(300, 10, 0xFFA9A6A0);
+        newsCredit.setLetterSpacing(0.02f);
+        LinearLayout.LayoutParams ncp = new LinearLayout.LayoutParams(-2, -2);
+        ncp.topMargin = dp(6);
+        newsCard.addView(newsCredit, ncp);
         for (View c : new View[]{wxCard, newsCard}) {
             LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(-1, -2);
             cp.bottomMargin = dp(8);
@@ -1088,7 +1096,8 @@ public class HomeActivity extends Activity {
         if (hasWx) { wxTemp.setText(w.temp + "°"); wxLine.setText(Weather.describe(w.code)); wxRange.setText(w.range()); }
         wxCard.setVisibility(hasWx ? View.VISIBLE : View.GONE);
 
-        List<News.Item> items = showNews ? News.load(dir) : null;
+        NewsSource source = NewsSource.resolve(conf);
+        List<News.Item> items = showNews ? News.load(dir, source) : null;
         newsList.removeAllViews();
         int shown = 0;
         if (items != null) for (News.Item it : items) {
@@ -1100,13 +1109,15 @@ public class HomeActivity extends Activity {
             t.setText(it.title);
             String age = News.age(it.published, now);
             TextView src = rowText(300, 11, 0xFFA9A6A0);
-            src.setText(age.isEmpty() ? "3Cat" : "3Cat · " + age);
+            src.setText(age.isEmpty() ? source.label : source.label + " · " + age);
             LinearLayout.LayoutParams ip = new LinearLayout.LayoutParams(-1, -2);
             if (shown > 0) ip.topMargin = dp(5);
             newsList.addView(t, ip);
             newsList.addView(src);
             shown++;
         }
+        // The credit the terms of the feed ask for: the source and its site, next to the headlines.
+        newsCredit.setText(shown > 0 ? source.credit : "");
         newsCard.setVisibility(shown > 0 ? View.VISIBLE : View.GONE);
 
         boolean any = hasWx || shown > 0;
@@ -1125,12 +1136,27 @@ public class HomeActivity extends Activity {
     }
 
     void maybeFetchNews(File dir, long now) {
-        if (newsBusy || conf.newsRss.isEmpty() || now - lastNews < NEWS_EVERY) return;
+        NewsSource source = NewsSource.resolve(conf);
+        if (newsBusy || source.url.isEmpty()) return;
+        boolean changed = !source.key.equals(lastNewsSource);   // another source has its own headlines
+        if (changed) {
+            // a source that was never tried fetches straight away; one that just failed waits before trying again
+            if (source.key.equals(lastNewsAttemptSource) && now - lastNewsAttempt < RETRY) return;
+        } else if (now - lastNews < NEWS_EVERY) return;
         newsBusy = true;
-        String url = conf.newsRss;
+        lastNewsAttempt = now;
+        lastNewsAttemptSource = source.key;
+        String url = source.url;
         new Thread(() -> {
-            try { News.save(dir, News.fetch(url, 5)); } catch (Exception ignored) {}
-            ui.post(() -> { lastNews = System.currentTimeMillis(); newsBusy = false; refreshMorning(); });
+            boolean ok;
+            try { News.save(dir, source, News.fetch(url, 5)); ok = true; } catch (Exception ignored) { ok = false; }
+            final boolean fetched = ok;
+            ui.post(() -> {
+                lastNews = System.currentTimeMillis();
+                if (fetched) lastNewsSource = source.key;        // a failed fetch is not a fetched source
+                newsBusy = false;
+                refreshMorning();
+            });
         }).start();
     }
 

@@ -11,7 +11,10 @@ public class ConfigTest {
         Config k = new Config();
         assertEquals(41.4235, k.lat, 1e-6);
         assertEquals(2.2010, k.lon, 1e-6);
-        assertTrue(k.newsRss.startsWith("https://api.3cat.cat/"));
+        assertEquals(NewsSource.AUTOMATIC, k.newsSource);
+        assertFalse(k.newsRssCustom);
+        // The default feed is the one the "automatic" preset resolves to, not a stored custom URL.
+        assertEquals(NewsSource.URL_3CAT, NewsSource.resolve(k).url);
         assertTrue(k.dockTint);
         assertEquals(TimeBands.Band.MORNING, k.bands().at(9 * 60));
         assertEquals(TimeBands.Band.NIGHT, k.bands().at(23 * 60 + 30));
@@ -30,6 +33,23 @@ public class ConfigTest {
         assertEquals(TimeBands.Band.MORNING, k.bands().at(7 * 60 + 45));
         assertEquals(TimeBands.Band.DAY, k.bands().at(23 * 60 + 30));
         assertFalse(k.dockTint);
+    }
+
+    @Test public void theNewsSourceIsRead() {
+        Config k = new Config();
+        k.set("news_source", NewsSource.BBC_MUNDO);
+        assertEquals(NewsSource.BBC_MUNDO, k.newsSource);
+        k.set("news_source", "nope");
+        assertEquals(NewsSource.BBC_MUNDO, k.newsSource);   // an unknown value keeps the current one
+        k.set("news_source", "");
+        assertEquals(NewsSource.AUTOMATIC, k.newsSource);    // an empty value restores the default
+    }
+
+    @Test public void aCustomFeedIsMarkedAsCustom() {
+        Config k = new Config();
+        k.set("news_rss", "https://example.org/rss");
+        assertTrue(k.newsRssCustom);
+        assertEquals("https://example.org/rss", k.newsRss);
     }
 
     @Test public void badLocationKeepsTheDefault() {
