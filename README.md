@@ -25,6 +25,7 @@ broadcasts, and network data is fetched only while the home screen is showing.
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Screensaver](#screensaver)
+- [Performance](#performance)
 - [Building from source](#building-from-source)
 - [Reporting issues](#reporting-issues)
 - [How it was built](#how-it-was-built)
@@ -178,6 +179,13 @@ any key on the remote closes it.
 
 `install.sh` sets it up. You can also choose it, or switch back to another one, under *Settings → Device
 Preferences → Screen saver*.
+
+## Performance
+
+LlarTV is kept small and fast: the released APK is about 4 MB, the app uses about 30–40 MB of RAM and it does no
+background polling. [`scripts/measure.sh`](scripts/measure.sh) records the APK size, the cold start, the Home
+return and the RAM on a connected TV or emulator. The measured baseline and the regression budgets used as release
+gates are in [`docs/performance/baseline-v1.0.md`](docs/performance/baseline-v1.0.md).
 
 ## Building from source
 
