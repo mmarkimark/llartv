@@ -25,11 +25,11 @@ public class MusicTest {
         assertFalse(Music.shouldPlay(k));
     }
 
-    @Test public void onlyAnHttpStreamCounts() {
+    @Test public void onlyAnHttpsStreamCounts() {
         assertTrue(Music.isStream("https://example.org/lofi.mp3"));
-        assertTrue(Music.isStream("http://example.org/lofi.mp3"));
         assertTrue(Music.isStream("  https://example.org/lofi.mp3  "));
-        assertFalse(Music.isStream("file:///sdcard/lofi.mp3"));   // a local file would need a permission
+        assertFalse(Music.isStream("http://example.org/lofi.mp3"));    // Android has blocked cleartext since Android 9
+        assertFalse(Music.isStream("file:///sdcard/lofi.mp3"));       // a local file would need a permission
         assertFalse(Music.isStream("example.org/lofi.mp3"));
         assertFalse(Music.isStream(""));
         assertFalse(Music.isStream("   "));

@@ -15,10 +15,10 @@ final class Music {
         return conf.musicScreen && isStream(conf.musicUrl);
     }
 
-    /** True for a URL the player can stream: http or https. A local file would need a permission the app does not ask for. */
+    /** True for a URL the player can stream: https. Android has blocked cleartext traffic since Android 9, so an
+     *  http stream would fail silently; a local server needs a certificate the TV trusts. */
     static boolean isStream(String url) {
         if (url == null) return false;
-        String u = url.trim();
-        return u.startsWith("http://") || u.startsWith("https://");
+        return url.trim().startsWith("https://");
     }
 }
