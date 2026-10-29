@@ -68,9 +68,10 @@ broadcasts, and network data is fetched only while the home screen is showing.
 - Daily wallpapers from Bing (the last eight images, optionally rotating) or from any image URL.
 - A built-in screensaver (*BingDream*) with a slow zoom and cross-fade over the wallpapers, the clock, the date
   and the current weather.
-- The screensaver can play a stream of your own while it is showing, switched on and off from the settings menu:
-  it stops with the screensaver, and a stream that fails leaves it silent. See
-  [docs/screensaver-music.md](docs/screensaver-music.md).
+- Optional screensaver music, off by default: switch it on from the settings menu to loop Holizna's CC0
+  "Dancing", downloaded once outside the APK and reused offline. A custom HTTPS stream can override it.
+  Music stops with the screensaver; failures leave the visuals running silently. Emulator cache/loop checks pass;
+  real-TV validation and release are pending. See [docs/screensaver-music.md](docs/screensaver-music.md).
 
 **Other**
 
@@ -189,8 +190,8 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 | `location` | `41.4235,2.2010` (Barcelona) | `latitude,longitude` used for the weather. |
 | `news_source` | `automatic` | News source: `automatic` (follows the interface language, Catalan until the language selector in v1.2), `3cat`, `bbc-mundo` or `bbc-world`. |
 | `news_rss` | empty | Custom RSS feed for the morning headlines; it wins over `news_source` and is never overwritten by it. Remove the line to use a preset again. |
-| `music_screen` | `off` | Whether the screensaver plays a stream while it is showing: `on` or `off`. |
-| `music_url` | empty | The stream the screensaver plays; it has to be an `https` URL. See [docs/screensaver-music.md](docs/screensaver-music.md). |
+| `music_screen` | `off` | Music during the screensaver: `on` or `off`. Off means no music download or player. |
+| `music_url` | empty | Empty selects cached Holizna CC0 music; a custom HTTPS audio URL overrides it without caching or looping. See [docs/screensaver-music.md](docs/screensaver-music.md). |
 | `dock_tint` | `on` | Tint the dock band from the wallpaper; `off` uses a plain band. |
 | `clock` | `system` | Clock format: `system` follows the TV, `24` is 24-hour, `12` is 12-hour with AM/PM. |
 | `weather_home` | `morning` | Weather on the home screen: `never`, `morning` or `all`. |

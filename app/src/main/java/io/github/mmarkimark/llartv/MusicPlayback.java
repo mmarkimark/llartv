@@ -14,7 +14,7 @@ final class MusicPlayback {
     }
 
     private final Output output;
-    private boolean active = true, started, ready, focused, playing;
+    private boolean active = true, started, sourceResolved, ready, focused, playing;
 
     MusicPlayback(Output output) { this.output = output; }
 
@@ -22,6 +22,13 @@ final class MusicPlayback {
         if (!active || started) return;
         started = true;
         try { output.prepare(); } catch (RuntimeException e) { stop(); }
+    }
+
+    /** A worker may resolve a cached file after exit: do not even allocate a late player. */
+    void sourceReady(Runnable prepare) {
+        if (!active || !started || sourceResolved || ready) return;
+        sourceResolved = true;
+        try { prepare.run(); } catch (RuntimeException e) { stop(); }
     }
 
     void prepared() {

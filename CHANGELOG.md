@@ -7,10 +7,11 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 ### Added
 
-- Screensaver music (`music_screen`, `music_url`): the screensaver can play a stream of your own while it is
-  showing, switched on and off from the settings menu. It stops with the screensaver and gives the audio focus
-  back, and a stream that fails leaves the screensaver silent. The app ships no stream of its own, so the reuse
-  terms of the one you point it at are yours to check: see `docs/screensaver-music.md`.
+- Optional screensaver music (`music_screen`, `music_url`), off by default and switchable from the settings menu.
+  With no custom URL, play Holizna's CC0 "Dancing": download once outside the APK, verify its size/SHA-256 and loop
+  the private local file, including offline. Custom HTTPS streams retain uncached, non-looping playback.
+  Exiting releases audio focus/player and cancels pending work; failed downloads or streams leave the visuals
+  running silently. No new runtime dependency. Source, licence and setup: `docs/screensaver-music.md`.
 
 ## [1.1] - 2026-10-29
 
