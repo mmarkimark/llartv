@@ -50,7 +50,11 @@ COLD=() HOMES=() RAMS=()
 RESTORED=""
 
 # The default home is changed for the Home-return runs, so it is always restored, even on an error.
-restore_home() { [ -n "${RESTORED:-}" ] && A shell cmd package set-home-activity "$RESTORED" >/dev/null 2>&1 || true; }
+restore_home() {
+  if [ -n "${RESTORED:-}" ]; then
+    A shell cmd package set-home-activity "$RESTORED" >/dev/null 2>&1 || true
+  fi
+}
 trap restore_home EXIT
 
 # A cold start is a start after a force-stop, so nothing of the previous run is still warm.
