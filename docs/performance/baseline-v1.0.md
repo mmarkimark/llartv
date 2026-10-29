@@ -122,10 +122,19 @@ menu costs nothing measurable on the device that will run it.
 
 ## The shipped v1.1 build (Xiaomi MiTV-MSSP3, 2026-10-28)
 
-The same script, the same TV, with the final build of the branch (the settings foundation plus the news source
-presets), measured right after the build was installed:
+Two builds of the same commit are involved, and they differ only in how Gradle packaged them:
 
-| Metric | v1.0 (released) | v1.1 (shipped) | Difference | Budget | Result |
+| Build | APK bytes | Note |
+| --- | --- | --- |
+| Released v1.0 asset | 3,999,631 | the published asset of v1.0 |
+| v1.1, incremental | 4,112,203 | the build that was installed on the TV and measured |
+| v1.1, clean | 4,013,679 | the published asset of v1.1: a clean build is the reproducible one, like the v1.0 asset was |
+
+The published asset is 14,048 bytes bigger than the v1.0 one, **+0.35%** against the +5% budget. The latency and the
+RAM below were measured with the incremental build of the same commit, on the same TV, right after the v1.0 asset
+had been measured there:
+
+| Metric | v1.0 (released) | v1.1 | Difference | Budget | Result |
 | --- | --- | --- | --- | --- | --- |
 | APK bytes | 3,999,631 | 4,112,203 | +112,572 (+2.8%) | +5% | Inside |
 | Cold start, median | 1851.5 ms | 1441 ms | −410.5 ms (−22.2%) | +150 ms and +15% | Inside |
@@ -133,5 +142,5 @@ presets), measured right after the build was installed:
 | RAM, TOTAL PSS, median | 58,671 KB | 58,570 KB | −101 KB (−0.2%) | +4,096 KB and +10% | Inside |
 
 Raw values: cold start 1403, 1441, 1546, 1802, 1328 ms; Home return 862, 1433, 238, 229, 249 ms; RAM 57170,
-58570, 58586 KB. The whole v1.1 release, with the native settings menu and the news source presets, is 2.8% bigger
-than v1.0 and measurably faster on the TV that will run it.
+58570, 58586 KB. The whole v1.1 release, with the native settings menu and the news source presets, is inside every
+budget on the device that will run it, and it starts faster than v1.0 did.

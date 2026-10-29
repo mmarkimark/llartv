@@ -223,3 +223,18 @@ Roadmap: GitHub issue #10. v1.1 = #1, #2, #3, #4, #5, #12 (the interface-languag
   (17°, "Serè", "Màx. 20° · Mín. 16°") and two live 3Cat headlines with their age, and under them the credit
   line "3Cat · 3cat.cat" that the new news source adds. The TV's own settings were put back again right after
   (only the dock and the hidden apps), so the TV is exactly as it was found.
+- L23 (2026-10-29) The delivery of v1.1. The work is cut into six review slices and pushed as a chain of pull
+  requests on top of main (#14 the baseline and the measurement script, #15 the settings menu with the clock
+  format, #16 the weather and news controls, #18 the news source presets with the Catalan fixes, #19 the response
+  to the native review, #20 the release evidence), each one building, passing its own tests (40, 58, 73, 87, 98,
+  98) and showing only its own slice. The version was cut to 1.1 (versionCode 2), the release notes were cut from
+  Unreleased to v1.1 and the screens of the shipped build were added to the README. The published asset is a
+  clean build, 4,013,679 bytes, 0.35% bigger than the v1.0 asset; the latency and the RAM recorded in
+  docs/performance/baseline-v1.0.md come from the incremental build of the same commit, measured on the TV right
+  after the v1.0 asset had been measured there. The CI's shellcheck (0.9.0 on the runner) flags the `A && B || C`
+  pattern of the measurement script that the local shellcheck (0.11.0) does not, so the script now uses an if.
+- L24 (2026-10-29) Two open items, both needing the TV awake. The re-measurement of the published clean build
+  (the numbers of L23 come from the incremental build of the same commit) and the screensaver of the final build
+  are not re-measured: the MiTV drops its Wi-Fi with the display off and never came back on its own during the
+  delivery. The feature itself is proved on that TV, with the menu, the clock format, the content controls, the
+  news presets and the screensaver clock and weather line.
