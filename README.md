@@ -103,7 +103,7 @@ The settings menu and the screensaver on the TV:
 
 | Settings | Screensaver |
 | --- | --- |
-| ![The LlarTV settings menu on the TV](docs/screenshots/tv-settings.jpg) | ![The screensaver with the 12-hour clock and the weather on the TV](docs/screenshots/tv-screensaver.jpg) |
+| ![The LlarTV settings side panel on the TV](docs/screenshots/tv-settings.jpg) | ![The screensaver with the 12-hour clock and the weather on the TV](docs/screenshots/tv-screensaver.jpg) |
 
 ## Requirements
 
