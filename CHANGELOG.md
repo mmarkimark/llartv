@@ -5,6 +5,11 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [1.2] - 2026-10-30
+
+The screensaver music release: the screensaver can play calm music, off by default, downloaded once and looped
+from the TV itself.
+
 ### Added
 
 - Optional screensaver music (`music_screen`, `music_url`), off by default and switchable from the settings menu.
@@ -63,5 +68,7 @@ First release.
 - Scripts to install, configure and uninstall LlarTV over ADB: `scripts/install.sh`, `scripts/config.sh` and
   `scripts/uninstall.sh`.
 
-[Unreleased]: https://github.com/mmarkimark/llartv/compare/v1.0...HEAD
+[Unreleased]: https://github.com/mmarkimark/llartv/compare/v1.2...HEAD
+[1.2]: https://github.com/mmarkimark/llartv/compare/v1.1...v1.2
+[1.1]: https://github.com/mmarkimark/llartv/compare/v1.0...v1.1
 [1.0]: https://github.com/mmarkimark/llartv/releases/tag/v1.0
