@@ -44,20 +44,40 @@ Roadmap: GitHub issue #17 (v1.2 milestone), linked from issue #10.
   procedurally PARTIAL (L15); targeted timeout/diagnostic correction recheck passes (L19). TV evidence remains T3
   Risk: item 4 (asynchronous preparation, focus changes and dream termination)
 - T3 [S2, S4, S5] the documentation and the measurement: the README, the CHANGELOG, the roadmap, the data use of a
-  streaming hour, and the APK, RAM and latency numbers on the TV against the v1.1 baseline — BLOCKED on an
-  accessible TV (source resolved: Holizna CC0). Route: inline. Update guide/README/CHANGELOG alongside behavior;
-  prior checkpoints: 4605d7f and f7c361a. Clean APK 4,031,027 bytes (+0.43% vs v1.1) and corrected emulator proof
-  complete; TV sound/focus, active-dream RAM, one-hour traffic and Home latency unverified
+  streaming hour, and the APK, RAM and latency numbers on the TV against the v1.1 baseline — DONE (real-TV evidence
+  on the MiTV-MSSP3, 2026-10-30; source resolved: Holizna CC0). Route: inline. Update guide/README/CHANGELOG
+  alongside behavior; prior checkpoints: 4605d7f and f7c361a; this update: docs/performance/baseline-v1.0.md
+  (new v1.2 section), docs/screensaver-music.md (real-TV result), CHANGELOG.md (Unreleased note), README.md.
+  Clean de57410 debug build (123 JVM tests) = 4,031,019 B, installed over v1.1. measure.sh ×5, label
+  "MiTV-MSSP3 v1.2 music (de57410)": cold 1481/1275/1488/1430/1440 → median 1440 ms (+152/+11.8% vs v1.1; vs the
+  v1.0 TV budget reference −411.5 ms, inside; the +150 ms absolute figure is exceeded but not +15% and the table
+  does not define both-or-either — HomeActivity unchanged since v1.1 (two Config keys added), v1.1 runs 1269–1607
+  ms, treated as run-to-run noise to recheck with more runs at the next milestone, not a confirmed regression);
+  Home (home-intent) 785/217/251/207/216 → median 217 ms (+13/+6.4%, inside); idle PSS 59422/60613/60612 → median
+  60,612 KB (+2,855/+4.9%, inside); every metric inside budget vs the v1.0 reference. Music one-hour check
+  (script .state/tv-t3/music-tv.py, results in ignored .state/tv-t3/results.json): dream active, `playing (cached
+  loop)` 5.0 s later including the first one-time download; owner confirmed audible playback ("Si que sona
+  música"); native player reported looping and the MP3 decoder; focus held at start and at all six 10-minute
+  samples over 3,626 s; BACK ended the dream and the focus was no longer held; uid netstats +6,027,775 B received
+  / +117,088 sent in the first 10 minutes (5.43 MB track plus protocol overhead and startup traffic; counters
+  lag, so the download appears in that sample), then 0 B both ways over the remaining ~50 minutes; active-dream
+  PSS 71,640 KB at start, samples 125,097/75,973/117,205/122,041/113,648/113,755 → median 113,755, max 125,097,
+  no steady growth after the first 10 minutes (fluctuates with the slides: ~40 MB native heap of decoded bitmaps
+  + ~33 MB GL textures, plus the paused HomeActivity and Android 11's DreamActivity; first reference, no prior
+  active-dream baseline, not judged against a budget). home.conf, screen_off_timeout, stay_on_while_plugged_in
+  and the screensaver component restored exactly and verified
 - T4 [S1, S2] the delivery: local work-unit commits, then review slices, release and tag only if authorized —
-  LOCAL CHECKPOINT COMPLETE under owner-selected feature-branch-chain; overall delivery BLOCKED on T3's real-TV
-  evidence and separate publication authorization. Route: inline; implementation commits: 45b498c, a97e690,
-  4605d7f, 353068d (cache C), 5982481 (integration D); this evidence-only checkpoint records the outcome.
+  publication authorized (L27); the PR chain is open: tracker #22 (draft, Closes #17) with A #23, B #24, C #25
+  (incl. f7c361a) and D #26, all CI green; slice E (de57410 + T3 evidence) and merge/release/tag remain.
+  Route: inline; implementation commits: 45b498c, a97e690, 4605d7f, 353068d (cache C), 5982481 (integration D);
+  this evidence-only checkpoint records the outcome.
   Delivery boundaries (not published): slice A = 1793fe2..a97e690 (initial setting/playback, 225 authored lines);
   slice B = a97e690..4605d7f (one coherent lifecycle correction with tests/guide, 433 diff lines, 315 authored).
   Keep slice B separate for its concurrency risk; do not combine the whole feature into one accumulated review.
   Slice C = f7c361a..353068d (290 added lines, cache foundation + tests); slice D = 353068d..5982481
-  (259 diff lines, default/local-loop integration + tests/docs). Evidence-only checkpoint follows D; source resolved,
-  real-TV proof still missing. Native D review approved/acknowledged, C assessed under budget with review not due.
+  (259 diff lines, default/local-loop integration + tests/docs). Evidence-only checkpoint follows D; T3's
+  real-TV evidence is recorded (L26/L30). Native D review approved/acknowledged, C assessed under budget with
+  review not due.
 
 ## Log
 
@@ -212,3 +232,23 @@ Roadmap: GitHub issue #17 (v1.2 milestone), linked from issue #10.
   Local C/D implementation and evidence checkpoint are complete; T3 real-TV sound/focus, active-dream RAM,
   Home latency and one-hour traffic remain unavailable. T4's future feature/tracker chain awaits those checks
   and explicit publishing authorization. No tracker, push, PR, merge, tag or release created; version remains v1.1.
+- L26 2026-10-30 T3 on the MiTV-MSSP3 (192.168.1.52): clean HEAD de57410 build with ~/.local/jdk17 (system JDK has
+  no javac), 123 tests, APK 4,031,019 B, installed over v1.1. measure.sh: cold 1440 ms, Home 217 ms, PSS 60,612 KB
+  (v1.1: 1288/204/57,757). Music job started 14:35: dream active, `playing (cached loop)` 5 s later.
+  User: "Si que sona música". One-hour hold with focus/RAM/traffic samples running.
+- L27 Assistant proposed: after T3 is documented, publish v1.2 (push the branch, tracker PR and child PRs for slices
+  A-D, then release and tag) and create a GitHub issue for a right-side settings panel like the system one (v1.3,
+  own branch). User: "Si". Publication and the new issue are authorized.
+- L28 Created issue #21 "feat: show the settings as a side panel like the system one" (enhancement, milestone v1.3), read back and confirmed. Roadmap #10 not edited.
+- L29 PR chain opened: tracker #22 (draft, Closes #17), A #23, B #24, C #25 (incl. f7c361a), D #26; all CI green; slice E (de57410 + T3 evidence) pending. No merge/tag/release yet.
+- L30 2026-10-30 T3 one-hour result and docs: owner confirmed audible cached playback; focus held at start and at
+  all six 10-minute samples over 3,626 s; BACK ends the dream and releases focus; uid traffic +6,027,775 B
+  received / +117,088 sent in the first 10 minutes (netstats lag puts the 5.43 MB download in that sample), then
+  0 B both ways for the remaining ~50 minutes; active-dream PSS 71,640 KB at start, samples median 113,755 /
+  max 125,097 KB, no steady growth (~40 MB native heap + ~33 MB GL textures; first active-dream reference, no prior
+  baseline). home.conf, screen_off_timeout, stay_on_while_plugged_in and the screensaver component restored
+  exactly and verified. Docs updated: baseline-v1.0.md gained the v1.2 TV section (every metric inside budget vs
+  the v1.0 reference; the +152 ms cold delta vs v1.1 recorded honestly as run-to-run noise to recheck),
+  screensaver-music.md now states the verified TV result instead of pending, CHANGELOG Unreleased notes the TV
+  verification, README no longer says validation is pending. T3 marked DONE; T4 now: PR chain #22-#26 open,
+  slice E/merge/release remain. No commit, tag or version bump in this step.
