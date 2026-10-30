@@ -5,6 +5,11 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [1.3] - 2026-10-30
+
+The remote personalisation release: the settings open as a side panel like the Android TV ones, and the wallpaper,
+night mode, screensaver clock and motion, dock favourites and hidden apps can all be set with the remote.
+
 ### Fixed
 
 - `wallpaper=off` now shows the documented plain background: the home screen and the screensaver no longer keep
@@ -105,7 +110,8 @@ First release.
 - Scripts to install, configure and uninstall LlarTV over ADB: `scripts/install.sh`, `scripts/config.sh` and
   `scripts/uninstall.sh`.
 
-[Unreleased]: https://github.com/mmarkimark/llartv/compare/v1.2...HEAD
+[Unreleased]: https://github.com/mmarkimark/llartv/compare/v1.3...HEAD
+[1.3]: https://github.com/mmarkimark/llartv/compare/v1.2...v1.3
 [1.2]: https://github.com/mmarkimark/llartv/compare/v1.1...v1.2
 [1.1]: https://github.com/mmarkimark/llartv/compare/v1.0...v1.1
 [1.0]: https://github.com/mmarkimark/llartv/releases/tag/v1.0
