@@ -2,7 +2,7 @@
 
 A lightweight, native home screen for Android TV. (*Llar* is Catalan for "home".)
 
-[![Release](https://img.shields.io/badge/release-v1.2-blue)](https://github.com/mmarkimark/llartv/releases/tag/v1.2)
+[![Release](https://img.shields.io/badge/release-v1.3-blue)](https://github.com/mmarkimark/llartv/releases/tag/v1.3)
 [![CI](https://github.com/mmarkimark/llartv/actions/workflows/ci.yml/badge.svg)](https://github.com/mmarkimark/llartv/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 ![Android TV 9+](https://img.shields.io/badge/Android%20TV-9%2B-informational)

@@ -180,3 +180,22 @@ fluctuates with the wallpaper slides: a meminfo breakdown during the dream showe
 slide bitmaps) and ~33 MB GL textures for the zoom animation; the process also hosts the paused HomeActivity and
 Android 11's DreamActivity. There is no earlier active-dream baseline, so this is recorded as the first reference,
 not judged against a budget.
+
+## The v1.3 remote personalisation build (Xiaomi MiTV-MSSP3, 2026-10-30)
+
+Build: a clean debug build of the content merged to `main` at c500c12 (the settings side panel, wallpaper and night
+mode, screensaver clock and motion, dock favourites and hidden apps), 4,050,743 bytes, 178 JVM tests passing,
+measured with the same script before the version bump. The difference column compares against the published v1.2;
+the budgets and the results are referenced to the v1.0 TV baseline, against which every metric is inside: APK
++51,112 bytes (+1.28%), cold start −647.5 ms (−35.0%), Home return −150 ms (−43.7%), RAM +1,210 KB (+2.1%).
+
+| Metric | v1.2 (published) | v1.3 | Difference | Budget | Result |
+| --- | --- | --- | --- | --- | --- |
+| APK bytes | 4,031,027 | 4,050,743 | +19,716 (+0.49%) | +5% | Inside |
+| Cold start, median | 1440 ms | 1204 ms | −236 ms (−16.4%) | +150 ms and +15% | Inside |
+| Home return, median | 217 ms | 193 ms | −24 ms (−11.1%) | +40 ms and +40% | Inside |
+| RAM, TOTAL PSS, median | 60,612 KB | 59,881 KB | −731 KB (−1.2%) | +4,096 KB and +10% | Inside |
+
+Raw values: cold start 1193, 1202, 1204, 1215, 1382 ms; Home return (home-intent) 591, 193, 223, 177, 174 ms; RAM
+57442, 59907, 59881 KB. The +152 ms cold-start delta noted for v1.2 did not repeat: with an unchanged start path the
+median is now below both v1.1 and v1.2, which supports reading it as run-to-run noise.
