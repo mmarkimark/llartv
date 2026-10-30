@@ -12,6 +12,15 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 ### Added
 
+- Favourite and hidden apps from the remote (#8): holding OK on a dock or grid app opens its action menu —
+  *Afegir al dock* or *Treure del dock*, *Moure a l'esquerra* / *Moure a la dreta* (dock apps only; a move that
+  would leave the dock is not shown), *Amagar* and *Informació de l'app*. A short OK press still launches the
+  app, and the MENU key still opens its info page. Edits write `dock` and `hidden` to `home.conf` through the
+  same atomic write as the settings panel, keeping every other line, and Home reloads with the focus on the
+  moved app (a neighbour when it left the row; an empty dock moves the focus to the grid). A full dock shows a
+  short message and writes nothing. The settings panel gains an *Apps amagades* row with the count ("Cap" /
+  "2 apps"); OK opens the list by label, the package name when the app is not installed, and unhides one app.
+  Hiding never uninstalls or disables anything.
 - Screensaver clock and motion in the settings menu: *Rellotge al protector* hides the time only (the date, the
   weather and the photo credits stay) and *Moviment al protector* turns off the slow zoom and drift, so each photo
   stays still and still changes every 25 seconds with a fade; no animation runs while it is off. New keys
@@ -23,6 +32,11 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 ### Changed
 
+- An existing `dock=` list in `home.conf` no longer gets filled from the grid: the dock now shows exactly the
+  installed apps of that list, in order, even when there are fewer than the columns. Removing dock apps from
+  the TV therefore leaves the slot empty. The automatic fill still applies to the built-in default list (and
+  `dock.txt`); the first edit made with the remote writes the currently shown dock order explicitly, and a
+  `dock=` line with an empty value stays an explicitly empty dock instead of falling back to the built-in list.
 - The settings menu opens as a side panel on the right, like the Android TV settings: it takes the same width as
   the system panel, slides in over the dimmed home screen, and shows each setting with its value underneath. The
   values of a setting open inside the panel; Back closes them first and then the panel, and the focus returns to

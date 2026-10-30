@@ -11,6 +11,9 @@
 #       music_screen is on or off (default); empty music_url selects cached Holizna CC0 music.
 #       clock_screen and motion_screen are on (default) or off: the screensaver time, and its slow zoom.
 #       A custom HTTPS music_url overrides it without caching or looping. No audio is bundled in the APK.
+#       A dock= list shows exactly those apps, however short (no filling from the grid); the built-in
+#       default and dock.txt are filled up to the dock capacity. Holding OK on an app on the TV writes
+#       the same dock and hidden keys.
 set -u
 # shellcheck source=scripts/lib.sh
 source "$(dirname "$0")/lib.sh"

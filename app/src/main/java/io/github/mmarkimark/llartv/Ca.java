@@ -57,6 +57,13 @@ final class Ca {
     static final String ALL_DAY = "Tot el dia";
     static final String CANT_SAVE = "No s'ha pogut desar";
 
+    // The long-press menu of an app, and the hidden apps in the settings
+    static final String ADD_TO_DOCK = "Afegir al dock", REMOVE_FROM_DOCK = "Treure del dock";
+    static final String MOVE_LEFT = "Moure a l'esquerra", MOVE_RIGHT = "Moure a la dreta";
+    static final String HIDE = "Amagar", APP_INFO = "Informació de l'app";
+    static final String DOCK_FULL = "El dock ja està ple";
+    static final String HIDDEN_APPS = "Apps amagades", NONE = "Cap", NO_HIDDEN_APPS = "No hi ha cap app amagada";
+
     /** The Catalan forms: "bon dia" until 14:00, then "bon vespre"; "bona nit" in the small hours. */
     static String greeting(int hour) {
         return hour < 5 ? "Bona nit" : hour < 14 ? "Bon dia" : hour < 22 ? "Bon vespre" : "Bona nit";

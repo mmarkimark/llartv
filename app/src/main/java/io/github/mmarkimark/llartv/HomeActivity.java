@@ -36,6 +36,7 @@ import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.animation.DecelerateInterpolator;
@@ -52,6 +53,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -125,11 +127,14 @@ public class HomeActivity extends Activity {
     LinearLayout menu;
     final List<View> menuRows = new ArrayList<>();
     final List<Runnable> menuActions = new ArrayList<>();
+    int menuBack = TOP;                 // the region Back and a menu action return to
 
     final List<Ui.AppEntry> dockApps = new ArrayList<>();
     final List<Ui.AppEntry> gridApps = new ArrayList<>();
     final List<TileView> dockTiles = new ArrayList<>();
     TileView focusedTile;
+    final OkPress ok = new OkPress(ViewConfiguration.getLongPressTimeout());   // short OK launches, a hold opens the app menu
+    String pendingPkg;                  // the app to focus again after a dock or hidden edit
 
     int region = DOCK, topIdx = 0, dockIdx = 0, gridIdx = 0, menuIdx = 0, minTop = 0;
     String restoreGridPkg;
@@ -215,8 +220,8 @@ public class HomeActivity extends Activity {
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         // Home pressed while already home: back to the dock.
-        if (menu.getVisibility() == View.VISIBLE) menu.setVisibility(View.GONE);
-        if (loaded && !dockApps.isEmpty()) { region = DOCK; applyFocus(true); }
+        if (menu.getVisibility() == View.VISIBLE) { menu.setVisibility(View.GONE); region = menuBack; }
+        if (loaded && !dockApps.isEmpty() && region != MENU) { region = DOCK; applyFocus(true); }
     }
 
     @Override public void onBackPressed() { /* launcher: never finish */ }
@@ -509,7 +514,7 @@ public class HomeActivity extends Activity {
                 for (ResolveInfo ri : pm.queryIntentActivities(q, 0)) {
                     ActivityInfo ai = ri.activityInfo;
                     String p = ai.packageName;
-                    if (p.equals(getPackageName()) || map.containsKey(p) || HIDDEN.contains(p) || conf.hidden.contains(p)) continue;
+                    if (p.equals(getPackageName()) || map.containsKey(p) || HIDDEN.contains(p)) continue;
                     // Built-in apps that only have a phone-style entry (no TV entry) are system helpers
                     // (button handlers, test tools...), not apps you'd open from the sofa. User-installed ones stay.
                     if (Intent.CATEGORY_LAUNCHER.equals(cat) && (ai.applicationInfo.flags & android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0) continue;
@@ -526,22 +531,25 @@ public class HomeActivity extends Activity {
                     map.put(p, e);
                 }
             }
+            List<Ui.AppEntry> all = new ArrayList<>(map.values());
+            Collections.sort(all, (a, b) -> a.label.compareToIgnoreCase(b.label));
+            List<String> byLabel = new ArrayList<>();
+            for (Ui.AppEntry e : all) byLabel.add(e.pkg);
+            // A dock= list of one's own shows exactly its apps, however short; the built-in list (and dock.txt)
+            // is still filled from the alphabetically sorted grid, as it always has.
+            HomeApps.Composed c = HomeApps.compose(readDockConfig(), byLabel, conf.hidden, !conf.dockSet, COLS);
             List<Ui.AppEntry> d = new ArrayList<>(), g = new ArrayList<>();
-            for (String p : readDockConfig()) {
-                Ui.AppEntry e = map.remove(p);
-                if (e != null && d.size() < COLS) d.add(e);
-            }
-            g.addAll(map.values());
-            Collections.sort(g, (a, b) -> a.label.compareToIgnoreCase(b.label));
-            while (d.size() < COLS && !g.isEmpty()) d.add(g.remove(0));   // fill an incomplete dock
+            for (String p : c.dock) d.add(map.get(p));
+            for (String p : c.grid) g.add(map.get(p));
             for (Ui.AppEntry e : d) e.color = Ui.sampleColor(e.banner != null ? e.banner : e.icon);
             ui.post(() -> bindApps(d, g));
         }).start();
     }
 
-    /** Dock order: dock.txt in the app's files dir if present (no rebuild needed), else res/values/dock.xml. */
+    /** Dock order: an explicit dock= list in home.conf (kept even when empty), else dock.txt in the app's files
+     *  dir if present (no rebuild needed), else res/values/dock.xml. */
     List<String> readDockConfig() {
-        if (!conf.dock.isEmpty()) return conf.dock;
+        if (conf.dockSet) return conf.dock;
         File f = new File(getExternalFilesDir(null), "dock.txt");
         if (f.exists()) {
             List<String> out = new ArrayList<>();
@@ -577,6 +585,12 @@ public class HomeActivity extends Activity {
         gridIdx = clamp(gridIdx, gridApps.size());
         if (region == DOCK && dockApps.isEmpty()) region = gridApps.isEmpty() ? TOP : GRID;
         if (region == GRID && gridApps.isEmpty()) region = DOCK;
+        if (pendingPkg != null) {   // after an edit, the focus follows the app: a neighbour when it left
+            String p = pendingPkg;
+            pendingPkg = null;
+            for (int i = 0; i < dockApps.size(); i++) if (dockApps.get(i).pkg.equals(p)) { region = DOCK; dockIdx = i; break; }
+            if (region != DOCK) for (int i = 0; i < gridApps.size(); i++) if (gridApps.get(i).pkg.equals(p)) { region = GRID; gridIdx = i; break; }
+        }
         loaded = true;
         if (!dockApps.isEmpty()) { Ui.AppEntry e = dockApps.get(dockIdx); hero.setText(e.label); setGlow(e.color); glowColor = e.color; }
         afterLayout(() -> { applyFocus(false); ui.postDelayed(() -> applyFocus(false), 400); });
@@ -612,7 +626,27 @@ public class HomeActivity extends Activity {
                 || k == KeyEvent.KEYCODE_DPAD_LEFT || k == KeyEvent.KEYCODE_DPAD_RIGHT
                 || isOk(k) || k == KeyEvent.KEYCODE_BACK || k == KeyEvent.KEYCODE_MENU;
         if (!ours) return super.dispatchKeyEvent(e);
-        if (e.getAction() == KeyEvent.ACTION_DOWN && loaded) onNav(k);
+        int act = e.getAction();
+        if (isOk(k)) {
+            // In the dock and the grid, OK acts on the release: a short press launches, a hold opens the
+            // app's menu. In the top bar and a menu it still acts on the press, as it always has.
+            if (loaded && (region == DOCK || region == GRID)) {
+                if (act == KeyEvent.ACTION_DOWN) {
+                    if (e.getRepeatCount() == 0) ok.down(e.getEventTime());
+                    else if (ok.repeat(e.getEventTime()) == OkPress.HOLD) openAppMenu();
+                } else if (act == KeyEvent.ACTION_UP) {
+                    int r = ok.up(e.getEventTime());
+                    Ui.AppEntry cur = currentApp();
+                    if (r == OkPress.CLICK && cur != null) launch(cur);
+                    else if (r == OkPress.HOLD) openAppMenu();   // no repeats arrived in time: fire on release
+                }
+            } else if (act == KeyEvent.ACTION_DOWN && loaded && e.getRepeatCount() == 0) onNav(k);
+            return true;
+        }
+        if (act == KeyEvent.ACTION_DOWN && loaded) {
+            ok.cancel();   // another key took over: a pending OK must not click when it goes up
+            onNav(k);
+        }
         return true;
     }
 
@@ -637,7 +671,6 @@ public class HomeActivity extends Activity {
                 else if (k == R) { if (dockIdx >= dockApps.size() - 1) return; dockIdx++; }
                 else if (k == U) region = TOP;
                 else if (k == D) { if (n == 0) return; region = GRID; gridIdx = Math.min(dockIdx, n - 1); }
-                else if (isOk(k)) { launch(dockApps.get(dockIdx)); return; }
                 else if (k == KeyEvent.KEYCODE_MENU) { appInfo(dockApps.get(dockIdx)); return; }
                 else return;
                 break;
@@ -652,7 +685,6 @@ public class HomeActivity extends Activity {
                 }
                 else if (k == D) { if (row >= rows - 1) return; gridIdx = Math.min(gridIdx + COLS, n - 1); }
                 else if (k == B) { if (dockApps.isEmpty()) return; region = DOCK; }
-                else if (isOk(k)) { launch(gridApps.get(gridIdx)); return; }
                 else if (k == KeyEvent.KEYCODE_MENU) { appInfo(gridApps.get(gridIdx)); return; }
                 else return;
                 break;
@@ -783,7 +815,7 @@ public class HomeActivity extends Activity {
 
     void saveFocus() {
         if (!loaded) return;
-        prefs.edit().putInt("region", region == MENU ? TOP : region).putInt("top", topIdx).putInt("dock", dockIdx)
+        prefs.edit().putInt("region", region == MENU ? menuBack : region).putInt("top", topIdx).putInt("dock", dockIdx)
                 .putString("gridPkg", gridIdx < gridApps.size() ? gridApps.get(gridIdx).pkg : null).apply();
     }
 
@@ -864,16 +896,7 @@ public class HomeActivity extends Activity {
         }
         if (liveTvIntent() != null) addMenuRow(Ca.LIVE_TV, this::openLiveTv);
 
-        RectF pr = rectOf(pills[0], 1f);
-        menu.setX(pr.left);
-        menu.setY(pr.bottom + dp(12));
-        menu.setAlpha(0f);
-        menu.setTranslationY(-dp(8));
-        menu.setVisibility(View.VISIBLE);
-        menu.animate().alpha(1f).translationY(0).setDuration(170).start();
-        region = MENU;
-        menuIdx = 0;
-        afterLayout(() -> applyFocus(true));
+        showMenu(rectOf(pills[0], 1f), TOP);
     }
 
     String inputLabel(TvInputInfo in) {
@@ -895,8 +918,86 @@ public class HomeActivity extends Activity {
     void closeMenu() {
         menu.animate().cancel();
         menu.setVisibility(View.GONE);
-        region = TOP;
+        region = menuBack;
         applyFocus(true);
+    }
+
+    /** Shows the popup under the anchor's top-left, kept on screen, and remembers where Back returns to. */
+    void showMenu(RectF at, int backTo) {
+        menu.measure(View.MeasureSpec.makeMeasureSpec(dp(260), View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(H, View.MeasureSpec.AT_MOST));
+        float y = MenuPlacement.top(at.top, at.bottom, menu.getMeasuredHeight(), H, dp(12));
+        menu.setX(Math.max(dp(12), Math.min(at.left, W - dp(260) - dp(12))));
+        // setY works through the translation, so the slide-in animates y itself (animating translationY to 0
+        // would throw the menu back to the top of the screen)
+        menu.setY(y - dp(8));
+        menu.setAlpha(0f);
+        menu.setVisibility(View.VISIBLE);
+        menu.animate().alpha(1f).y(y).setDuration(170).start();
+        menuBack = backTo;
+        region = MENU;
+        menuIdx = 0;
+        afterLayout(() -> applyFocus(true));
+    }
+
+    /** The app OK would act on now: the focused dock or grid tile; null when its row is empty. */
+    Ui.AppEntry currentApp() {
+        if (region == DOCK && dockIdx < dockApps.size()) return dockApps.get(dockIdx);
+        if (region == GRID && gridIdx < gridApps.size()) return gridApps.get(gridIdx);
+        return null;
+    }
+
+    /** The long-press menu of the focused dock or grid app: the dock, its order, hiding and the app info. */
+    void openAppMenu() {
+        final Ui.AppEntry e = currentApp();
+        if (e == null) return;
+        boolean inDock = region == DOCK;
+        menu.removeAllViews();
+        menuRows.clear();
+        menuActions.clear();
+        if (inDock) addMenuRow(Ca.REMOVE_FROM_DOCK, () -> editApps(HomeApps.removeFromDock(shownDock(), hiddenList(), e.pkg), e.pkg));
+        else addMenuRow(Ca.ADD_TO_DOCK, () -> addToDock(e));
+        if (inDock && dockIdx > 0) addMenuRow(Ca.MOVE_LEFT, () -> editApps(HomeApps.moveInDock(shownDock(), hiddenList(), e.pkg, -1), e.pkg));
+        if (inDock && dockIdx < dockApps.size() - 1) addMenuRow(Ca.MOVE_RIGHT, () -> editApps(HomeApps.moveInDock(shownDock(), hiddenList(), e.pkg, 1), e.pkg));
+        addMenuRow(Ca.HIDE, () -> editApps(HomeApps.hideApp(shownDock(), hiddenList(), e.pkg), e.pkg));
+        addMenuRow(Ca.APP_INFO, () -> appInfo(e));
+        showMenu(rectOf(targetView(), TileView.FOCUS_SCALE), region);
+    }
+
+    /** The dock as it is shown: what an edit writes, so the first edit fixes the current order in home.conf. */
+    List<String> shownDock() {
+        List<String> out = new ArrayList<>();
+        for (Ui.AppEntry e : dockApps) out.add(e.pkg);
+        return out;
+    }
+
+    List<String> hiddenList() { return new ArrayList<>(conf.hidden); }
+
+    /** Adding to the dock: a full dock writes nothing and says so instead (S5). */
+    void addToDock(Ui.AppEntry e) {
+        HomeApps.Edit edit = HomeApps.addToDock(shownDock(), hiddenList(), e.pkg, COLS);
+        if (!edit.changed()) { Toast.makeText(this, Ca.DOCK_FULL, Toast.LENGTH_SHORT).show(); return; }
+        editApps(edit, e.pkg);
+    }
+
+    /** Writes a dock/hidden edit to home.conf the way the settings panel writes its values, then reloads
+     *  the apps with the focus following focusPkg (S6, S7). */
+    void editApps(HomeApps.Edit edit, String focusPkg) {
+        if (!edit.changed()) return;
+        File dir = getExternalFilesDir(null);
+        if (dir == null) { Toast.makeText(this, Ca.CANT_SAVE, Toast.LENGTH_SHORT).show(); return; }
+        try {
+            String text = Config.read(dir);
+            if (edit.dockChanged) text = Config.setInText(text, "dock", String.join(",", edit.dock));
+            if (edit.hiddenChanged) text = Config.setInText(text, "hidden", String.join(",", edit.hidden));
+            Config.write(dir, text);
+        } catch (IOException ex) {
+            Toast.makeText(this, Ca.CANT_SAVE, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        conf = Config.load(this);
+        pendingPkg = focusPkg;
+        loadApps();
     }
 
     void switchInput(String inputId) {
