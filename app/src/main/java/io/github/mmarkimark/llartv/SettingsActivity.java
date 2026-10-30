@@ -161,6 +161,7 @@ public class SettingsActivity extends Activity {
         addPolicyRow(Ca.WEATHER_SCREEN, "weather_screen", conf.weatherScreen);
         addPolicyRow(Ca.NEWS_HOME, "news_home", conf.newsHome);
         addSourceRow(conf);
+        addScreensaverRows(conf);
         addMusicRow(conf);
         rows.add(new Row(Ca.SYSTEM_SETTINGS, null, null, null, new Runnable() {
             @Override public void run() { openSystemSettings(); }
@@ -221,6 +222,16 @@ public class SettingsActivity extends Activity {
                         ContentPolicy.value(ContentPolicy.ALL)}, null);
         r.selected = policy;   // NEVER, MORNING and ALL are 0, 1 and 2, the same order as the options
         rows.add(r);
+    }
+
+    /** The time and the slow zoom of the screensaver, each on or off; both on by default. */
+    void addScreensaverRows(Config conf) {
+        Row c = new Row(Ca.CLOCK_SCREEN, "clock_screen", new String[]{Ca.ON, Ca.OFF}, new String[]{"on", "off"}, null);
+        c.selected = conf.clockScreen ? 0 : 1;
+        rows.add(c);
+        Row m = new Row(Ca.MOTION_SCREEN, "motion_screen", new String[]{Ca.ON, Ca.OFF}, new String[]{"on", "off"}, null);
+        m.selected = conf.motionScreen ? 0 : 1;
+        rows.add(m);
     }
 
     /** The screensaver music: on or off. The stream itself comes from the configuration, not from the remote. */

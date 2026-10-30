@@ -55,6 +55,24 @@ public class ConfigTest {
         assertFalse(k.newsRssIsCustom());   // a blank feed is not a custom feed
     }
 
+    @Test public void theScreensaverClockAndMotionAreOnByDefaultAndCanBeTurnedOff() {
+        Config k = new Config();
+        assertTrue(k.clockScreen);
+        assertTrue(k.motionScreen);
+        k.set("clock_screen", "off");
+        k.set("motion_screen", "no");
+        assertFalse(k.clockScreen);
+        assertFalse(k.motionScreen);
+        k.set("clock_screen", "on");
+        k.set("motion_screen", "0");
+        assertTrue(k.clockScreen);
+        assertFalse(k.motionScreen);
+        k.set("clock_screen", "");
+        k.set("motion_screen", "");
+        assertTrue(k.clockScreen);    // an empty value restores the default
+        assertTrue(k.motionScreen);
+    }
+
     @Test public void theMusicSettingsAreRead() {
         Config k = new Config();
         assertFalse(k.musicScreen);

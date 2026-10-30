@@ -35,6 +35,8 @@ final class Ca {
     static final String NEWS_SOURCE_WORLD = "BBC News World";
     static final String NEWS_SOURCE_CUSTOM = "Personalitzada";
     static final String MUSIC_SCREEN = "Música al protector";
+    static final String CLOCK_SCREEN = "Rellotge al protector";
+    static final String MOTION_SCREEN = "Moviment al protector";
     static final String WALLPAPER = "Fons de pantalla";
     static final String WALLPAPER_BING = "Fotos de Bing";
     static final String WALLPAPER_PLAIN = "Fons llis";
