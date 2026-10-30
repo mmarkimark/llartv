@@ -2,6 +2,7 @@ package io.github.mmarkimark.llartv;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -21,6 +22,7 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -41,8 +43,8 @@ public class SettingsActivity extends Activity {
     static final class Row {
         final String label;
         final String key;            // home.conf key, null for an action
-        final String[] options;      // the values shown
-        final String[] values;       // what is written to home.conf, null for an action
+        String[] options;            // the values shown (the hidden row fills them when it opens)
+        String[] values;             // what is written to home.conf, null for an action
         final Runnable action;       // for an action row
         int selected;
         boolean custom;              // a custom feed or image is in effect, so the presets do not apply
@@ -76,6 +78,7 @@ public class SettingsActivity extends Activity {
     int focus = 0;
     int panelIdx = 0;
     Row panelRow;
+    Row hiddenRow;                 // the hidden apps: OK opens the list, to unhide one
     boolean closing;
 
     @Override protected void onCreate(Bundle b) {
@@ -163,10 +166,12 @@ public class SettingsActivity extends Activity {
         addSourceRow(conf);
         addScreensaverRows(conf);
         addMusicRow(conf);
+        addHiddenRow();
         rows.add(new Row(Ca.SYSTEM_SETTINGS, null, null, null, new Runnable() {
             @Override public void run() { openSystemSettings(); }
         }));
         for (Row r : rows) addRowView(r);
+        updateHiddenRow(conf.hidden.size());   // the row's value view exists from here on
     }
 
     /** The news source. A custom "news_rss" wins over the presets, so the row shows that instead. */
@@ -239,6 +244,46 @@ public class SettingsActivity extends Activity {
         Row r = new Row(Ca.MUSIC_SCREEN, "music_screen", new String[]{Ca.ON, Ca.OFF}, new String[]{"on", "off"}, null);
         r.selected = conf.musicScreen ? 0 : 1;
         rows.add(r);
+    }
+
+    /** The hidden apps, with how many there are as the value; OK opens the list, to unhide one. */
+    void addHiddenRow() {
+        hiddenRow = new Row(Ca.HIDDEN_APPS, "hidden", new String[]{Ca.NONE}, new String[]{""}, null);
+        rows.add(hiddenRow);
+    }
+
+    void updateHiddenRow(int count) {
+        hiddenRow.selected = 0;
+        hiddenRow.value.setText(count == 0 ? Ca.NONE : count + (count == 1 ? " app" : " apps"));
+    }
+
+    /** The hidden apps by label (the package name when it is not installed); OK on one writes the rest. */
+    void openHiddenPanel() {
+        Config conf = Config.load(this);
+        if (conf.hidden.isEmpty()) { Toast.makeText(this, Ca.NO_HIDDEN_APPS, Toast.LENGTH_SHORT).show(); return; }
+        List<String[]> items = new ArrayList<>();   // {label, package}, alphabetical by label
+        for (String pkg : conf.hidden) items.add(new String[]{appLabel(pkg), pkg});
+        Collections.sort(items, (a, b) -> a[0].compareToIgnoreCase(b[0]));
+        String[] labels = new String[items.size()], values = new String[items.size()];
+        for (int i = 0; i < items.size(); i++) {
+            List<String> rest = new ArrayList<>();   // the hidden line with this app taken out
+            for (int j = 0; j < items.size(); j++) if (j != i) rest.add(items.get(j)[1]);
+            labels[i] = items.get(i)[0];
+            values[i] = String.join(",", rest);
+        }
+        hiddenRow.options = labels;
+        hiddenRow.values = values;
+        openPanel(hiddenRow);
+    }
+
+    /** The app's own label, or its package name when it is not installed any more. */
+    String appLabel(String pkg) {
+        try {
+            PackageManager pm = getPackageManager();
+            CharSequence l = pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0));
+            if (l != null && l.length() > 0) return l.toString();
+        } catch (Exception ignored) {}
+        return pkg;
     }
 
     /** A row of the panel: the setting on the first line and its value under it, like the system settings. */
@@ -339,7 +384,11 @@ public class SettingsActivity extends Activity {
         if (panelRow != null) {
             if (k == U) { if (panelIdx == 0) return; panelIdx--; }
             else if (k == D) { if (panelIdx >= panelRow.options.length - 1) return; panelIdx++; }
-            else if (isOk(k)) { Row r = panelRow; int i = panelIdx; closePanel(); persist(r, i); return; }
+            else if (isOk(k)) {
+                Row r = panelRow; int i = panelIdx; closePanel(); persist(r, i);
+                if (r == hiddenRow) updateHiddenRow(Config.load(this).hidden.size());
+                return;
+            }
             else if (k == B) { closePanel(); return; }
             else return;
             applyPanelFocus();
@@ -349,7 +398,7 @@ public class SettingsActivity extends Activity {
         if (k == U) { if (focus == 0) return; focus--; }
         else if (k == D) { if (focus >= rows.size() - 1) return; focus++; }
         else if (k == L || k == R) {
-            if (r.isAction()) return;
+            if (r.isAction() || r == hiddenRow) return;
             if (r.custom) { toast(r.customTip); return; }
             int next = r.selected + (k == R ? 1 : -1);
             if (next < 0) next = r.values.length - 1;
@@ -358,6 +407,7 @@ public class SettingsActivity extends Activity {
         }
         else if (isOk(k)) {
             if (r.isAction()) { r.action.run(); return; }
+            if (r == hiddenRow) { openHiddenPanel(); return; }
             if (r.custom) { toast(r.customTip); return; }
             openPanel(r);
             return;

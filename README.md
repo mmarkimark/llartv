@@ -41,8 +41,12 @@ broadcasts, and network data is fetched only while the home screen is showing.
   (current network name) and **Settings**. The Inputs button hides itself on devices with nothing to switch to.
 - A dock of up to six favourite apps; the focused app's name is shown above the dock.
 - A grid with every other launchable app. Helper apps without a TV entry point are left out automatically.
+- Press and hold OK on a dock or grid app for its action menu: *Afegir al dock* or *Treure del dock*, *Moure a
+  l'esquerra* / *Moure a la dreta* (dock apps only), *Amagar* or *Informació de l'app*. The edits write `dock`
+  and `hidden` to `home.conf` at once, a full dock says so and writes nothing, and hidden apps come back from
+  **Configuració → Apps amagades**.
 - Predictable D-pad navigation: Up/Down move exactly one row, the ends do not wrap, Back returns to the dock and
-  Menu opens the app's info page. The last focused tile is remembered.
+  Menu opens the app's info page. A short OK press launches the focused app; the last focused tile is remembered.
 
 **Time of day**
 
@@ -67,6 +71,8 @@ broadcasts, and network data is fetched only while the home screen is showing.
   and shown as one more choice.
 - Screensaver clock and motion: hide the time (the date, the weather and the photo credits stay) and turn off the
   slow zoom, so each photo stays still and still changes every 25 seconds with a fade.
+- Apps amagades: the hidden apps, with their count as the value. OK opens the list by label (the package name
+  when the app is not installed any more) and unhides one app, writing `hidden`.
 - News source: 3Cat (Catalan), BBC News Mundo (Spanish) or BBC News World (English), with the source credited next
   to the headlines and the article link kept with them. A custom RSS feed always wins over the preset.
 
@@ -189,8 +195,8 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 | Key | Default | Description |
 | --- | --- | --- |
 | `columns` | `6` | Grid columns; the dock holds the same number of apps. 4–6 work best. |
-| `dock` | built-in list | Comma-separated package names for the dock, in order. |
-| `hidden` | empty | Comma-separated package names to keep out of the grid. |
+| `dock` | built-in list | Comma-separated package names for the dock, in order. Set with `--dock` or by holding OK on an app from the TV; when set, the dock shows exactly these apps (installed ones, up to `columns`) and is **not** filled from the grid — the automatic fill only applies to the built-in list and `dock.txt`. |
+| `hidden` | empty | Comma-separated package names to keep out of the grid and the dock (hide with the app's long-OK menu; recover them under **Configuració → Apps amagades**). Hiding never uninstalls or disables an app. |
 | `wallpaper` | `bing` | `bing` for Bing's daily images, an image URL, or `off` for a plain background. |
 | `wallpaper_minutes` | `30` | Rotate through the downloaded images every N minutes; `0` shows the newest (*Fixa* in the menu). |
 | `morning` | `08:00-11:00` | Morning panel time range; `off` turns it off. |
