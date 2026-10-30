@@ -27,6 +27,8 @@ import java.util.Set;
  *   location=41.4235,2.2010      (latitude,longitude for the weather)
  *   news_source=automatic       (automatic, 3cat, bbc-mundo or bbc-world: the news feed)
  *   news_rss=https://...         (a custom feed; it wins over the preset and is never overwritten by one)
+ *   music_screen=off             (on: music while the screensaver is showing)
+ *   music_url=https://...         (custom HTTPS audio; empty selects cached Holizna CC0 music)
  *   morning=08:00-11:00          (empty turns the morning panel off)
  *   night=23:00-08:00            (empty turns night mode off)
  *   dock_tint=on                 (dock band takes a dark colour from the wallpaper)
@@ -48,6 +50,8 @@ final class Config {
     String newsSource = NewsSource.AUTOMATIC;   // "automatic", "3cat", "bbc-mundo" or "bbc-world"
     String newsRss = "";           // a custom feed; empty when the preset decides
     boolean newsRssCustom = false; // true when home.conf sets news_rss, so the custom feed wins over the preset
+    boolean musicScreen = false;    // optional music while the screensaver is showing
+    String musicUrl = "";           // empty selects cached Holizna; otherwise a custom HTTPS stream
     String morning = TimeBands.DEFAULT_MORNING, night = TimeBands.DEFAULT_NIGHT;
     boolean dockTint = true;
     String clock = Clock.SYSTEM;    // "system", "24" or "12"
@@ -122,6 +126,13 @@ final class Config {
                 newsSource = p.isEmpty() ? NewsSource.AUTOMATIC : NewsSource.isPreset(p) ? p : newsSource;
                 break;
             }
+            case "music_screen": {
+                String p = v.trim().toLowerCase(java.util.Locale.ROOT);
+                if (p.isEmpty()) musicScreen = false;                       // an empty value restores the default
+                else musicScreen = !(p.equals("off") || p.equals("false") || p.equals("0") || p.equals("no"));
+                break;
+            }
+            case "music_url": musicUrl = v; break;
             case "morning": morning = v; break;
             case "night": night = v; break;
             case "dock_tint": dockTint = !v.equalsIgnoreCase("off") && !v.equalsIgnoreCase("false") && !v.equals("0"); break;

@@ -4,14 +4,16 @@
 #        ./scripts/config.sh [--tv <TV-IP>] --dock                      pick the dock apps from a list
 #        ./scripts/config.sh [--tv <TV-IP>] --show                      show the current settings
 # Keys: columns dock hidden wallpaper wallpaper_minutes morning night location news_source news_rss
-#       dock_tint clock weather_home weather_screen news_home team_id team_name.
+#       music_screen music_url dock_tint clock weather_home weather_screen news_home team_id team_name.
 #       An empty value (key=) restores its default.
 #       news_source is automatic (the interface language), 3cat, bbc-mundo or bbc-world. A custom
 #       news_rss always wins over the preset and is never overwritten by it; remove the line to use a preset.
+#       music_screen is on or off (default); empty music_url selects cached Holizna CC0 music.
+#       A custom HTTPS music_url overrides it without caching or looping. No audio is bundled in the APK.
 set -u
 # shellcheck source=scripts/lib.sh
 source "$(dirname "$0")/lib.sh"
-KEYS=" columns dock hidden wallpaper wallpaper_minutes morning night location news_source news_rss dock_tint clock weather_home weather_screen news_home team_id team_name "
+KEYS=" columns dock hidden wallpaper wallpaper_minutes morning night location news_source news_rss music_screen music_url dock_tint clock weather_home weather_screen news_home team_id team_name "
 
 IP=""; SHOW=0; PICK=0; PAIRS=()
 while [ $# -gt 0 ]; do case "$1" in

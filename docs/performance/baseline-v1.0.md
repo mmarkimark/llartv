@@ -135,3 +135,48 @@ and measured on the TV, right after the released v1.0 asset had been measured th
 Raw values: cold start 1607, 1590, 1269, 1288, 1284 ms; Home return 766, 209, 173, 184, 204 ms; RAM 56106,
 57761, 57757 KB. The whole v1.1 release, with the native settings menu and the news source presets, is a third of
 a percent bigger than v1.0 and starts a third faster on the device that will run it.
+
+## The v1.2 screensaver music build (Xiaomi MiTV-MSSP3, 2026-10-30)
+
+Build: a clean debug build of commit de57410 (123 JVM tests passing), 4,031,019 bytes, installed over the
+published v1.1. Measured with the same script, label "MiTV-MSSP3 v1.2 music (de57410)". The difference column
+compares against the published v1.1 numbers from the same TV; the budgets and the results are referenced to the
+v1.0 TV baseline (3,999,631 bytes / 1851.5 ms / 343 ms / 58,671 KB), against which every metric is inside:
+APK +31,388 bytes (+0.78%), cold start −411.5 ms (−22.2%), Home return −126 ms (−36.7%), RAM +1,941 KB (+3.3%).
+
+| Metric | v1.1 (published) | v1.2 (music build) | Difference | Budget | Result |
+| --- | --- | --- | --- | --- | --- |
+| APK bytes | 4,013,679 | 4,031,019 | +17,340 (+0.43%) | +5% | Inside |
+| Cold start, median | 1288 ms | 1440 ms | +152 ms (+11.8%) | +150 ms and +15% | Inside |
+| Home return, median | 204 ms | 217 ms | +13 ms (+6.4%) | +40 ms and +40% | Inside |
+| RAM, TOTAL PSS, median | 57,757 KB | 60,612 KB | +2,855 KB (+4.9%) | +4,096 KB and +10% | Inside |
+
+Raw values: cold start 1481, 1275, 1488, 1430, 1440 ms; Home return (home-intent) 785, 217, 251, 207, 216 ms;
+RAM 59422, 60613, 60612 KB.
+
+Versus v1.1 the cold-start median is +152 ms: above the +150 ms absolute figure of the budget but below its +15%
+relative figure, and the budget table does not define whether both or either must hold. The code on the start path
+(HomeActivity) is unchanged since v1.1 — only two Config keys were added — and v1.1's own runs ranged 1269–1607 ms,
+so the delta is treated as run-to-run noise, to be rechecked with more runs at the next milestone, not as a
+confirmed regression.
+
+### Active screensaver with music
+
+The same session then ran a one-hour music check with `music_screen=on` and an empty `music_url` (script
+`.state/tv-t3/music-tv.py`, results in the ignored `.state/tv-t3/results.json`). The screensaver became active and
+the app logged `playing (cached loop)` 5.0 s after the dream was observed, including the first one-time download;
+the owner confirmed audible playback on the TV. The player reported looping and the MP3 decoder, LlarTV held
+audio focus at the start and at all six 10-minute samples over 3,626 s (longer than an hour), and BACK ended the
+dream and the focus was no longer held.
+
+Traffic for the app uid (netstats): +6,027,775 bytes received and +117,088 sent in the first 10 minutes (the
+5.43 MB track plus protocol overhead and the app's other startup traffic), then 0 bytes received or sent over the
+remaining ~50 minutes of looping playback. The netstats counters lag, so the download appeared in the 10-minute
+sample, not immediately.
+
+Active-dream RAM (TOTAL PSS): 71,640 KB at start; 125,097 / 75,973 / 117,205 / 122,041 / 113,648 / 113,755 KB at
+the six samples — median 113,755 KB, maximum 125,097 KB, with no steady growth after the first 10 minutes. It
+fluctuates with the wallpaper slides: a meminfo breakdown during the dream showed ~40 MB native heap (decoded
+slide bitmaps) and ~33 MB GL textures for the zoom animation; the process also hosts the paused HomeActivity and
+Android 11's DreamActivity. There is no earlier active-dream baseline, so this is recorded as the first reference,
+not judged against a budget.

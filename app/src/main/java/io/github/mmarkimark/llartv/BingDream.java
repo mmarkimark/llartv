@@ -24,7 +24,8 @@ import java.util.concurrent.Executors;
 /**
  * Screensaver: the downloaded wallpapers (wallpaper=bing, see DailyWallpaper) shown full screen with a slow
  * zoom-and-drift ("Ken Burns") and a cross-fade, plus the clock, the date and each image's title and caption.
- * Everything runs on the TV: no network, no extra downloads. Any remote key closes it.
+ * Images and weather use the local cache; optional music streams from the configured HTTPS URL.
+ * Any remote key closes it.
  * Enable with: adb shell settings put secure screensaver_components io.github.mmarkimark.llartv/.BingDream
  */
 public class BingDream extends DreamService {
@@ -122,6 +123,24 @@ public class BingDream extends DreamService {
         for (TextView t : inks) t.setTextColor(Look.ink((Integer) t.getTag(), a));
     }
 
+    DreamMusic music;
+
+    void startMusic(Config conf) {
+        stopMusic();
+        if (!Music.shouldPlay(conf)) return;
+        try {
+            music = new DreamMusic(this, ui, conf.musicUrl);
+            music.begin();
+        } catch (RuntimeException e) {
+            android.util.Log.i("LlarTV", "screensaver music: unavailable, staying silent");
+            stopMusic();
+        }
+    }
+
+    void stopMusic() {
+        if (music != null) { music.stop(); music = null; }
+    }
+
     @Override public void onDreamingStarted() {
         super.onDreamingStarted();
         date.setText(Ca.date(new java.util.Date()));
@@ -129,6 +148,7 @@ public class BingDream extends DreamService {
         bands = conf.bands();
         applyNight();
         showWeather();
+        startMusic(conf);
         File dir = getExternalFilesDir(null);
         slides = DailyWallpaper.slides(dir);
         if (slides.isEmpty()) return;   // nothing downloaded yet: just the clock on black
@@ -141,12 +161,14 @@ public class BingDream extends DreamService {
     @Override public void onDreamingStopped() {
         ui.removeCallbacksAndMessages(null);
         front.animate().cancel(); back.animate().cancel();
+        stopMusic();
         super.onDreamingStopped();
     }
 
     @Override public void onDetachedFromWindow() {
         ui.removeCallbacksAndMessages(null);
         decoder.shutdownNow();
+        stopMusic();
         super.onDetachedFromWindow();
     }
 

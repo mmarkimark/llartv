@@ -5,6 +5,21 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [1.2] - 2026-10-30
+
+The screensaver music release: the screensaver can play calm music, off by default, downloaded once and looped
+from the TV itself.
+
+### Added
+
+- Optional screensaver music (`music_screen`, `music_url`), off by default and switchable from the settings menu.
+  With no custom URL, play Holizna's CC0 "Dancing": download once outside the APK, verify its size/SHA-256 and loop
+  the private local file, including offline. Custom HTTPS streams retain uncached, non-looping playback.
+  Exiting releases audio focus/player and cancels pending work; failed downloads or streams leave the visuals
+  running silently. No new runtime dependency. Source, licence and setup: `docs/screensaver-music.md`.
+  Verified on the reference TV (Xiaomi MiTV-MSSP3): audible cached playback, audio focus held across an hour of
+  looping and released on exit, with no further network traffic after the one-time download.
+
 ## [1.1] - 2026-10-29
 
 The lightweight settings release: LlarTV gains its own settings menu, and the weather, the news and the clock
@@ -53,5 +68,7 @@ First release.
 - Scripts to install, configure and uninstall LlarTV over ADB: `scripts/install.sh`, `scripts/config.sh` and
   `scripts/uninstall.sh`.
 
-[Unreleased]: https://github.com/mmarkimark/llartv/compare/v1.0...HEAD
+[Unreleased]: https://github.com/mmarkimark/llartv/compare/v1.2...HEAD
+[1.2]: https://github.com/mmarkimark/llartv/compare/v1.1...v1.2
+[1.1]: https://github.com/mmarkimark/llartv/compare/v1.0...v1.1
 [1.0]: https://github.com/mmarkimark/llartv/releases/tag/v1.0

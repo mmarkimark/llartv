@@ -2,7 +2,7 @@
 
 A lightweight, native home screen for Android TV. (*Llar* is Catalan for "home".)
 
-[![Release](https://img.shields.io/badge/release-v1.0-blue)](https://github.com/mmarkimark/llartv/releases/tag/v1.0)
+[![Release](https://img.shields.io/badge/release-v1.2-blue)](https://github.com/mmarkimark/llartv/releases/tag/v1.2)
 [![CI](https://github.com/mmarkimark/llartv/actions/workflows/ci.yml/badge.svg)](https://github.com/mmarkimark/llartv/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 ![Android TV 9+](https://img.shields.io/badge/Android%20TV-9%2B-informational)
@@ -68,6 +68,11 @@ broadcasts, and network data is fetched only while the home screen is showing.
 - Daily wallpapers from Bing (the last eight images, optionally rotating) or from any image URL.
 - A built-in screensaver (*BingDream*) with a slow zoom and cross-fade over the wallpapers, the clock, the date
   and the current weather.
+- Optional screensaver music, off by default: switch it on from the settings menu to loop Holizna's CC0
+  "Dancing", downloaded once outside the APK and reused offline. A custom HTTPS stream can override it.
+  Music stops with the screensaver; failures leave the visuals running silently. Verified on the TV: audible
+  cached playback, an hour of looping with focus held and no traffic after the one-time download. See
+  [docs/screensaver-music.md](docs/screensaver-music.md).
 
 **Other**
 
@@ -186,6 +191,8 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 | `location` | `41.4235,2.2010` (Barcelona) | `latitude,longitude` used for the weather. |
 | `news_source` | `automatic` | News source: `automatic` (follows the interface language, Catalan until the language selector in v1.2), `3cat`, `bbc-mundo` or `bbc-world`. |
 | `news_rss` | empty | Custom RSS feed for the morning headlines; it wins over `news_source` and is never overwritten by it. Remove the line to use a preset again. |
+| `music_screen` | `off` | Music during the screensaver: `on` or `off`. Off means no music download or player. |
+| `music_url` | empty | Empty selects cached Holizna CC0 music; a custom HTTPS audio URL overrides it without caching or looping. See [docs/screensaver-music.md](docs/screensaver-music.md). |
 | `dock_tint` | `on` | Tint the dock band from the wallpaper; `off` uses a plain band. |
 | `clock` | `system` | Clock format: `system` follows the TV, `24` is 24-hour, `12` is 12-hour with AM/PM. |
 | `weather_home` | `morning` | Weather on the home screen: `never`, `morning` or `all`. |
@@ -204,7 +211,8 @@ A custom `news_rss` feed has priority over them; remove it from `home.conf` to u
 
 The screensaver shows the downloaded wallpapers full screen, with a slow zoom and a cross-fade every 25 seconds,
 together with the clock, the date, the weather and each image's title. It runs entirely from local files, and
-any key on the remote closes it.
+any key on the remote closes it. It can also play optional music, off by default, downloaded once and reused
+offline; see [docs/screensaver-music.md](docs/screensaver-music.md).
 
 `install.sh` sets it up. You can also choose it, or switch back to another one, under *Settings → Device
 Preferences → Screen saver*.

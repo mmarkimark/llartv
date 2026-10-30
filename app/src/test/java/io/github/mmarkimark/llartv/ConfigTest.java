@@ -55,6 +55,24 @@ public class ConfigTest {
         assertFalse(k.newsRssIsCustom());   // a blank feed is not a custom feed
     }
 
+    @Test public void theMusicSettingsAreRead() {
+        Config k = new Config();
+        assertFalse(k.musicScreen);
+        assertEquals("", k.musicUrl);
+        k.set("music_screen", "on");
+        k.set("music_url", "https://example.org/lofi.mp3");
+        assertTrue(k.musicScreen);
+        assertEquals("https://example.org/lofi.mp3", k.musicUrl);
+        k.set("music_screen", "off");
+        assertFalse(k.musicScreen);
+        k.set("music_screen", "0");
+        assertFalse(k.musicScreen);
+        k.set("music_screen", "no");
+        assertFalse(k.musicScreen);
+        k.set("music_screen", "");
+        assertFalse(k.musicScreen);   // an empty value restores the default
+    }
+
     @Test public void badLocationKeepsTheDefault() {
         Config k = new Config();
         k.set("location", "somewhere");
