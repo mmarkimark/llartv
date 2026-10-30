@@ -988,7 +988,9 @@ public class HomeActivity extends Activity {
         if (dir == null) { Toast.makeText(this, Ca.CANT_SAVE, Toast.LENGTH_SHORT).show(); return; }
         try {
             String text = Config.read(dir);
-            if (edit.dockChanged) text = Config.setInText(text, "dock", String.join(",", edit.dock));
+            // an explicit dock keeps its entries that are not shown (not installed or hidden) when it is rewritten
+            List<String> dock = conf.dockSet ? HomeApps.withUnshown(edit.dock, shownDock(), conf.dock) : edit.dock;
+            if (edit.dockChanged) text = Config.setInText(text, "dock", String.join(",", dock));
             if (edit.hiddenChanged) text = Config.setInText(text, "hidden", String.join(",", edit.hidden));
             Config.write(dir, text);
         } catch (IOException ex) {

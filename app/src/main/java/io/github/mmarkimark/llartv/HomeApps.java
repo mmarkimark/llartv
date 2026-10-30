@@ -27,6 +27,17 @@ final class HomeApps {
         boolean changed() { return dockChanged || hiddenChanged; }
     }
 
+    /**
+     * The dock line to write after an edit of the shown dock: the edited apps, then the configured ones that were
+     * not shown (not installed or hidden), so an edit never drops them from home.conf. An app the edit removed was
+     * shown, so it is not brought back.
+     */
+    static List<String> withUnshown(List<String> edited, List<String> shownBefore, List<String> configured) {
+        List<String> out = new ArrayList<>(edited);
+        for (String p : configured) if (!shownBefore.contains(p) && !out.contains(p)) out.add(p);
+        return out;
+    }
+
     static Edit addToDock(List<String> dock, List<String> hidden, String pkg, int columns) {
         // Capacity is the number of columns; a hidden app is never in the dock.
         if (dock.size() >= columns || dock.contains(pkg) || hidden.contains(pkg))

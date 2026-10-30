@@ -9,7 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -43,7 +43,7 @@ final class Config {
     int columns = 6;                 // grid columns = number of dock apps (4-6 look best)
     List<String> dock = new ArrayList<>();
     boolean dockSet = false;       // true once home.conf has a dock= line: the dock is the user's, however short
-    Set<String> hidden = new HashSet<>();
+    Set<String> hidden = new LinkedHashSet<>();   // in the order of the file, so a rewrite keeps it
     String teamId = "", teamName = "";
     String wallpaper = "bing";       // "bing" or an image URL: refreshed daily (DailyWallpaper); empty or "off" = none
     int wallpaperMinutes = 30;       // > 0: rotate through the downloaded images (Bing: last 8) every N minutes
@@ -112,7 +112,7 @@ final class Config {
                 try { columns = Math.max(3, Math.min(7, Integer.parseInt(v))); } catch (NumberFormatException ignored) {}
                 break;
             case "dock": dock = split(v); dockSet = true; break;
-            case "hidden": hidden = new HashSet<>(split(v)); break;
+            case "hidden": hidden = new LinkedHashSet<>(split(v)); break;
             case "team_id": teamId = v; break;
             case "team_name": teamName = v; break;
             case "wallpaper": wallpaper = v.equalsIgnoreCase("off") ? "" : v; break;

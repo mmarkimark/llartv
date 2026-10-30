@@ -73,6 +73,12 @@ public class ConfigTest {
         assertTrue(k.motionScreen);
     }
 
+    @Test public void hiddenAppsKeepTheOrderOfTheFile() {
+        Config k = new Config();
+        k.set("hidden", "z.app,a.app,m.app");
+        assertEquals(java.util.Arrays.asList("z.app", "a.app", "m.app"), new java.util.ArrayList<>(k.hidden));
+    }
+
     @Test public void theMusicSettingsAreRead() {
         Config k = new Config();
         assertFalse(k.musicScreen);

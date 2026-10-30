@@ -114,6 +114,19 @@ public class HomeAppsTest {
         assertEquals(Arrays.asList("a", "b"), d);
     }
 
+    @Test public void anEditKeepsTheConfiguredDockAppsThatAreNotShown() {
+        // "gone" is not installed and "h" is hidden: neither is shown, and an edit of the shown dock keeps both
+        List<String> shown = dock("a", "b"), configured = dock("a", "gone", "b", "h");
+        assertEquals(dock("b", "a", "gone", "h"),
+                HomeApps.withUnshown(HomeApps.moveInDock(shown, hidden("h"), "b", -1).dock, shown, configured));
+    }
+
+    @Test public void anAppRemovedOnPurposeIsNotKeptBack() {
+        List<String> shown = dock("a", "b"), configured = dock("a", "gone", "b");
+        assertEquals(dock("a", "gone"),
+                HomeApps.withUnshown(HomeApps.removeFromDock(shown, hidden(), "b").dock, shown, configured));
+    }
+
     // ---------------------------------------------------------------- dock composition (S4)
 
     /** The installed apps, already in the grid's order (alphabetically by label). */

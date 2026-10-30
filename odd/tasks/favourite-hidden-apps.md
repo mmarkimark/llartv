@@ -71,4 +71,11 @@ Tests: JUnit (`./gradlew testDebugUnitTest`, JAVA_HOME=~/.local/jdk17), shellche
   `setY()` works through the translation and the slide-in then reset `translationY` to 0. Fixed with
   MenuPlacement.top (below the anchor when it fits, otherwise above, never off screen; 3 tests written first and
   observed failing) and an animation of `y` itself. 175 tests pass. Part 2 (placement on the TV, the Inputs menu,
-  hiding a grid app, unhiding from the panel) is blocked: the TV went `offline` before the script changed anything.
+  hiding a grid app, unhiding from the panel) was blocked: the TV went `offline` before the script changed anything.
+- L6 Native review review-53599ec6145f2871 (risk, reliability, readability) on 1ea2d47..3773a1b: approved and
+  acknowledged with 10 non-blocking notes. User: "si, tv encesa" to fixing two of them first: an edit of an explicit
+  dock now keeps its configured entries that are not shown (not installed or hidden) via HomeApps.withUnshown, and
+  `hidden` keeps the file order (LinkedHashSet); 3 tests written first and observed failing, 178 pass.
+  T2 part 2 on the MiTV-MSSP3 (.state/apps-menu/check2.sh): the dock menu opens just above the tile and the Inputs
+  menu just below its pill; Amagar on a grid app appended com.android.vending to `hidden` keeping the existing
+  entry first; the panel row listed the hidden apps by label and OK unhid it; home.conf restored exactly.
