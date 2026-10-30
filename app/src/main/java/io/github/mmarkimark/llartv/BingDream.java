@@ -150,8 +150,8 @@ public class BingDream extends DreamService {
         showWeather();
         startMusic(conf);
         File dir = getExternalFilesDir(null);
-        slides = DailyWallpaper.slides(dir);
-        if (slides.isEmpty()) return;   // nothing downloaded yet: just the clock on black
+        slides = DailyWallpaper.slides(conf.wallpaper, dir);
+        if (slides.isEmpty()) return;   // nothing downloaded yet, or wallpaper=off: just the clock on black
         // start on the image the home screen is showing, so the screensaver picks up where home left off
         File now = DailyWallpaper.current(dir, conf.wallpaperMinutes, System.currentTimeMillis());
         for (int i = 0; i < slides.size(); i++) if (slides.get(i).file.equals(now)) index = i;

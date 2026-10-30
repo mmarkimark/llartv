@@ -21,6 +21,30 @@ public class DailyWallpaperTest {
         return dir;
     }
 
+    @Test public void offShowsAPlainBackgroundEvenWithCachedPhotos() throws Exception {
+        File dir = dirWith("wallpaper-a.jpg\nwallpaper-b.jpg\n", "wallpaper-a.jpg", "wallpaper-b.jpg");
+        assertNull(DailyWallpaper.shown("", dir, 30, 0));
+        assertNull(DailyWallpaper.shown("", dir, 0, 0));
+    }
+
+    @Test public void aPushedImageStillWinsWhenTheDownloadsAreOff() throws Exception {
+        File dir = dirWith("wallpaper-a.jpg\n", "wallpaper-a.jpg", "wallpaper.jpg");
+        assertEquals("wallpaper.jpg", DailyWallpaper.shown("", dir, 30, 0).getName());
+        assertEquals("wallpaper.jpg", DailyWallpaper.shown("bing", dir, 30, 0).getName());
+    }
+
+    @Test public void bingKeepsShowingTheNewestOrTheRotatedPhoto() throws Exception {
+        File dir = dirWith("wallpaper-a.jpg\nwallpaper-b.jpg\n", "wallpaper-a.jpg", "wallpaper-b.jpg");
+        assertEquals("wallpaper-a.jpg", DailyWallpaper.shown("bing", dir, 0, 0).getName());
+        assertEquals("wallpaper-b.jpg", DailyWallpaper.shown("bing", dir, 1, 60_000).getName());
+    }
+
+    @Test public void theScreensaverHasNoPhotosWhenTheWallpaperIsOff() throws Exception {
+        File dir = dirWith("wallpaper-a.jpg\nwallpaper-b.jpg\n", "wallpaper-a.jpg", "wallpaper-b.jpg");
+        assertEquals(0, DailyWallpaper.slides("", dir).size());
+        assertEquals(2, DailyWallpaper.slides("bing", dir).size());
+    }
+
     @Test public void slidesCarryTitleAndCaption() throws Exception {
         File dir = dirWith("wallpaper-a.jpg\tLa vida en manada\tDos lobos grises, Yellowstone\nwallpaper-b.jpg\tGirona en flor\tPati florit",
                 "wallpaper-a.jpg", "wallpaper-b.jpg");

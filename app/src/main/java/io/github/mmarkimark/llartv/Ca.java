@@ -35,6 +35,16 @@ final class Ca {
     static final String NEWS_SOURCE_WORLD = "BBC News World";
     static final String NEWS_SOURCE_CUSTOM = "Personalitzada";
     static final String MUSIC_SCREEN = "Música al protector";
+    static final String WALLPAPER = "Fons de pantalla";
+    static final String WALLPAPER_BING = "Fotos de Bing";
+    static final String WALLPAPER_PLAIN = "Fons llis";
+    static final String WALLPAPER_CUSTOM = "Imatge pròpia";
+    static final String WALLPAPER_CUSTOM_TIP = "La imatge pròpia té prioritat: canvia wallpaper amb scripts/config.sh per usar Bing o un fons llis";
+    static final String PHOTO_CHANGE = "Canvi de foto";
+    static final String PHOTO_FIXED = "Fixa (la més nova)";
+    static final String PHOTO_HOURLY = "Cada hora";
+    static final String NIGHT_MODE = "Mode nit";
+    static final String NIGHT_OFF = "Desactivat";
     static final String ON = "Sí";
     static final String OFF = "No";
     /** The menu labels, in the same order as NewsSource.OPTIONS (a test pins the pairing). */

@@ -118,6 +118,24 @@ final class DailyWallpaper {
         return files;
     }
 
+    /**
+     * The background Home shows for the wallpaper setting: a pushed wallpaper.jpg/png always wins; otherwise
+     * nothing when the downloads are off (source empty: a plain background, even with photos still cached),
+     * else the downloaded photo of the moment (see current).
+     */
+    static File shown(String source, File dir, int minutes, long now) {
+        for (String n : new String[]{"wallpaper.jpg", "wallpaper.png"}) {
+            File pushed = new File(dir, n);
+            if (pushed.exists()) return pushed;
+        }
+        return source.isEmpty() ? null : current(dir, minutes, now);
+    }
+
+    /** The screensaver's photos for the wallpaper setting: none when the downloads are off. */
+    static List<Slide> slides(String source, File dir) {
+        return source.isEmpty() ? new ArrayList<>() : slides(dir);
+    }
+
     /** The image to show now: the newest, or with minutes > 0 one that advances every that many minutes. */
     static File current(File dir, int minutes, long now) {
         List<File> files = images(dir);

@@ -61,6 +61,10 @@ broadcasts, and network data is fetched only while the home screen is showing.
   same `home.conf` as the ADB scripts, and the Android/TV settings stay reachable from it.
 - Clock format: follow the TV, 24-hour or 12-hour with AM/PM, applied to the home screen, the screensaver and the
   next-match card.
+- Wallpaper and night mode: Bing photos or a plain background, how often the photo changes (every 15 min, 30 min,
+  hour or 3 hours, or *Fixa*: always the newest photo, which still changes when Bing publishes a new one), and night
+  mode off or one of several ranges across midnight. An image URL, an interval or a range set by the scripts is kept
+  and shown as one more choice.
 - News source: 3Cat (Catalan), BBC News Mundo (Spanish) or BBC News World (English), with the source credited next
   to the headlines and the article link kept with them. A custom RSS feed always wins over the preset.
 
@@ -186,7 +190,7 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 | `dock` | built-in list | Comma-separated package names for the dock, in order. |
 | `hidden` | empty | Comma-separated package names to keep out of the grid. |
 | `wallpaper` | `bing` | `bing` for Bing's daily images, an image URL, or `off` for a plain background. |
-| `wallpaper_minutes` | `30` | Rotate through the downloaded images every N minutes; `0` shows the newest. |
+| `wallpaper_minutes` | `30` | Rotate through the downloaded images every N minutes; `0` shows the newest (*Fixa* in the menu). |
 | `morning` | `08:00-11:00` | Morning panel time range; `off` turns it off. |
 | `night` | `23:00-08:00` | Night mode time range; `off` turns it off. |
 | `location` | `41.4235,2.2010` (Barcelona) | `latitude,longitude` used for the weather. |
