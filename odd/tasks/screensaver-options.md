@@ -26,6 +26,8 @@ Tests: JUnit (`./gradlew testDebugUnitTest`, JAVA_HOME=~/.local/jdk17), checks o
   protector*), BingDream honouring them, config.sh keys and docs, with JVM tests — DONE, route: inline; commit: this feat commit
 - T2 [S3, S6] verify on the emulator and the TV (clock hidden with date kept, motion off with no running drift
   animator and fades still cycling), measure.sh, restore home.conf — DONE (L4), route: inline; commit: n/a
+- T3 [S6] the delivery: the v1.3 release — DONE: merged in #30 and released as v1.3 (tag v1.3, main 1906033); the
+  release notes and the TV measurements are in docs/performance/baseline-v1.0.md
 
 ## Log
 
@@ -38,3 +40,7 @@ Tests: JUnit (`./gradlew testDebugUnitTest`, JAVA_HOME=~/.local/jdk17), checks o
   motion off -> two frames of the same slide 4 s apart are byte-identical; motion on -> they differ; clock off ->
   the time is gone and the date, weather and photo credits stay. home.conf and power settings restored on both.
   measure.sh on the TV: cold 1242 ms, Home 191 ms, PSS 60,380 KB, inside the budgets.
+
+- L5 Delivery: PR #30 (Closes #7) with 72adf92, CI green, merged into main as 1ea2d47; native review
+  review-cc14ebd14955684e approved and acknowledged. The v1.3 release (tag v1.3, main 1906033, LlarTV.apk
+  4,050,747 B, sha256 72c77bcd...) carries this feature; the published APK is installed on the MiTV as 1.3/4.

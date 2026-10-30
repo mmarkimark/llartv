@@ -37,7 +37,9 @@ Tests: JUnit (`./gradlew testDebugUnitTest`, JAVA_HOME=~/.local/jdk17), shellche
   parent verification (no commit yet)
 - T2 [S2-S8] verify on the emulator and the TV: short OK launches, long OK opens the menu, add/remove/move/hide,
   unhide from the panel, restart keeps the order, full dock refused, focus recovery; measure.sh; restore
-  home.conf — route: inline; commit: n/a
+  home.conf — DONE (L6), route: inline; commit: n/a
+- T3 [S8] the delivery: the v1.3 release — DONE: merged in #31 and released as v1.3 (tag v1.3, main 1906033); the
+  release notes and the TV measurements are in docs/performance/baseline-v1.0.md
 
 ## Log
 
@@ -79,3 +81,9 @@ Tests: JUnit (`./gradlew testDebugUnitTest`, JAVA_HOME=~/.local/jdk17), shellche
   T2 part 2 on the MiTV-MSSP3 (.state/apps-menu/check2.sh): the dock menu opens just above the tile and the Inputs
   menu just below its pill; Amagar on a grid app appended com.android.vending to `hidden` keeping the existing
   entry first; the panel row listed the hidden apps by label and OK unhid it; home.conf restored exactly.
+
+- L7 Delivery: PR #31 (Closes #8) with 2e74873, 3773a1b and 0acda15, CI green, merged into main as c500c12; native
+  review review-53599ec6145f2871 approved and acknowledged, and the two notes it raised about dropped dock entries
+  and the hidden order were fixed in 0acda15. The release notes PR #32 and the version bump fa03954 completed it:
+  the v1.3 release (tag v1.3, main 1906033, LlarTV.apk 4,050,747 B, sha256 72c77bcd...). The published APK is
+  installed on the MiTV as 1.3/4, the settings panel opens and home.conf is unchanged.
