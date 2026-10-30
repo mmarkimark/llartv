@@ -45,7 +45,8 @@ public class SettingsActivity extends Activity {
         final String[] values;       // what is written to home.conf, null for an action
         final Runnable action;       // for an action row
         int selected;
-        boolean custom;              // a custom feed is in effect, so the presets do not apply
+        boolean custom;              // a custom feed or image is in effect, so the presets do not apply
+        String customLabel, customTip;   // what the row shows instead, and why it cannot be changed here
         LinearLayout view;
         TextView value;
 
@@ -69,7 +70,7 @@ public class SettingsActivity extends Activity {
     Ui.Fonts fonts;
     View scrim;
     LinearLayout side, list, panel;
-    ScrollView scroll;
+    ScrollView scroll, panelScroll;
     TextView panelTitle;
     LinearLayout panelList;
     int focus = 0;
@@ -115,7 +116,11 @@ public class SettingsActivity extends Activity {
         panelList = new LinearLayout(this);
         panelList.setOrientation(LinearLayout.VERTICAL);
         panel.addView(panelTitle, new LinearLayout.LayoutParams(-1, -2));
-        panel.addView(panelList, new LinearLayout.LayoutParams(-1, -2));
+        panelScroll = new ScrollView(this);   // a custom value adds one more choice than the panel can hold
+        panelScroll.setFocusable(false);
+        panelScroll.setVerticalScrollBarEnabled(false);
+        panelScroll.addView(panelList, new ScrollView.LayoutParams(-1, -2));
+        panel.addView(panelScroll, new LinearLayout.LayoutParams(-1, 0, 1f));
         side.addView(panel, new LinearLayout.LayoutParams(-1, 0, 1f));
 
         int width = SidePanel.width(dm.widthPixels);
@@ -150,6 +155,8 @@ public class SettingsActivity extends Activity {
                 new String[]{Ca.CLOCK_SYSTEM, Ca.CLOCK_24, Ca.CLOCK_12},
                 new String[]{Clock.SYSTEM, Clock.H24, Clock.H12}, null));
         rows.get(0).selected = Math.max(0, indexOf(rows.get(0).values, conf.clock));
+        addWallpaperRows(conf);
+        addNightRow(conf);
         addPolicyRow(Ca.WEATHER_HOME, "weather_home", conf.weatherHome);
         addPolicyRow(Ca.WEATHER_SCREEN, "weather_screen", conf.weatherScreen);
         addPolicyRow(Ca.NEWS_HOME, "news_home", conf.newsHome);
@@ -166,6 +173,43 @@ public class SettingsActivity extends Activity {
         Row r = new Row(Ca.NEWS_SOURCE, "news_source", Ca.NEWS_SOURCE_LABELS, NewsSource.OPTIONS, null);
         r.selected = Math.max(0, indexOf(r.values, conf.newsSource));
         r.custom = conf.newsRssIsCustom();
+        r.customLabel = Ca.NEWS_SOURCE_CUSTOM;
+        r.customTip = Ca.NEWS_CUSTOM_TIP;
+        rows.add(r);
+    }
+
+    /**
+     * The wallpaper (Bing photos or a plain background) and how often the photo changes. An image URL set by the
+     * scripts wins over both choices, so the row shows it and leaves it alone, like a custom news feed.
+     */
+    void addWallpaperRows(Config conf) {
+        Row w = new Row(Ca.WALLPAPER, "wallpaper", new String[]{Ca.WALLPAPER_BING, Ca.WALLPAPER_PLAIN},
+                new String[]{"bing", "off"}, null);
+        Appearance.Wallpaper kind = Appearance.wallpaper(conf.wallpaper);
+        w.selected = kind == Appearance.Wallpaper.PLAIN ? 1 : 0;
+        w.custom = kind == Appearance.Wallpaper.CUSTOM;
+        w.customLabel = Ca.WALLPAPER_CUSTOM;
+        w.customTip = Ca.WALLPAPER_CUSTOM_TIP;
+        rows.add(w);
+
+        int[] minutes = Appearance.minutes(conf.wallpaperMinutes);
+        String[] labels = new String[minutes.length], values = new String[minutes.length];
+        for (int i = 0; i < minutes.length; i++) {
+            labels[i] = Appearance.minutesLabel(minutes[i]);
+            values[i] = String.valueOf(minutes[i]);
+        }
+        Row m = new Row(Ca.PHOTO_CHANGE, "wallpaper_minutes", labels, values, null);
+        m.selected = Appearance.indexOf(minutes, conf.wallpaperMinutes);
+        rows.add(m);
+    }
+
+    /** Night mode: off, or a range of the dark warm palette on Home and the screensaver. */
+    void addNightRow(Config conf) {
+        String[] nights = Appearance.nights(conf.night);
+        String[] labels = new String[nights.length];
+        for (int i = 0; i < nights.length; i++) labels[i] = Appearance.nightLabel(nights[i]);
+        Row r = new Row(Ca.NIGHT_MODE, "night", labels, nights, null);
+        r.selected = Appearance.indexOf(nights, Appearance.night(conf.night));
         rows.add(r);
     }
 
@@ -196,7 +240,7 @@ public class SettingsActivity extends Activity {
         label.setText(r.label);
         row.addView(label, new LinearLayout.LayoutParams(-1, -2));
         TextView value = text(400, 14, INK_DIM);
-        value.setText(r.isAction() ? "" : r.custom ? Ca.NEWS_SOURCE_CUSTOM : r.options[Math.min(r.selected, r.options.length - 1)]);
+        value.setText(r.isAction() ? "" : r.custom ? r.customLabel : r.options[Math.min(r.selected, r.options.length - 1)]);
         value.setVisibility(r.isAction() ? View.GONE : View.VISIBLE);
         LinearLayout.LayoutParams vp = new LinearLayout.LayoutParams(-1, -2);
         vp.topMargin = dp(2);
@@ -295,7 +339,7 @@ public class SettingsActivity extends Activity {
         else if (k == D) { if (focus >= rows.size() - 1) return; focus++; }
         else if (k == L || k == R) {
             if (r.isAction()) return;
-            if (r.custom) { toast(Ca.NEWS_CUSTOM_TIP); return; }
+            if (r.custom) { toast(r.customTip); return; }
             int next = r.selected + (k == R ? 1 : -1);
             if (next < 0) next = r.values.length - 1;
             if (next >= r.values.length) next = 0;
@@ -303,7 +347,7 @@ public class SettingsActivity extends Activity {
         }
         else if (isOk(k)) {
             if (r.isAction()) { r.action.run(); return; }
-            if (r.custom) { toast(Ca.NEWS_CUSTOM_TIP); return; }
+            if (r.custom) { toast(r.customTip); return; }
             openPanel(r);
             return;
         }
@@ -332,6 +376,11 @@ public class SettingsActivity extends Activity {
             t.setBackgroundColor(on ? FOCUS_BG : Color.TRANSPARENT);
             t.setTextColor(on ? Color.WHITE : INK);
         }
+        final View v = panelList.getChildAt(panelIdx);
+        panelScroll.post(() -> {
+            int y = SidePanel.scrollFor(v.getTop(), v.getBottom(), panelScroll.getScrollY(), panelScroll.getHeight());
+            if (y != panelScroll.getScrollY()) panelScroll.smoothScrollTo(0, y);
+        });
     }
 
     // ---------------------------------------------------------------- look

@@ -7,8 +7,15 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 ### Fixed
 
-- `wallpaper=off` shows a plain background again: the home screen and the screensaver no longer keep showing the
-  photos downloaded before it was switched off. A pushed `wallpaper.jpg`/`wallpaper.png` still wins.
+- `wallpaper=off` now shows the documented plain background: the home screen and the screensaver no longer keep
+  showing the photos downloaded before it was switched off. A pushed `wallpaper.jpg`/`wallpaper.png` still wins.
+
+### Added
+
+- Wallpaper and night mode in the settings menu: *Fons de pantalla* (Bing photos or a plain background), *Canvi de
+  foto* (every 15 min, 30 min, hour or 3 hours, or *Fixa*: always the newest photo, still updated daily) and *Mode
+  nit* (off or one of several ranges across midnight). They write the existing `wallpaper`, `wallpaper_minutes` and
+  `night` keys; a custom image URL is shown and left alone, and a custom interval or range is kept as a choice.
 
 ### Changed
 
