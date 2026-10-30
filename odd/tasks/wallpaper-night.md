@@ -30,6 +30,8 @@ Tests: JUnit (`./gradlew testDebugUnitTest`, JAVA_HOME=~/.local/jdk17), checks o
   ranges incl. crossing midnight; custom range kept), with JVM tests and docs — DONE, route: inline; commit: 2f50ccf
 - T3 [S6] verify on the TV and the emulator (navigation, defaults, offline cached background, night on Home and
   screensaver), measure.sh, restore home.conf — DONE (L6), route: inline + native review; commit: n/a
+- T4 [S6] the delivery: the v1.3 release — DONE: merged in #29 and released as v1.3 (tag v1.3, main 1906033); the
+  release notes and the TV measurements are in docs/performance/baseline-v1.0.md
 
 ## Log
 
@@ -52,3 +54,7 @@ Tests: JUnit (`./gradlew testDebugUnitTest`, JAVA_HOME=~/.local/jdk17), checks o
   as wallpaper=bing and the cached photo shown at once; Mode nit list. measure.sh: cold 1328 ms, Home 176 ms,
   PSS 61,985 KB (settings panel build: 1539/177/62,137). home.conf restored exactly. Offline cached background not
   re-checked with Wi-Fi off; the Bing path to the cached file is unchanged and covered by the JVM tests.
+
+- L7 Delivery: PR #29 (Closes #6) with d6d9fcc, 2f50ccf and f6b8cac, CI green, merged into main as 21f4a27; native
+  review review-8223bb335a03eb53 approved and acknowledged. The v1.3 release (tag v1.3, main 1906033, LlarTV.apk
+  4,050,747 B, sha256 72c77bcd...) carries this feature; the published APK is installed on the MiTV as 1.3/4.
