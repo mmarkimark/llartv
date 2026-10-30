@@ -41,6 +41,7 @@ public class BingDream extends DreamService {
     float night = -1;
     List<DailyWallpaper.Slide> slides;
     int index, W, H;
+    boolean motion = true;   // home.conf motion_screen: off keeps the images still, without zoom or drift
 
     @Override public void onAttachedToWindow() {
         super.onAttachedToWindow();
@@ -70,6 +71,8 @@ public class BingDream extends DreamService {
         Config conf = Config.parse(getExternalFilesDir(null));
         TextClock time = clock(fonts, 150, 86, 0xFFFFFFFF, Clock.pattern(conf.clock, false), Clock.pattern(conf.clock, true));
         time.setIncludeFontPadding(false);
+        // clock_screen=off hides the time only: the date, the weather line and the photo credits stay
+        time.setVisibility(conf.clockScreen ? View.VISIBLE : View.GONE);
         date = text(fonts, 300, 21, 0xFFD9D6CF);
         clockCol.addView(time, new LinearLayout.LayoutParams(-2, -2));
         clockCol.addView(date, new LinearLayout.LayoutParams(-2, -2));
@@ -146,6 +149,7 @@ public class BingDream extends DreamService {
         date.setText(Ca.date(new java.util.Date()));
         Config conf = Config.load(this);
         bands = conf.bands();
+        motion = conf.motionScreen;
         applyNight();
         showWeather();
         startMusic(conf);
@@ -206,16 +210,16 @@ public class BingDream extends DreamService {
         ui.postDelayed(this::next, SLIDE_MS);
     }
 
-    /** Slow zoom and drift; alternates zooming in and out and the drift direction, so consecutive images differ. */
+    /** Slow zoom and drift (see Drift); with motion off the image stays still and no animation is started. */
     void startDrift(ImageView v, int n) {
-        boolean zoomIn = n % 2 == 0;
-        float s0 = zoomIn ? 1.06f : 1.16f, s1 = zoomIn ? 1.16f : 1.06f;
-        // stay inside the margin the smaller scale leaves, so no black edge ever shows
-        float mx = (1.06f - 1f) * W / 2f * 0.8f, my = (1.06f - 1f) * H / 2f * 0.8f;
-        float dx = ((n / 2) % 2 == 0 ? 1 : -1) * mx, dy = (n % 3 == 0 ? -1 : 1) * my;
         v.animate().cancel();
-        v.setScaleX(s0); v.setScaleY(s0); v.setTranslationX(-dx); v.setTranslationY(-dy);
-        v.animate().scaleX(s1).scaleY(s1).translationX(dx).translationY(dy)
+        float[] d = Drift.of(n, W, H, motion);
+        if (d == null) {
+            v.setScaleX(1f); v.setScaleY(1f); v.setTranslationX(0f); v.setTranslationY(0f);
+            return;
+        }
+        v.setScaleX(d[0]); v.setScaleY(d[0]); v.setTranslationX(-d[2]); v.setTranslationY(-d[3]);
+        v.animate().scaleX(d[1]).scaleY(d[1]).translationX(d[2]).translationY(d[3])
                 .setDuration(SLIDE_MS + FADE_MS).setInterpolator(new LinearInterpolator()).start();
     }
 

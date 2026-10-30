@@ -65,6 +65,8 @@ broadcasts, and network data is fetched only while the home screen is showing.
   hour or 3 hours, or *Fixa*: always the newest photo, which still changes when Bing publishes a new one), and night
   mode off or one of several ranges across midnight. An image URL, an interval or a range set by the scripts is kept
   and shown as one more choice.
+- Screensaver clock and motion: hide the time (the date, the weather and the photo credits stay) and turn off the
+  slow zoom, so each photo stays still and still changes every 25 seconds with a fade.
 - News source: 3Cat (Catalan), BBC News Mundo (Spanish) or BBC News World (English), with the source credited next
   to the headlines and the article link kept with them. A custom RSS feed always wins over the preset.
 
@@ -198,6 +200,8 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 | `news_rss` | empty | Custom RSS feed for the morning headlines; it wins over `news_source` and is never overwritten by it. Remove the line to use a preset again. |
 | `music_screen` | `off` | Music during the screensaver: `on` or `off`. Off means no music download or player. |
 | `music_url` | empty | Empty selects cached Holizna CC0 music; a custom HTTPS audio URL overrides it without caching or looping. See [docs/screensaver-music.md](docs/screensaver-music.md). |
+| `clock_screen` | `on` | The time on the screensaver: `on` or `off`. Off hides the time only; the date, the weather and the photo credits stay. |
+| `motion_screen` | `on` | The slow zoom and drift of the screensaver photos: `on` or `off`. Off keeps each photo still; the photos still change every 25 seconds with a fade. |
 | `dock_tint` | `on` | Tint the dock band from the wallpaper; `off` uses a plain band. |
 | `clock` | `system` | Clock format: `system` follows the TV, `24` is 24-hour, `12` is 12-hour with AM/PM. |
 | `weather_home` | `morning` | Weather on the home screen: `never`, `morning` or `all`. |

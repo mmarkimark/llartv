@@ -51,6 +51,8 @@ final class Config {
     String newsRss = "";           // a custom feed; empty when the preset decides
     boolean newsRssCustom = false; // true when home.conf sets news_rss, so the custom feed wins over the preset
     boolean musicScreen = false;    // optional music while the screensaver is showing
+    boolean clockScreen = true;     // the time on the screensaver (the date and the credits always show)
+    boolean motionScreen = true;    // the slow zoom and drift of the screensaver images
     String musicUrl = "";           // empty selects cached Holizna; otherwise a custom HTTPS stream
     String morning = TimeBands.DEFAULT_MORNING, night = TimeBands.DEFAULT_NIGHT;
     boolean dockTint = true;
@@ -133,6 +135,8 @@ final class Config {
                 break;
             }
             case "music_url": musicUrl = v; break;
+            case "clock_screen": clockScreen = onOff(v, true); break;
+            case "motion_screen": motionScreen = onOff(v, true); break;
             case "morning": morning = v; break;
             case "night": night = v; break;
             case "dock_tint": dockTint = !v.equalsIgnoreCase("off") && !v.equalsIgnoreCase("false") && !v.equals("0"); break;
@@ -146,6 +150,13 @@ final class Config {
             case "weather_screen": weatherScreen = ContentPolicy.parse(v, weatherScreen); break;
             case "news_home": newsHome = ContentPolicy.parse(v, newsHome); break;
         }
+    }
+
+    /** An on/off value: off, false, 0 or no turn it off, anything else on, and an empty value keeps the default. */
+    static boolean onOff(String v, boolean byDefault) {
+        String p = v.trim().toLowerCase(java.util.Locale.ROOT);
+        if (p.isEmpty()) return byDefault;
+        return !(p.equals("off") || p.equals("false") || p.equals("0") || p.equals("no"));
     }
 
     /** Replaces one key=value line in the raw configuration text, keeping every other line; appends it when missing. */

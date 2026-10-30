@@ -12,6 +12,10 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 ### Added
 
+- Screensaver clock and motion in the settings menu: *Rellotge al protector* hides the time only (the date, the
+  weather and the photo credits stay) and *Moviment al protector* turns off the slow zoom and drift, so each photo
+  stays still and still changes every 25 seconds with a fade; no animation runs while it is off. New keys
+  `clock_screen` and `motion_screen`, both on by default.
 - Wallpaper and night mode in the settings menu: *Fons de pantalla* (Bing photos or a plain background), *Canvi de
   foto* (every 15 min, 30 min, hour or 3 hours, or *Fixa*: always the newest photo, still updated daily) and *Mode
   nit* (off or one of several ranges across midnight). They write the existing `wallpaper`, `wallpaper_minutes` and
