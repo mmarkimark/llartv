@@ -27,9 +27,9 @@ Tests: JUnit (`./gradlew testDebugUnitTest`, JAVA_HOME=~/.local/jdk17), checks o
   still wins, as documented), with JVM tests — DONE, route: inline; commit: d6d9fcc
 - T2 [S1, S2, S4, S5] feat: menu rows "Fons de pantalla" (Bing / llis / custom URL shown and protected),
   "Canvi de foto" (15 min, 30 min, 1 h, 3 h, fixa = newest; custom minutes kept) and "Mode nit" (off and preset
-  ranges incl. crossing midnight; custom range kept), with JVM tests and docs — DONE, route: inline; commit: see L5
+  ranges incl. crossing midnight; custom range kept), with JVM tests and docs — DONE, route: inline; commit: 2f50ccf
 - T3 [S6] verify on the TV and the emulator (navigation, defaults, offline cached background, night on Home and
-  screensaver), measure.sh, restore home.conf — route: inline + independent verify; commit: n/a
+  screensaver), measure.sh, restore home.conf — DONE (L6), route: inline + native review; commit: n/a
 
 ## Log
 
@@ -45,3 +45,10 @@ Tests: JUnit (`./gradlew testDebugUnitTest`, JAVA_HOME=~/.local/jdk17), checks o
   8th choice that overflowed the panel, so the value list now scrolls to the focused choice (SidePanel.scrollFor);
   emulator check with night=22:30-07:30 shows it selected and visible. Emulator home.conf restored exactly.
   T3 blocked: the TV does not answer (adb connect hangs).
+- L6 Native review review-8223bb335a03eb53 (readability, reliability) on 9943d1d..2f50ccf: approved and
+  acknowledged; 7 non-blocking notes (night presets comment, inline "Cada N" labels, empty-means-off rule in two
+  places, no wiring test for the rows, minutes label for negatives). User: "tv encesa". T3 on the MiTV-MSSP3 with a
+  clean build (139 tests, APK 4,037,947 B): panel rows; Fons llis written as wallpaper=off and Home plain; Bing back
+  as wallpaper=bing and the cached photo shown at once; Mode nit list. measure.sh: cold 1328 ms, Home 176 ms,
+  PSS 61,985 KB (settings panel build: 1539/177/62,137). home.conf restored exactly. Offline cached background not
+  re-checked with Wi-Fi off; the Bing path to the cached file is unchanged and covered by the JVM tests.
