@@ -3,7 +3,6 @@ package io.github.mmarkimark.llartv;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.format.DateFormat;
@@ -11,6 +10,8 @@ import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -29,8 +30,11 @@ import java.util.List;
  * ways keep working side by side and the files, the unknown keys and the untouched values are
  * preserved. The screen is only built when it is opened; Home never constructs it.
  *
+ * It opens as a side panel on the right, like the Android TV settings: the panel slides in over the
+ * dimmed home screen, which stays visible behind it.
+ *
  * D-pad: up/down move between the settings, left/right change the value of the focused one, OK
- * opens its list of values, Back closes that list and closes the screen.
+ * opens its list of values inside the panel, Back closes that list first and then the panel.
  */
 public class SettingsActivity extends Activity {
     /** One line of the menu: either a value to pick or an action to run. */
@@ -56,60 +60,87 @@ public class SettingsActivity extends Activity {
         boolean isAction() { return values == null; }
     }
 
+    // The colours of the Android TV settings panel, sampled on the reference TV.
+    static final int PANEL_BG = 0xFF202124, FOCUS_BG = 0xFF35363A, SCRIM = 0x99000000;
+    static final int INK = 0xFFE8EAED, INK_DIM = 0xFF9AA0A6, ACCENT = 0xFF8AB4F8;
+    static final long SLIDE_MS = 220;
+
     final List<Row> rows = new ArrayList<>();
     Ui.Fonts fonts;
-    LinearLayout list, panel;
+    View scrim;
+    LinearLayout side, list, panel;
+    ScrollView scroll;
     TextView panelTitle;
     LinearLayout panelList;
     int focus = 0;
     int panelIdx = 0;
     Row panelRow;
+    boolean closing;
 
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
+        overridePendingTransition(0, 0);   // the panel slides in by itself
         DisplayMetrics dm = getResources().getDisplayMetrics();
         Ui.density = dm.density;
         fonts = new Ui.Fonts(this);
 
-        FrameLayout root = new FrameLayout(this);
-        root.setBackgroundColor(0xFF0B0B0D);
+        FrameLayout root = new FrameLayout(this);   // transparent: the home screen shows through, dimmed
+        scrim = new View(this);
+        scrim.setBackgroundColor(SCRIM);
+        root.addView(scrim, new FrameLayout.LayoutParams(-1, -1));
 
-        LinearLayout column = new LinearLayout(this);
-        column.setOrientation(LinearLayout.VERTICAL);
-        TextView title = text(500, 30, 0xFFF2F2F7);
+        side = new LinearLayout(this);
+        side.setOrientation(LinearLayout.VERTICAL);
+        side.setBackgroundColor(PANEL_BG);
+        side.setPadding(0, dp(48), 0, dp(24));
+        TextView title = text(500, 20, INK);
         title.setText(Ca.SETTINGS_TITLE);
-        column.addView(title, new LinearLayout.LayoutParams(-2, -2));
+        title.setPadding(dp(24), 0, dp(24), dp(20));
+        side.addView(title, new LinearLayout.LayoutParams(-1, -2));
 
-        ScrollView scroll = new ScrollView(this);
+        scroll = new ScrollView(this);
         scroll.setFocusable(false);
+        scroll.setVerticalScrollBarEnabled(false);
         list = new LinearLayout(this);
         list.setOrientation(LinearLayout.VERTICAL);
-        list.setPadding(0, dp(18), 0, dp(18));
         scroll.addView(list, new ScrollView.LayoutParams(-1, -2));
-        column.addView(scroll, new LinearLayout.LayoutParams(-1, -2));
+        side.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1f));
 
-        FrameLayout.LayoutParams cp = new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.START);
-        cp.width = Math.round(dm.widthPixels * 0.52f);   // a fixed column, so the values line up on the right
-        cp.leftMargin = Math.round(dm.widthPixels * 0.09f);
-        cp.topMargin = Math.round(dm.heightPixels * 0.13f);
-        root.addView(column, cp);
-
+        // The values of one setting replace the list inside the panel, like a page of the system settings.
         panel = new LinearLayout(this);
         panel.setOrientation(LinearLayout.VERTICAL);
-        panel.setPadding(dp(28), dp(20), dp(28), dp(20));
-        panel.setBackground(rounded(0xF0222226, dp(18)));
         panel.setVisibility(View.GONE);
-        panelTitle = text(400, 19, 0xFFAEAEB2);
+        panelTitle = text(500, 15, ACCENT);
+        panelTitle.setPadding(dp(24), 0, dp(24), dp(8));
         panelList = new LinearLayout(this);
         panelList.setOrientation(LinearLayout.VERTICAL);
         panel.addView(panelTitle, new LinearLayout.LayoutParams(-1, -2));
         panel.addView(panelList, new LinearLayout.LayoutParams(-1, -2));
-        FrameLayout.LayoutParams pp = new FrameLayout.LayoutParams(-2, -2, Gravity.CENTER);
-        root.addView(panel, pp);
+        side.addView(panel, new LinearLayout.LayoutParams(-1, 0, 1f));
 
+        int width = SidePanel.width(dm.widthPixels);
+        root.addView(side, new FrameLayout.LayoutParams(width, -1, Gravity.END));
         setContentView(root);
         buildRows();
         applyFocus();
+
+        scrim.setAlpha(0f);
+        side.setTranslationX(width);
+        scrim.animate().alpha(1f).setDuration(SLIDE_MS).start();
+        side.animate().translationX(0f).setDuration(SLIDE_MS).setInterpolator(new DecelerateInterpolator()).start();
+    }
+
+    /** Slides the panel out before the activity goes, so Back leaves the way the panel came in. */
+    @Override public void finish() {
+        if (closing) return;
+        closing = true;
+        scrim.animate().alpha(0f).setDuration(SLIDE_MS).start();
+        side.animate().translationX(side.getWidth()).setDuration(SLIDE_MS)
+                .setInterpolator(new AccelerateInterpolator())
+                .withEndAction(() -> {
+                    SettingsActivity.super.finish();
+                    overridePendingTransition(0, 0);
+                }).start();
     }
 
     /** The settings the menu shows. Each one writes to home.conf and nothing else. */
@@ -155,18 +186,21 @@ public class SettingsActivity extends Activity {
         rows.add(r);
     }
 
+    /** A row of the panel: the setting on the first line and its value under it, like the system settings. */
     void addRowView(Row r) {
         LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setOrientation(LinearLayout.VERTICAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(dp(22), 0, dp(22), 0);
-        TextView label = text(400, 23, 0xFFF2F2F7);
+        row.setPadding(dp(24), 0, dp(24), 0);
+        TextView label = text(400, 16, INK);
         label.setText(r.label);
-        row.addView(label, new LinearLayout.LayoutParams(0, dp(62), 1f));
-        TextView value = text(500, 23, 0xFF8E8E93);
+        row.addView(label, new LinearLayout.LayoutParams(-1, -2));
+        TextView value = text(400, 14, INK_DIM);
         value.setText(r.isAction() ? "" : r.custom ? Ca.NEWS_SOURCE_CUSTOM : r.options[Math.min(r.selected, r.options.length - 1)]);
-        value.setGravity(Gravity.CENTER_VERTICAL);
-        row.addView(value, new LinearLayout.LayoutParams(-2, dp(62)));
+        value.setVisibility(r.isAction() ? View.GONE : View.VISIBLE);
+        LinearLayout.LayoutParams vp = new LinearLayout.LayoutParams(-1, -2);
+        vp.topMargin = dp(2);
+        row.addView(value, vp);
         r.view = row;
         r.value = value;
         list.addView(row, new LinearLayout.LayoutParams(-1, dp(64)));
@@ -211,17 +245,19 @@ public class SettingsActivity extends Activity {
         panelTitle.setText(r.label);
         panelList.removeAllViews();
         for (String o : r.options) {
-            TextView t = text(500, 22, 0xFFF2F2F7);
+            TextView t = text(400, 16, INK);
             t.setText(o);
-            t.setPadding(dp(12), 0, dp(12), 0);
-            panelList.addView(t, new LinearLayout.LayoutParams(-1, dp(48)));
+            t.setPadding(dp(24), 0, dp(24), 0);
+            panelList.addView(t, new LinearLayout.LayoutParams(-1, dp(56)));
         }
+        scroll.setVisibility(View.GONE);
         panel.setVisibility(View.VISIBLE);
         applyPanelFocus();
     }
 
     void closePanel() {
         panel.setVisibility(View.GONE);
+        scroll.setVisibility(View.VISIBLE);
         panelRow = null;
         applyFocus();
     }
@@ -279,20 +315,22 @@ public class SettingsActivity extends Activity {
     void applyFocus() {
         for (int i = 0; i < rows.size(); i++) {
             Row r = rows.get(i);
-            boolean on = i == focus;
-            r.view.setBackground(on ? rounded(0x26FFFFFF, dp(12)) : null);
-            r.value.setTextColor(on ? 0xFF8E8E93 : 0xFF636366);
+            r.view.setBackgroundColor(i == focus ? FOCUS_BG : Color.TRANSPARENT);
         }
-        Row r = rows.get(focus);
-        if (r != null && r.view != null) r.view.requestFocus();
+        // The panel is shorter than the screen, so the list scrolls to keep the focused row in view.
+        final View v = rows.get(focus).view;
+        scroll.post(() -> {
+            int y = SidePanel.scrollFor(v.getTop(), v.getBottom(), scroll.getScrollY(), scroll.getHeight());
+            if (y != scroll.getScrollY()) scroll.smoothScrollTo(0, y);
+        });
     }
 
     void applyPanelFocus() {
         for (int i = 0; i < panelList.getChildCount(); i++) {
             TextView t = (TextView) panelList.getChildAt(i);
             boolean on = i == panelIdx;
-            t.setBackground(on ? rounded(0x33FFFFFF, dp(10)) : null);
-            t.setTextColor(on ? 0xFFFFFFFF : 0xFFAEAEB2);
+            t.setBackgroundColor(on ? FOCUS_BG : Color.TRANSPARENT);
+            t.setTextColor(on ? Color.WHITE : INK);
         }
     }
 
@@ -306,13 +344,6 @@ public class SettingsActivity extends Activity {
         t.setSingleLine(true);
         t.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
         return t;
-    }
-
-    GradientDrawable rounded(int color, int radius) {
-        GradientDrawable g = new GradientDrawable();
-        g.setColor(color);
-        g.setCornerRadius(radius);
-        return g;
     }
 
     int dp(float v) { return Ui.dp(v); }

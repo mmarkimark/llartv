@@ -56,7 +56,8 @@ broadcasts, and network data is fetched only while the home screen is showing.
 
 **Settings**
 
-- A native settings menu on the TV (**Configuració** in the top bar), navigable with the remote. It writes to the
+- A native settings menu on the TV (**Configuració** in the top bar), navigable with the remote. It opens as a side
+  panel on the right, like the Android TV settings, with the home screen still visible behind it. It writes to the
   same `home.conf` as the ADB scripts, and the Android/TV settings stay reachable from it.
 - Clock format: follow the TV, 24-hour or 12-hour with AM/PM, applied to the home screen, the screensaver and the
   next-match card.
@@ -102,7 +103,7 @@ The settings menu and the screensaver on the TV:
 
 | Settings | Screensaver |
 | --- | --- |
-| ![The LlarTV settings menu on the TV](docs/screenshots/tv-settings.jpg) | ![The screensaver with the 12-hour clock and the weather on the TV](docs/screenshots/tv-screensaver.jpg) |
+| ![The LlarTV settings side panel on the TV](docs/screenshots/tv-settings.jpg) | ![The screensaver with the 12-hour clock and the weather on the TV](docs/screenshots/tv-screensaver.jpg) |
 
 ## Requirements
 

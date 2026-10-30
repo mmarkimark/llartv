@@ -5,6 +5,13 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Changed
+
+- The settings menu opens as a side panel on the right, like the Android TV settings: it takes the same width as
+  the system panel, slides in over the dimmed home screen, and shows each setting with its value underneath. The
+  values of a setting open inside the panel; Back closes them first and then the panel, and the focus returns to
+  *Configuració*. No new runtime dependency.
+
 ## [1.2] - 2026-10-30
 
 The screensaver music release: the screensaver can play calm music, off by default, downloaded once and looped
