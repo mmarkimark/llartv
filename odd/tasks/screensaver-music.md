@@ -259,3 +259,4 @@ Roadmap: GitHub issue #17 (v1.2 milestone), linked from issue #10.
   0ec6224696dfd6156109ecfb99e917b8cf8111b. Annotated tag v1.2 pushed; GitHub release "LlarTV 1.2" (Latest) with
   LlarTV.apk; downloaded asset hash matches. Published APK installed on the MiTV (1.2/3), still default home and
   screensaver, home.conf unchanged. Follow-up: settings side panel #21 (v1.3).
+- L32 User: "Si" to cleanup. Deleted the 6 merged chain branches (verified ancestors of main), moved #6/#7/#11 to v1.3, closed milestone v1.2 (7 closed, 0 open), updated roadmap #10 (v1.2 delivered with #17; #6/#7/#11/#21 in v1.3). Remote now has only main.
