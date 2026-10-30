@@ -68,21 +68,26 @@ is required. The file is streamed from disk by the platform player, not loaded w
 Custom streams still consume data continuously. Estimates excluding overhead and reconnections:
 `MB/hour = kbps × 3600 / 8 / 1000` (decimal MB): 64 kbps ≈ 28.8 MB/h; 128 ≈ 57.6 MB/h; 192 ≈ 86.4 MB/h.
 
-**Verified locally, not yet verified on the real TV or released.** The clean build passes 123 JVM tests, assembly,
-ShellCheck and diff checks; the APK is 4,031,027 bytes (+0.43% versus v1.1). Emulator checks passed default-off,
-unreachable-custom silence, custom Holizna HTTPS streaming and exit. Initial cached playback hit a 30-second body
-budget; a bounded diagnosis and deterministic RED/GREEN tests led to the corrected 120-second budget.
+**Verified on the reference TV (Xiaomi MiTV-MSSP3, Android 11, 2026-10-30); not yet released.** A clean debug
+build of commit de57410 (123 JVM tests passing, APK 4,031,019 bytes, +0.43% versus v1.1) was installed over the
+published v1.1. With `music_screen=on` and an empty `music_url`, the screensaver became active and the app logged
+`playing (cached loop)` 5.0 s after the dream was observed, including the first one-time download; the owner
+confirmed audible playback on the TV. The player reported looping and the MP3 decoder, LlarTV held audio focus at
+the start and at all six 10-minute samples over 3,626 s (longer than an hour), and BACK ended the dream and the
+focus was no longer held. Over that hour the app received +6,027,775 bytes and sent +117,088 in the first 10
+minutes (the 5.43 MB track plus protocol overhead and startup traffic; the netstats counters lag, so the download
+appears in the 10-minute sample), then 0 bytes received or sent for the remaining ~50 minutes of looping playback.
+Active-dream RAM (TOTAL PSS) was 71,640 KB at start and sampled a median 113,755 KB (maximum 125,097 KB) with no
+steady growth after the first 10 minutes; there is no earlier active-dream baseline, so this is the first
+reference. The TV's `home.conf`, `screen_off_timeout`, `stay_on_while_plugged_in` and the screensaver component
+were restored exactly and verified afterwards.
 
-The single corrected emulator check passed default local playback, restart with **no default network**, native MP3
-decoding with looping enabled, **140 seconds of offline playback** (longer than the full 135.72-second track), and
-focus release on BACK. Original configuration, power, Wi-Fi and unchanged mobile-data settings were restored and
-verified. This is emulator decoder/lifecycle evidence, not a claim of audible or measured playback on the real TV.
+The earlier emulator evidence: default-off, unreachable-custom silence, custom Holizna HTTPS streaming and exit,
+and the corrected cached playback with native MP3 looping, 140 seconds offline and focus release on BACK.
+Independent broad source verification found no runtime blocker but returned partial after an accidental
+live-directory Gradle invocation before its isolated checks; a later isolated, targeted timeout/diagnostic
+recheck passed all 9 cache tests without rewriting that procedural partial. See
+[the feature log](../odd/tasks/screensaver-music.md) for exact evidence and the separate local review units.
 
-Independent broad source verification found no runtime blocker but returned partial after an accidental live-directory
-Gradle invocation before its isolated checks. A subsequent isolated, targeted timeout/diagnostic recheck passed all
-9 cache tests without rewriting that earlier procedural partial result. See [the feature log](../odd/tasks/screensaver-music.md)
-for exact evidence and the separate local review units.
-
-Real-TV sound/focus, active-dream RAM, Home latency and one-hour traffic remain pending. Do not infer memory-budget
-compliance from APK size or promote the whole feature as release-ready before those checks.
-See [performance/baseline-v1.0.md](performance/baseline-v1.0.md) for the procedure and released v1.1 reference.
+The APK, cold-start, Home-return and idle-RAM numbers of the same build on the same TV, against the v1.0/v1.1
+references and the budgets, are recorded in [performance/baseline-v1.0.md](performance/baseline-v1.0.md).
