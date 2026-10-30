@@ -5,6 +5,13 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- Screensaver music (`music_screen`, `music_url`): the screensaver can play a stream of your own while it is
+  showing, switched on and off from the settings menu. It stops with the screensaver and gives the audio focus
+  back, and a stream that fails leaves the screensaver silent. The app ships no stream of its own, so the reuse
+  terms of the one you point it at are yours to check: see `docs/screensaver-music.md`.
+
 ## [1.1] - 2026-10-29
 
 The lightweight settings release: LlarTV gains its own settings menu, and the weather, the news and the clock
