@@ -5,4 +5,12 @@
         <item name="android:windowShowWallpaper">false</item>
         <item name="android:windowContentOverlay">@null</item>
     </style>
+
+    <!-- LlarTV's settings: a side panel over the home screen, which stays visible behind it. -->
+    <style name="Panel" parent="Home">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:colorBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
 </resources>
