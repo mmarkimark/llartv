@@ -5,6 +5,11 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Fixed
+
+- `wallpaper=off` shows a plain background again: the home screen and the screensaver no longer keep showing the
+  photos downloaded before it was switched off. A pushed `wallpaper.jpg`/`wallpaper.png` still wins.
+
 ### Changed
 
 - The settings menu opens as a side panel on the right, like the Android TV settings: it takes the same width as

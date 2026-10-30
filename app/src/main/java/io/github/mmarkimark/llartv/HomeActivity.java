@@ -993,16 +993,12 @@ public class HomeActivity extends Activity {
 
     /**
      * Optional wallpaper: a pushed JPEG/PNG wins, else the downloaded one (wallpaper=bing), rotating every
-     * wallpaper_minutes. Black when absent. Cheap to call every minute: it only decodes when the file changes.
+     * wallpaper_minutes. Black when absent or when wallpaper=off. Cheap to call every minute: it only decodes when
+     * the file changes.
      */
     void loadWallpaper() {
-        File dir = getExternalFilesDir(null);
-        File f = null;
-        for (String n : new String[]{"wallpaper.jpg", "wallpaper.png"}) {
-            File c = new File(dir, n);
-            if (c.exists()) { f = c; break; }
-        }
-        if (f == null) f = DailyWallpaper.current(dir, conf.wallpaperMinutes, System.currentTimeMillis());
+        File f = DailyWallpaper.shown(conf.wallpaper, getExternalFilesDir(null), conf.wallpaperMinutes,
+                System.currentTimeMillis());
         long stamp = f == null ? 0 : f.getName().hashCode() * 31L + (f.lastModified() ^ f.length());
         if (stamp == wallStamp) return;
         wallStamp = stamp;
