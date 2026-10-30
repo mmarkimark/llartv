@@ -88,6 +88,38 @@ public class MusicPlaybackTest {
         out.expect("prepare", "release", "abandon");
     }
 
+    @Test public void resolvedLocalSourceIsPreparedOnceWithinItsSession() {
+        Output out = new Output();
+        MusicPlayback p = new MusicPlayback(out);
+        p.start();
+        p.sourceReady(() -> out.event("local"));
+        p.sourceReady(() -> out.event("duplicate"));
+        p.prepared();
+        p.stop();
+        p.sourceReady(() -> out.event("late"));
+        out.expect("prepare", "local", "focus", "start", "release", "abandon");
+    }
+
+    @Test public void downloadFinishingAfterExitCannotCreateAPlayer() {
+        Output out = new Output();
+        MusicPlayback p = new MusicPlayback(out);
+        p.start();
+        p.stop();
+        p.sourceReady(() -> out.event("late player"));
+        p.prepared();
+        out.expect("prepare", "release", "abandon");
+    }
+
+    @Test public void localPreparationFailureIsSilentAndTerminal() {
+        Output out = new Output();
+        MusicPlayback p = new MusicPlayback(out);
+        p.start();
+        p.sourceReady(() -> { throw new IllegalStateException("file unavailable"); });
+        p.sourceReady(() -> out.event("retry"));
+        p.prepared();
+        out.expect("prepare", "release", "abandon");
+    }
+
     @Test public void completionAndStreamFailureReleaseWithoutRetrying() {
         for (boolean complete : new boolean[]{true, false}) {
             Output out = new Output();

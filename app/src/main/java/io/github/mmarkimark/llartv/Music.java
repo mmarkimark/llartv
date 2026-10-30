@@ -3,17 +3,18 @@ package io.github.mmarkimark.llartv;
 /**
  * The screensaver music (issue #17).
  *
- * The app ships no stream of its own: the owner points it at one from the configuration, so no reuse terms
- * are baked into the release. The music plays only while the screensaver is showing, and a stream that is
- * missing or that fails leaves the screensaver silent.
+ * Enabled music uses a once-downloaded CC0 Holizna track unless the owner supplies a custom HTTPS stream.
+ * No audio is bundled in the APK. Playback belongs to the dream and failures leave it silent.
  */
 final class Music {
     private Music() {}
 
-    /** True when the screensaver has to play music: the option is on and there is a stream to play. */
+    /** No network or player is used while the option is off. An invalid custom URL never falls back silently. */
     static boolean shouldPlay(Config conf) {
-        return conf.musicScreen && isStream(conf.musicUrl);
+        return conf.musicScreen && (isDefault(conf.musicUrl) || isStream(conf.musicUrl));
     }
+
+    static boolean isDefault(String url) { return url == null || url.trim().isEmpty(); }
 
     /** HTTPS candidate only: this app keeps Android's default cleartext policy. The platform player still
      *  decides whether the URL's content is supported; a private server needs a certificate the TV trusts. */

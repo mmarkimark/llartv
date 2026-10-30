@@ -16,6 +16,18 @@ public class MusicTest {
         assertTrue(Music.shouldPlay(k));
     }
 
+    @Test public void enablingMusicWithoutAnOverrideSelectsTheDefaultTrack() {
+        Config k = new Config();
+        assertFalse(Music.shouldPlay(k));
+        k.set("music_screen", "on");
+        assertTrue(Music.shouldPlay(k));
+        assertTrue(Music.isDefault(k.musicUrl));
+        k.set("music_url", "   ");
+        assertTrue(Music.shouldPlay(k));
+        k.set("music_screen", "off");
+        assertFalse(Music.shouldPlay(k));
+    }
+
     @Test public void switchingItOffSilencesItAgain() {
         Config k = new Config();
         k.set("music_screen", "on");
@@ -23,6 +35,19 @@ public class MusicTest {
         assertTrue(Music.shouldPlay(k));
         k.set("music_screen", "off");
         assertFalse(Music.shouldPlay(k));
+    }
+
+    @Test public void aCustomStreamStillWinsAndInvalidOverridesStaySilent() {
+        Config k = new Config();
+        k.set("music_screen", "on");
+        k.set("music_url", "https://example.org/station.mp3");
+        assertTrue(Music.shouldPlay(k));
+        assertFalse(Music.isDefault(k.musicUrl));
+        for (String invalid : new String[]{"http://example.org/music", "file:///sdcard/music", "not-a-url"}) {
+            k.set("music_url", invalid);
+            assertFalse(Music.isDefault(k.musicUrl));
+            assertFalse(Music.shouldPlay(k));
+        }
     }
 
     @Test public void onlyAnHttpsStreamCounts() {
