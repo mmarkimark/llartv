@@ -15,8 +15,8 @@ final class Music {
         return conf.musicScreen && isStream(conf.musicUrl);
     }
 
-    /** True for a URL the player can stream: https. Android has blocked cleartext traffic since Android 9, so an
-     *  http stream would fail silently; a local server needs a certificate the TV trusts. */
+    /** HTTPS candidate only: this app keeps Android's default cleartext policy. The platform player still
+     *  decides whether the URL's content is supported; a private server needs a certificate the TV trusts. */
     static boolean isStream(String url) {
         if (url == null) return false;
         return url.trim().startsWith("https://");

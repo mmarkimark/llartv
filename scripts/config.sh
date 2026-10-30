@@ -8,7 +8,7 @@
 #       An empty value (key=) restores its default.
 #       news_source is automatic (the interface language), 3cat, bbc-mundo or bbc-world. A custom
 #       news_rss always wins over the preset and is never overwritten by it; remove the line to use a preset.
-#       music_screen is on or off, and music_url is the stream the screensaver plays (an http or https URL).
+#       music_screen is on or off; music_url is an owner-provided HTTPS audio URL (no stream is bundled).
 set -u
 # shellcheck source=scripts/lib.sh
 source "$(dirname "$0")/lib.sh"
