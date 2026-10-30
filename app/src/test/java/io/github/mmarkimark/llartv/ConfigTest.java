@@ -97,6 +97,17 @@ public class ConfigTest {
         assertEquals(41.4235, k.lat, 1e-6);
     }
 
+    @Test public void anExplicitDockLineIsRememberedEvenWhenEmpty() {
+        Config k = new Config();
+        assertFalse(k.dockSet);          // no dock= line: the built-in list (or dock.txt) is used and filled
+        k.set("dock", "a.b, c.d");
+        assertTrue(k.dockSet);
+        assertEquals(2, k.dock.size());
+        k.set("dock", "");
+        assertTrue(k.dockSet);           // an empty chosen dock is still chosen: it shows no apps, no fill
+        assertTrue(k.dock.isEmpty());
+    }
+
     @Test public void existingKeysBehaveAsBefore() {
         Config k = new Config();
         k.set("columns", "12");

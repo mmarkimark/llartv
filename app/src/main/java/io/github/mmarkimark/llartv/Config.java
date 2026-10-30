@@ -42,6 +42,7 @@ final class Config {
     static final String FILE = "home.conf";
     int columns = 6;                 // grid columns = number of dock apps (4-6 look best)
     List<String> dock = new ArrayList<>();
+    boolean dockSet = false;       // true once home.conf has a dock= line: the dock is the user's, however short
     Set<String> hidden = new HashSet<>();
     String teamId = "", teamName = "";
     String wallpaper = "bing";       // "bing" or an image URL: refreshed daily (DailyWallpaper); empty or "off" = none
@@ -110,7 +111,7 @@ final class Config {
             case "columns":
                 try { columns = Math.max(3, Math.min(7, Integer.parseInt(v))); } catch (NumberFormatException ignored) {}
                 break;
-            case "dock": dock = split(v); break;
+            case "dock": dock = split(v); dockSet = true; break;
             case "hidden": hidden = new HashSet<>(split(v)); break;
             case "team_id": teamId = v; break;
             case "team_name": teamName = v; break;
