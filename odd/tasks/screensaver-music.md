@@ -66,7 +66,7 @@ Roadmap: GitHub issue #17 (v1.2 milestone), linked from issue #10.
   + ~33 MB GL textures, plus the paused HomeActivity and Android 11's DreamActivity; first reference, no prior
   active-dream baseline, not judged against a budget). home.conf, screen_off_timeout, stay_on_while_plugged_in
   and the screensaver component restored exactly and verified
-- T4 [S1, S2] the delivery: local work-unit commits, then review slices, release and tag only if authorized —
+- T4 [S1, S2] the delivery: local work-unit commits, then review slices, release and tag only if authorized — DONE: v1.2 released 2026-10-30 (main 6761bc7, tag v1.2, LlarTV.apk 4,031,027 B sha256 7a09e1e4…) —
   publication authorized (L27); the PR chain is open: tracker #22 (draft, Closes #17) with A #23, B #24, C #25
   (incl. f7c361a) and D #26, all CI green; slice E (de57410 + T3 evidence) and merge/release/tag remain.
   Route: inline; implementation commits: 45b498c, a97e690, 4605d7f, 353068d (cache C), 5982481 (integration D);
@@ -252,3 +252,10 @@ Roadmap: GitHub issue #17 (v1.2 milestone), linked from issue #10.
   screensaver-music.md now states the verified TV result instead of pending, CHANGELOG Unreleased notes the TV
   verification, README no longer says validation is pending. T3 marked DONE; T4 now: PR chain #22-#26 open,
   slice E/merge/release remain. No commit, tag or version bump in this step.
+- L31 Delivery: slice E #27 (de57410, 0ba345b evidence, 45943c8 release notes, e19e2a1 version 1.2/3) CI green;
+  native ASSESS on 5982481..e19e2a1 medium, reviewDue false (under budget). Merged #23-#27 into tracker #22 with
+  merge commits (tree == e19e2a1), #22 into main as 6761bc7 (closes #17). Clean worktree build of 6761bc7 with
+  ~/.local/jdk17: 123 tests, APK 4,031,027 B, versionName 1.2/versionCode 3, sha256 7a09e1e4e14dbfa6ac2a40774
+  0ec6224696dfd6156109ecfb99e917b8cf8111b. Annotated tag v1.2 pushed; GitHub release "LlarTV 1.2" (Latest) with
+  LlarTV.apk; downloaded asset hash matches. Published APK installed on the MiTV (1.2/3), still default home and
+  screensaver, home.conf unchanged. Follow-up: settings side panel #21 (v1.3).
