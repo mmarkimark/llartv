@@ -14,6 +14,13 @@ All notable changes to LlarTV are documented in this file. The format is based o
   first move writes every installed app in its current order, so a newly installed app is added at the end
   without moving the others; an uninstalled app leaves no gap. Moving a grid app never changes the dock, and an
   automatically filled dock keeps taking the first apps by name. Hidden apps keep their place in the order.
+- Start the screensaver from the settings menu (#34): *Iniciar el protector* starts the LlarTV screensaver at once
+  with its configured options, through SystemUI's exported `Somnambulator` activity (the platform's "start now"
+  entry). It only reads `screensaver_components` and `screensaver_enabled` and writes no setting, so the
+  inactivity timeout, `home.conf` and the launcher/screensaver assignments are unchanged. If another screensaver
+  is selected, the screensaver is switched off, the settings cannot be read, or the TV does not provide that
+  entry, a message says so and nothing is started; no success message is shown, the screensaver itself is the
+  confirmation.
 
 ## [1.3] - 2026-10-30
 
