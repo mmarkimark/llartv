@@ -42,11 +42,17 @@ fetched only while the home screen is showing.
   (current network name) and **Settings**. The Inputs button hides itself on devices with nothing to switch to.
 - A dock of up to six favourite apps; the focused app's name is shown above the dock.
 - A grid with every other launchable app. Helper apps without a TV entry point are left out automatically.
-- Press and hold OK on a dock or grid app for its action menu: *Afegir al dock* or *Treure del dock*, *Moure a
-  l'esquerra* / *Moure a la dreta*, *Moure amunt* / *Moure avall* (grid apps only, a whole row), *Amagar* or
-  *Informació de l'app*; a move that would leave its row of apps is not shown. The edits write `dock`, `hidden`
-  and `order` to `home.conf` at once, a full dock says so and writes nothing, and hidden apps come back from
+- Press and hold OK on a dock or grid app for its action menu: *Afegir al dock* or *Treure del dock*, *Moure*,
+  *Amagar* or *Informació de l'app*. *Moure* starts move mode (see below). The edits write `dock`, `hidden`
+  and `order` to `home.conf`, a full dock says so and writes nothing, and hidden apps come back from
   **Configuració → Apps amagades** — a short message says so when you hide one, and only when the save succeeded.
+- Move mode (*Moure*): a highlighted banner at the top names the app and the keys. Each arrow moves the app one
+  step and you can keep going without reopening the menu — in the grid left/right one place (crossing rows) and
+  up/down a whole row, in the dock left/right only; an arrow that would leave the row does nothing. **OK** saves
+  the final place with one write to `home.conf`; **Back** (or MENU, Home, or leaving Home) undoes every step and
+  writes nothing. If the save fails, the usual "can't save" message appears and the initial order comes back.
+  Installing or removing an app while moving drops the unsaved steps. Outside move mode, OK and the arrows work
+  as always.
 - Your own grid order: moving a grid app keeps it in place across restarts and app updates. A newly installed
   app is added at the end without moving the others, and an uninstalled app leaves no gap. Moving a grid app
   never changes the dock (see `order` under [Configuration](#configuration)).

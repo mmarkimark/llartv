@@ -137,6 +137,8 @@ public class HomeActivity extends Activity {
     TileView focusedTile;
     final OkPress ok = new OkPress(ViewConfiguration.getLongPressTimeout());   // short OK launches, a hold opens the app menu
     String pendingPkg;                  // the app to focus again after a dock, hidden or order edit
+    MoveMode moving;                    // the app being moved (#39), null outside move mode
+    TextView moveHint;                  // says how move mode works while it is on
     Strings tx;                         // the texts of the interface language (home.conf "language")
     final TextView[] pillText = new TextView[3];   // the labels of the inputs, Wi-Fi and settings pills
 
@@ -217,6 +219,7 @@ public class HomeActivity extends Activity {
 
     @Override protected void onPause() {
         super.onPause();
+        cancelMove();   // leaving Home in move mode saves nothing (#39)
         try { unregisterReceiver(sysReceiver); } catch (Exception ignored) {}
         saveFocus();
         nightTarget = -1;   // on return, show the right mode at once instead of fading
@@ -229,7 +232,8 @@ public class HomeActivity extends Activity {
 
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        // Home pressed while already home: back to the dock.
+        // Home pressed while already home: back to the dock, dropping an unsaved move (#39).
+        cancelMove();
         if (menu.getVisibility() == View.VISIBLE) { menu.setVisibility(View.GONE); region = menuBack; }
         if (loaded && !dockApps.isEmpty() && region != MENU) { region = DOCK; applyFocus(true); }
     }
@@ -245,7 +249,10 @@ public class HomeActivity extends Activity {
     };
 
     final BroadcastReceiver pkgReceiver = new BroadcastReceiver() {
-        @Override public void onReceive(Context c, Intent i) { loadApps(); }
+        @Override public void onReceive(Context c, Intent i) {
+            if (moving != null) endMove();   // the rows change under the move: drop its unsaved steps (#39)
+            loadApps();
+        }
     };
 
     // ---------------------------------------------------------------- layout
@@ -462,6 +469,19 @@ public class HomeActivity extends Activity {
         hl = new HighlightView(this);
         root.addView(hl, new FrameLayout.LayoutParams(-1, -1));
 
+        // --- move mode hint (#39): only while an app is being moved, above the highlight
+        moveHint = text(500, 16, 0xFFFFFFFF);
+        GradientDrawable hb = new GradientDrawable();
+        hb.setColor(0xF01C1C1F);
+        hb.setCornerRadius(dp(18));
+        hb.setStroke(dp(2), 0xCCFFFFFF);
+        moveHint.setBackground(hb);
+        moveHint.setPadding(dp(18), dp(8), dp(18), dp(8));
+        moveHint.setVisibility(View.GONE);
+        FrameLayout.LayoutParams mh = new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+        mh.topMargin = dp(24);
+        root.addView(moveHint, mh);
+
         root.setFocusable(true);
         root.setFocusableInTouchMode(true);
         setContentView(root);
@@ -643,6 +663,10 @@ public class HomeActivity extends Activity {
                 || isOk(k) || k == KeyEvent.KEYCODE_BACK || k == KeyEvent.KEYCODE_MENU;
         if (!ours) return super.dispatchKeyEvent(e);
         int act = e.getAction();
+        if (moving != null) {   // move mode: every remote key belongs to the move until OK or Back ends it
+            if (act == KeyEvent.ACTION_DOWN && (e.getRepeatCount() == 0 || !isOk(k))) onMoveKey(k);
+            return true;
+        }
         if (isOk(k)) {
             // In the dock and the grid, OK acts on the release: a short press launches, a hold opens the
             // app's menu. In the top bar and a menu it still acts on the press, as it always has.
@@ -973,15 +997,8 @@ public class HomeActivity extends Activity {
         menuActions.clear();
         if (inDock) addMenuRow(tx.get(R.string.remove_from_dock), () -> editApps(HomeApps.removeFromDock(shownDock(), hiddenList(), e.pkg), e.pkg));
         else addMenuRow(tx.get(R.string.add_to_dock), () -> addToDock(e));
-        if (inDock && dockIdx > 0) addMenuRow(tx.get(R.string.move_left), () -> editApps(HomeApps.moveInDock(shownDock(), hiddenList(), e.pkg, -1), e.pkg));
-        if (inDock && dockIdx < dockApps.size() - 1) addMenuRow(tx.get(R.string.move_right), () -> editApps(HomeApps.moveInDock(shownDock(), hiddenList(), e.pkg, 1), e.pkg));
-        if (!inDock) {   // the grid order: one place, or a whole row; a move that would leave the grid is not shown
-            int n = gridApps.size();
-            if (gridIdx > 0) addMenuRow(tx.get(R.string.move_left), () -> moveInGrid(e.pkg, -1));
-            if (gridIdx < n - 1) addMenuRow(tx.get(R.string.move_right), () -> moveInGrid(e.pkg, 1));
-            if (gridIdx - COLS >= 0) addMenuRow(tx.get(R.string.move_up), () -> moveInGrid(e.pkg, -COLS));
-            if (gridIdx + COLS < n) addMenuRow(tx.get(R.string.move_down), () -> moveInGrid(e.pkg, COLS));
-        }
+        // one Move action for the dock order or the grid order; shown only when there is somewhere to go
+        if ((inDock ? dockApps.size() : gridApps.size()) > 1) addMenuRow(tx.get(R.string.move), () -> startMove(e.pkg, inDock));
         addMenuRow(tx.get(R.string.hide), () -> hideApp(e));
         addMenuRow(tx.get(R.string.app_info), () -> appInfo(e));
         showMenu(rectOf(targetView(), TileView.FOCUS_SCALE), region);
@@ -1021,12 +1038,65 @@ public class HomeActivity extends Activity {
             Toast.makeText(this, tx.get(R.string.hidden_guide), Toast.LENGTH_SHORT).show();
     }
 
-    /** Moves a grid app in the grid order; the first move writes the whole current sequence (GridOrder). */
-    void moveInGrid(String pkg, int delta) {
-        List<String> grid = new ArrayList<>();
-        for (Ui.AppEntry a : gridApps) grid.add(a.pkg);
-        List<String> order = GridOrder.move(conf.order, installedByLabel, conf.hidden, grid, pkg, delta);
-        if (order != null) writeApps(null, null, String.join(",", order), pkg);
+    // ---------------------------------------------------------------- move mode (#39)
+
+    /** Starts moving pkg in the dock or the grid: steps are only shown until OK saves or Back undoes them. */
+    void startMove(String pkg, boolean inDock) {
+        List<String> shown = new ArrayList<>();
+        for (Ui.AppEntry a : inDock ? dockApps : gridApps) shown.add(a.pkg);
+        moving = MoveMode.start(shown, pkg, inDock, COLS);
+        if (moving == null) return;
+        ok.cancel();
+        region = inDock ? DOCK : GRID;
+        String hint = tx.get(inDock ? R.string.move_hint_dock : R.string.move_hint_grid, currentApp().label);
+        moveHint.setText(hint);
+        moveHint.setContentDescription(hint);
+        moveHint.setVisibility(View.VISIBLE);
+        root.announceForAccessibility(hint);
+        applyFocus(true);
+    }
+
+    void onMoveKey(int k) {
+        int dir = k == KeyEvent.KEYCODE_DPAD_LEFT ? MoveMode.LEFT : k == KeyEvent.KEYCODE_DPAD_RIGHT ? MoveMode.RIGHT
+                : k == KeyEvent.KEYCODE_DPAD_UP ? MoveMode.UP : k == KeyEvent.KEYCODE_DPAD_DOWN ? MoveMode.DOWN : -1;
+        if (dir >= 0) { if (moving.step(dir)) showMoveOrder(moving.current()); }
+        else if (isOk(k)) finishMove();
+        else if (k == KeyEvent.KEYCODE_BACK || k == KeyEvent.KEYCODE_MENU) cancelMove();
+    }
+
+    /** Shows the dock or the grid in the given order, with the focus on the app being moved; nothing is written. */
+    void showMoveOrder(List<String> order) {
+        List<Ui.AppEntry> row = moving.dock ? dockApps : gridApps, out = new ArrayList<>();
+        for (String p : order) for (Ui.AppEntry a : row) if (a.pkg.equals(p)) { out.add(a); break; }
+        pendingPkg = moving.pkg;
+        if (moving.dock) bindApps(out, new ArrayList<>(gridApps)); else bindApps(new ArrayList<>(dockApps), out);
+    }
+
+    /** OK: saves the final place once. A failed write says so (writeApps) and shows the initial order again. */
+    void finishMove() {
+        MoveMode m = moving;
+        endMove();
+        boolean saved;
+        if (m.dock) {
+            HomeApps.Edit edit = m.dockEdit(hiddenList());
+            saved = !edit.changed() || editApps(edit, m.pkg);
+        } else {
+            List<String> order = m.gridOrder(conf.order, installedByLabel, conf.hidden);
+            saved = order == null || writeApps(null, null, String.join(",", order), m.pkg);
+        }
+        if (!saved) { moving = m; showMoveOrder(m.initial()); endMove(); }
+    }
+
+    /** Back or MENU: undoes every step. */
+    void cancelMove() {
+        if (moving == null) return;
+        showMoveOrder(moving.initial());
+        endMove();
+    }
+
+    void endMove() {
+        moving = null;
+        moveHint.setVisibility(View.GONE);
     }
 
     /** Writes the given dock, hidden and order values (null: unchanged) to home.conf, keeping every other line,

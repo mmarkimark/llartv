@@ -12,6 +12,13 @@ All notable changes to LlarTV are documented in this file. The format is based o
   the interface language. The message appears only when `home.conf` was really written: a failed save still
   reports the failure and claims nothing. Hiding, unhide and the settings flow are otherwise unchanged.
 
+- Continuous move mode (#39): the long-press menu now has one *Moure* / *Mover* / *Move* action instead of the
+  single-step *Moure a l'esquerra / a la dreta / amunt / avall* rows. In move mode every arrow moves the app one
+  more step (grid: four directions; dock: left/right) without reopening the menu, a localised banner (also
+  announced to accessibility services) shows the mode, **OK** saves the final place with one `home.conf` write,
+  and **Back**/MENU undoes every step. Leaving Home, pressing Home or an app install/removal drops unsaved steps.
+  The saved `order` is the same one the equivalent single-step moves would have written.
+
 ## [1.4] - 2026-10-31
 
 ### Added
