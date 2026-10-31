@@ -9,7 +9,7 @@
 #       language is ca (default), es or en: LlarTV's own texts only, never the TV's language or clock.
 #       news_source is automatic (follows language), 3cat, bbc-mundo or bbc-world. A custom
 #       news_rss always wins over the preset and is never overwritten by it; remove the line to use a preset.
-#       music_screen is on or off (default); empty music_url selects cached Holizna CC0 music.
+#       music_screen is on or off (default); empty music_url selects the verified cached music playlist.
 #       clock_screen and motion_screen are on (default) or off: the screensaver time, and its slow zoom.
 #       A custom HTTPS music_url overrides it without caching or looping. No audio is bundled in the APK.
 #       A dock= list shows exactly those apps, however short (no filling from the grid); the built-in

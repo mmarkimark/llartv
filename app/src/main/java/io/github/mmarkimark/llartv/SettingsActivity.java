@@ -75,12 +75,13 @@ public class SettingsActivity extends Activity {
     View scrim;
     LinearLayout side, list, panel;
     ScrollView scroll, panelScroll;
-    TextView panelTitle;
+    TextView panelTitle, panelNote;   // the note: the reset scope, shown only on its confirmation
     LinearLayout panelList;
     int focus = 0;
     int panelIdx = 0;
     Row panelRow;
     Row hiddenRow;                 // the hidden apps: OK opens the list, to unhide one
+    Row resetRow;                  // the settings reset: OK opens its confirmation, Cancel first
     Strings tx;                    // the texts of the interface language; rebuilt when the language row changes
     TextView title;
     boolean closing;
@@ -122,6 +123,11 @@ public class SettingsActivity extends Activity {
         panelList = new LinearLayout(this);
         panelList.setOrientation(LinearLayout.VERTICAL);
         panel.addView(panelTitle, new LinearLayout.LayoutParams(-1, -2));
+        panelNote = text(400, 14, INK_DIM);
+        panelNote.setSingleLine(false);
+        panelNote.setPadding(dp(24), 0, dp(24), dp(12));
+        panelNote.setVisibility(View.GONE);
+        panel.addView(panelNote, new LinearLayout.LayoutParams(-1, -2));
         panelScroll = new ScrollView(this);   // a custom value adds one more choice than the panel can hold
         panelScroll.setFocusable(false);
         panelScroll.setVerticalScrollBarEnabled(false);
@@ -191,10 +197,18 @@ public class SettingsActivity extends Activity {
         addSourceRow(conf);
         addScreensaverRows(conf);
         addMusicRow(conf);
+        rows.add(new Row(tx.get(R.string.music_credits), null, null, null, () ->
+                new android.app.AlertDialog.Builder(this)
+                        .setTitle(tx.get(R.string.music_credits))
+                        .setMessage(tx.get(R.string.music_credits_body))
+                        .setPositiveButton(tx.get(R.string.close), (dialog, which) -> dialog.dismiss()).show()));
         rows.add(new Row(tx.get(R.string.start_screen), null, null, null, new Runnable() {
             @Override public void run() { startScreensaver(); }
         }));
         addHiddenRow();
+        resetRow = new Row(tx.get(R.string.reset_settings), null,
+                new String[]{tx.get(R.string.reset_cancel), tx.get(R.string.reset_confirm)}, null, null);
+        rows.add(resetRow);
         rows.add(new Row(tx.get(R.string.system_settings), null, null, null, new Runnable() {
             @Override public void run() { openSystemSettings(); }
         }));
@@ -365,6 +379,33 @@ public class SettingsActivity extends Activity {
 
     void toast(String msg) { Toast.makeText(this, msg, Toast.LENGTH_LONG).show(); }
 
+    /** The reset's confirmation: its scope above Cancel and Reset, with the focus on Cancel. */
+    void openResetPanel() {
+        resetRow.selected = SettingsReset.DEFAULT_CHOICE;
+        openPanel(resetRow);
+        panelNote.setText(tx.get(R.string.reset_scope));
+        panelNote.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Runs the choice of the reset's confirmation. Cancel writes nothing; a failed write says so and leaves the
+     * panel as it is. After a reset the panel is built again from home.conf, in the default language.
+     */
+    void resetChoice(int choice) {
+        if (choice != SettingsReset.CONFIRM) return;
+        File dir = getExternalFilesDir(null);
+        SettingsReset.Result result;
+        try {
+            if (dir == null) throw new IOException();
+            result = SettingsReset.choose(dir, choice);
+        } catch (IOException e) {
+            toast(tx.get(R.string.reset_failed));
+            return;
+        }
+        rebuild();   // the language (back to Catalan), every value and the hidden apps count, as read again
+        toast(tx.get(result == SettingsReset.Result.RESET ? R.string.reset_done : R.string.reset_already));
+    }
+
     static int indexOf(String[] values, String v) {
         for (int i = 0; i < values.length; i++) if (values[i].equals(v)) return i;
         return -1;
@@ -410,6 +451,7 @@ public class SettingsActivity extends Activity {
 
     void closePanel() {
         panel.setVisibility(View.GONE);
+        panelNote.setVisibility(View.GONE);
         scroll.setVisibility(View.VISIBLE);
         panelRow = null;
         applyFocus();
@@ -438,7 +480,9 @@ public class SettingsActivity extends Activity {
             if (k == U) { if (panelIdx == 0) return; panelIdx--; }
             else if (k == D) { if (panelIdx >= panelRow.options.length - 1) return; panelIdx++; }
             else if (isOk(k)) {
-                Row r = panelRow; int i = panelIdx; closePanel(); persist(r, i);
+                Row r = panelRow; int i = panelIdx; closePanel();
+                if (r == resetRow) { resetChoice(i); return; }
+                persist(r, i);
                 if (r == hiddenRow) updateHiddenRow(Config.load(this).hidden.size());
                 return;
             }
@@ -459,6 +503,7 @@ public class SettingsActivity extends Activity {
             persist(r, next);
         }
         else if (isOk(k)) {
+            if (r == resetRow) { openResetPanel(); return; }
             if (r.isAction()) { r.action.run(); return; }
             if (r == hiddenRow) { openHiddenPanel(); return; }
             if (r.custom) { toast(r.customTip); return; }

@@ -116,6 +116,13 @@
     <string name="screen_disabled">El salvapantallas está desactivado: actívalo en Ajustes del sistema &gt; Salvapantallas</string>
     <string name="screen_unchecked">No se puede comprobar qué salvapantallas tiene la TV</string>
     <string name="screen_cant_start">Esta TV no permite iniciar el salvapantallas desde aquí</string>
+    <string name="reset_settings">Restablecer los ajustes</string>
+    <string name="reset_scope">Devuelve a los valores por defecto todos los ajustes de LlarTV guardados en home.conf: idioma (catalán), reloj, fondo y fotos, modo noche, tiempo, noticias, salvapantallas, música, columnas, dock, apps ocultas y orden de la cuadrícula. Se mantienen los comentarios y las líneas desconocidas de home.conf, dock.txt, las imágenes y la música descargadas o copiadas, las apps instaladas y los ajustes de Android, como el launcher y el salvapantallas.</string>
+    <string name="reset_cancel">Cancelar</string>
+    <string name="reset_confirm">Restablecer</string>
+    <string name="reset_done">Se han restablecido los ajustes</string>
+    <string name="reset_already">Los ajustes ya tienen los valores por defecto</string>
+    <string name="reset_failed">No se han podido restablecer: los ajustes no han cambiado</string>
 
     <!-- The long-press menu of an app, and the hidden apps in the settings -->
     <string name="add_to_dock">Añadir al dock</string>
@@ -134,4 +141,7 @@
         <item quantity="one">%1$d app</item>
         <item quantity="other">%1$d apps</item>
     </plurals>
+    <string name="music_credits">Créditos de la música</string>
+    <string name="music_credits_body">Grabaciones originales:\n\nDancing — Holizna\nCC0 1.0\nhttps://opengameart.org/content/chillout-instrumentals-collection\n\nChill Wave · Dream Culture\nKevin MacLeod (incompetech.com)\nCC BY 4.0\nhttps://creativecommons.org/licenses/by/4.0/</string>
+    <string name="close">Cerrar</string>
 </resources>
