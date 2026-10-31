@@ -91,6 +91,8 @@
     <string name="music_screen">Music on the screensaver</string>
     <string name="clock_screen">Clock on the screensaver</string>
     <string name="motion_screen">Motion on the screensaver</string>
+    <string name="night_screen">Quiet night screensaver</string>
+    <string name="night_mute">Silence music at night</string>
     <string name="wallpaper">Wallpaper</string>
     <string name="wallpaper_bing">Bing photos</string>
     <string name="wallpaper_plain">Plain background</string>

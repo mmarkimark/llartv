@@ -26,6 +26,15 @@ All notable changes to LlarTV are documented in this file. The format is based o
   Wi-Fi network without Internet (or a captive portal) does not count, and repeated or flapping notifications
   recover at most once a minute. Previously the retry waited for the failure window (10 min to 3 h).
 
+- Quiet night screensaver (#37): two new settings, both off by default, so existing installations keep their
+  screensaver. `night_screen` (*Protector discret de nit* / *Salvapantallas discreto de noche* / *Quiet night
+  screensaver*) shows only the clock on black during the night band — no photos, credits, weather or motion, and the
+  clock even with `clock_screen=off`. `night_mute` (*Música en silenci de nit* / *Música en silencio de noche* /
+  *Silence music at night*) stops the screensaver music when the night band begins and starts a fresh session when
+  it ends, never two players at once; `music_screen=off` still never plays. A running screensaver follows the band
+  boundaries through its existing per-minute clock tick (no new polling). It quiets the screensaver content only;
+  it does not turn the backlight off.
+
 ## [1.4] - 2026-10-31
 
 ### Added

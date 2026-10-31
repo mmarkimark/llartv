@@ -85,6 +85,11 @@ fetched only while the home screen is showing.
   and shown as one more choice.
 - Screensaver clock and motion: hide the time (the date, the weather and the photo credits stay) and turn off the
   slow zoom, so each photo stays still and still changes every 25 seconds with a fade.
+- Quiet night screensaver (both off by default, each independent): *Protector discret de nit* shows only the
+  clock on black during the night band (the photos, their credits, the weather and the zoom are hidden; the clock
+  shows even with the screensaver clock off), and *Música en silenci de nit* stops the screensaver music during the
+  night band. A running screensaver switches at the band's start and end, and the music starts again when the night
+  ends. With night mode off neither acts. It only quiets the screensaver; it does not turn the TV's backlight off.
 - Iniciar el protector: starts the LlarTV screensaver now, with its current options, through the TV's own
   "start now" entry (SystemUI's `Somnambulator`). It changes no setting: the inactivity timeout and the chosen
   screensaver stay as they are. When LlarTV is not the TV's screensaver, the screensaver is switched off, or the
@@ -234,6 +239,8 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 | `music_url` | empty | Empty selects the verified cached playlist; a custom HTTPS audio URL overrides it without caching or forced rotation. See [docs/screensaver-music.md](docs/screensaver-music.md). |
 | `clock_screen` | `on` | The time on the screensaver: `on` or `off`. Off hides the time only; the date, the weather and the photo credits stay. |
 | `motion_screen` | `on` | The slow zoom and drift of the screensaver photos: `on` or `off`. Off keeps each photo still; the photos still change every 25 seconds with a fade. |
+| `night_screen` | `off` | Quiet night screensaver: `on` shows only the clock on black during the `night` range (no photos, credits, weather or motion; the clock shows even with `clock_screen=off`). Outside the range, or with `night=off`, the screensaver is unchanged. |
+| `night_mute` | `off` | Night silence: `on` stops the screensaver music during the `night` range and starts it again when the range ends. Independent of `night_screen`; `music_screen=off` never plays. |
 | `dock_tint` | `on` | Tint the dock band from the wallpaper; `off` uses a plain band. |
 | `clock` | `system` | Clock format: `system` follows the TV, `24` is 24-hour, `12` is 12-hour with AM/PM. |
 | `weather_home` | `morning` | Weather on the home screen: `never`, `morning` or `all`. |

@@ -95,6 +95,8 @@
     <string name="music_screen">Música al protector</string>
     <string name="clock_screen">Rellotge al protector</string>
     <string name="motion_screen">Moviment al protector</string>
+    <string name="night_screen">Protector discret de nit</string>
+    <string name="night_mute">Música en silenci de nit</string>
     <string name="wallpaper">Fons de pantalla</string>
     <string name="wallpaper_bing">Fotos de Bing</string>
     <string name="wallpaper_plain">Fons llis</string>

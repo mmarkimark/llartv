@@ -91,6 +91,8 @@
     <string name="music_screen">Música en el salvapantallas</string>
     <string name="clock_screen">Reloj en el salvapantallas</string>
     <string name="motion_screen">Movimiento en el salvapantallas</string>
+    <string name="night_screen">Salvapantallas discreto de noche</string>
+    <string name="night_mute">Música en silencio de noche</string>
     <string name="wallpaper">Fondo de pantalla</string>
     <string name="wallpaper_bing">Fotos de Bing</string>
     <string name="wallpaper_plain">Fondo liso</string>
