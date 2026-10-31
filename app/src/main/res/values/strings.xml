@@ -140,6 +140,7 @@
     <string name="dock_full">El dock ja està ple</string>
     <string name="hidden_apps_title">Apps amagades</string>
     <string name="none">Cap</string>
+    <string name="hidden_guide">App amagada. Recupera-la a Configuració → Apps amagades.</string>
     <string name="no_hidden_apps">No hi ha cap app amagada</string>
     <plurals name="hidden_apps">
         <item quantity="one">%1$d app</item>

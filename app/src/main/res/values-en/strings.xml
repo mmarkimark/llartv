@@ -136,6 +136,7 @@
     <string name="dock_full">The dock is full</string>
     <string name="hidden_apps_title">Hidden apps</string>
     <string name="none">None</string>
+    <string name="hidden_guide">App hidden. Recover it from Settings → Hidden apps.</string>
     <string name="no_hidden_apps">There are no hidden apps</string>
     <plurals name="hidden_apps">
         <item quantity="one">%1$d app</item>

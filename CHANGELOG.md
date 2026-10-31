@@ -5,6 +5,13 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- Hidden-app recovery guidance (#36): hiding an app from its long-press menu now shows a short message saying
+  where to recover it (*Configuració → Apps amagades* / *Ajustes → Apps ocultas* / *Settings → Hidden apps*), in
+  the interface language. The message appears only when `home.conf` was really written: a failed save still
+  reports the failure and claims nothing. Hiding, unhide and the settings flow are otherwise unchanged.
+
 ## [1.4] - 2026-10-31
 
 ### Added

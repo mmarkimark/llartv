@@ -75,6 +75,14 @@ final class HomeApps {
         return new Edit(dock, h, false, changed);
     }
 
+    /**
+     * The post-hide recovery guidance shows only when the app really became hidden and the write succeeded:
+     * one package more than before and every previous entry kept (#36). A failed write claims nothing.
+     */
+    static boolean hiddenGuidance(boolean saved, List<String> before, List<String> after) {
+        return saved && after.size() == before.size() + 1 && after.containsAll(before);
+    }
+
     static Edit unhide(List<String> dock, List<String> hidden, String pkg) {
         if (!hidden.contains(pkg)) return new Edit(dock, hidden, false, false);
         List<String> h = new ArrayList<>(hidden);

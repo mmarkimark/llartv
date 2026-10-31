@@ -46,7 +46,7 @@ fetched only while the home screen is showing.
   l'esquerra* / *Moure a la dreta*, *Moure amunt* / *Moure avall* (grid apps only, a whole row), *Amagar* or
   *Informació de l'app*; a move that would leave its row of apps is not shown. The edits write `dock`, `hidden`
   and `order` to `home.conf` at once, a full dock says so and writes nothing, and hidden apps come back from
-  **Configuració → Apps amagades**.
+  **Configuració → Apps amagades** — a short message says so when you hide one, and only when the save succeeded.
 - Your own grid order: moving a grid app keeps it in place across restarts and app updates. A newly installed
   app is added at the end without moving the others, and an uninstalled app leaves no gap. Moving a grid app
   never changes the dock (see `order` under [Configuration](#configuration)).

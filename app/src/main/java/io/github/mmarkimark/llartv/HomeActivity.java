@@ -982,7 +982,7 @@ public class HomeActivity extends Activity {
             if (gridIdx - COLS >= 0) addMenuRow(tx.get(R.string.move_up), () -> moveInGrid(e.pkg, -COLS));
             if (gridIdx + COLS < n) addMenuRow(tx.get(R.string.move_down), () -> moveInGrid(e.pkg, COLS));
         }
-        addMenuRow(tx.get(R.string.hide), () -> editApps(HomeApps.hideApp(shownDock(), hiddenList(), e.pkg), e.pkg));
+        addMenuRow(tx.get(R.string.hide), () -> hideApp(e));
         addMenuRow(tx.get(R.string.app_info), () -> appInfo(e));
         showMenu(rectOf(targetView(), TileView.FOCUS_SCALE), region);
     }
@@ -1004,13 +1004,21 @@ public class HomeActivity extends Activity {
     }
 
     /** Writes a dock/hidden edit to home.conf the way the settings panel writes its values, then reloads
-     *  the apps with the focus following focusPkg (S6, S7). */
-    void editApps(HomeApps.Edit edit, String focusPkg) {
-        if (!edit.changed()) return;
+     *  the apps with the focus following focusPkg (S6, S7). Returns whether home.conf was written. */
+    boolean editApps(HomeApps.Edit edit, String focusPkg) {
+        if (!edit.changed()) return false;
         // an explicit dock keeps its entries that are not shown (not installed or hidden) when it is rewritten
         List<String> dock = conf.dockSet ? HomeApps.withUnshown(edit.dock, shownDock(), conf.dock) : edit.dock;
-        writeApps(edit.dockChanged ? String.join(",", dock) : null,
+        return writeApps(edit.dockChanged ? String.join(",", dock) : null,
                 edit.hiddenChanged ? String.join(",", edit.hidden) : null, null, focusPkg);
+    }
+
+    /** Hides the app and, only when home.conf was really written, says where to recover it (#36). */
+    void hideApp(Ui.AppEntry e) {
+        List<String> before = hiddenList();
+        HomeApps.Edit edit = HomeApps.hideApp(shownDock(), before, e.pkg);
+        if (HomeApps.hiddenGuidance(editApps(edit, e.pkg), before, edit.hidden))
+            Toast.makeText(this, tx.get(R.string.hidden_guide), Toast.LENGTH_SHORT).show();
     }
 
     /** Moves a grid app in the grid order; the first move writes the whole current sequence (GridOrder). */
@@ -1023,9 +1031,9 @@ public class HomeActivity extends Activity {
 
     /** Writes the given dock, hidden and order values (null: unchanged) to home.conf, keeping every other line,
      *  then reloads the apps with the focus following focusPkg. */
-    void writeApps(String dock, String hidden, String order, String focusPkg) {
+    boolean writeApps(String dock, String hidden, String order, String focusPkg) {
         File dir = getExternalFilesDir(null);
-        if (dir == null) { Toast.makeText(this, tx.get(R.string.cant_save), Toast.LENGTH_SHORT).show(); return; }
+        if (dir == null) { Toast.makeText(this, tx.get(R.string.cant_save), Toast.LENGTH_SHORT).show(); return false; }
         try {
             String text = Config.read(dir);
             if (dock != null) text = Config.setInText(text, "dock", dock);
@@ -1034,11 +1042,12 @@ public class HomeActivity extends Activity {
             Config.write(dir, text);
         } catch (IOException ex) {
             Toast.makeText(this, tx.get(R.string.cant_save), Toast.LENGTH_SHORT).show();
-            return;
+            return false;
         }
         conf = Config.load(this);
         pendingPkg = focusPkg;
         loadApps();
+        return true;
     }
 
     void switchInput(String inputId) {
