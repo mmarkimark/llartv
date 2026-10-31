@@ -3,7 +3,7 @@
 # Usage: ./scripts/config.sh [--tv <TV-IP>] key=value [key=value ...]   set one or more settings
 #        ./scripts/config.sh [--tv <TV-IP>] --dock                      pick the dock apps from a list
 #        ./scripts/config.sh [--tv <TV-IP>] --show                      show the current settings
-# Keys: columns dock hidden wallpaper wallpaper_minutes morning night location news_source news_rss
+# Keys: columns dock hidden order wallpaper wallpaper_minutes morning night location news_source news_rss
 #       music_screen music_url clock_screen motion_screen dock_tint clock weather_home weather_screen news_home team_id team_name.
 #       An empty value (key=) restores its default.
 #       news_source is automatic (the interface language), 3cat, bbc-mundo or bbc-world. A custom
@@ -13,11 +13,12 @@
 #       A custom HTTPS music_url overrides it without caching or looping. No audio is bundled in the APK.
 #       A dock= list shows exactly those apps, however short (no filling from the grid); the built-in
 #       default and dock.txt are filled up to the dock capacity. Holding OK on an app on the TV writes
-#       the same dock and hidden keys.
+#       the same dock and hidden keys. order is the grid order (package names; empty sorts by name);
+#       moving a grid app from its OK-hold menu writes it, and it never changes the dock.
 set -u
 # shellcheck source=scripts/lib.sh
 source "$(dirname "$0")/lib.sh"
-KEYS=" columns dock hidden wallpaper wallpaper_minutes morning night location news_source news_rss music_screen music_url clock_screen motion_screen dock_tint clock weather_home weather_screen news_home team_id team_name "
+KEYS=" columns dock hidden order wallpaper wallpaper_minutes morning night location news_source news_rss music_screen music_url clock_screen motion_screen dock_tint clock weather_home weather_screen news_home team_id team_name "
 
 IP=""; SHOW=0; PICK=0; PAIRS=()
 while [ $# -gt 0 ]; do case "$1" in

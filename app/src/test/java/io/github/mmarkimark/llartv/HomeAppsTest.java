@@ -180,4 +180,26 @@ public class HomeAppsTest {
         assertEquals(dock("y", "a"), c.dock);
         assertEquals(installed(), c.grid);
     }
+
+    // ---------------------------------------------------------------- grid order (#13)
+
+    @Test public void theGridFollowsTheOrderAndTheDockIgnoresIt() {
+        HomeApps.Composed c = HomeApps.compose(dock("y"), installed("a", "b", "c", "y"), hiddenSet(), false, 4,
+                dock("c", "y", "a"));
+        assertEquals(dock("y"), c.dock);
+        assertEquals(installed("c", "a", "b"), c.grid);
+    }
+
+    @Test public void anAutoDockStillFillsFromTheLabelOrderWhateverTheGridOrder() {
+        HomeApps.Composed c = HomeApps.compose(dock(), installed("a", "b", "c", "d"), hiddenSet(), true, 2,
+                dock("d", "c"));
+        assertEquals(dock("a", "b"), c.dock);
+        assertEquals(installed("d", "c"), c.grid);
+    }
+
+    @Test public void anOrderedHiddenAppStaysOutOfTheGrid() {
+        HomeApps.Composed c = HomeApps.compose(dock(), installed("a", "b", "h"), hiddenSet("h"), false, 4,
+                dock("h", "b", "a"));
+        assertEquals(installed("b", "a"), c.grid);
+    }
 }

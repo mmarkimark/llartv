@@ -20,6 +20,7 @@ import java.util.Set;
  *   columns=6
  *   dock=com.google.android.youtube.tv,com.netflix.ninja,com.amazon.amazonvideo.livingroom
  *   hidden=com.example.someapp
+ *   order=com.netflix.ninja,com.example.someapp   (the grid order; empty or missing sorts by name)
  *   team_id=364
  *   team_name=LIVERPOOL FC
  *   wallpaper=bing               (default; an image URL, or off for a plain background)
@@ -44,6 +45,7 @@ final class Config {
     List<String> dock = new ArrayList<>();
     boolean dockSet = false;       // true once home.conf has a dock= line: the dock is the user's, however short
     Set<String> hidden = new LinkedHashSet<>();   // in the order of the file, so a rewrite keeps it
+    List<String> order = new ArrayList<>();       // the grid order (GridOrder); empty: by label
     String teamId = "", teamName = "";
     String wallpaper = "bing";       // "bing" or an image URL: refreshed daily (DailyWallpaper); empty or "off" = none
     int wallpaperMinutes = 30;       // > 0: rotate through the downloaded images (Bing: last 8) every N minutes
@@ -113,6 +115,7 @@ final class Config {
                 break;
             case "dock": dock = split(v); dockSet = true; break;
             case "hidden": hidden = new LinkedHashSet<>(split(v)); break;
+            case "order": order = split(v); break;
             case "team_id": teamId = v; break;
             case "team_name": teamName = v; break;
             case "wallpaper": wallpaper = v.equalsIgnoreCase("off") ? "" : v; break;

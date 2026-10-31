@@ -131,10 +131,11 @@ public class HomeActivity extends Activity {
 
     final List<Ui.AppEntry> dockApps = new ArrayList<>();
     final List<Ui.AppEntry> gridApps = new ArrayList<>();
+    List<String> installedByLabel = new ArrayList<>();   // every installed app by label, hidden ones included
     final List<TileView> dockTiles = new ArrayList<>();
     TileView focusedTile;
     final OkPress ok = new OkPress(ViewConfiguration.getLongPressTimeout());   // short OK launches, a hold opens the app menu
-    String pendingPkg;                  // the app to focus again after a dock or hidden edit
+    String pendingPkg;                  // the app to focus again after a dock, hidden or order edit
 
     int region = DOCK, topIdx = 0, dockIdx = 0, gridIdx = 0, menuIdx = 0, minTop = 0;
     String restoreGridPkg;
@@ -537,12 +538,13 @@ public class HomeActivity extends Activity {
             for (Ui.AppEntry e : all) byLabel.add(e.pkg);
             // A dock= list of one's own shows exactly its apps, however short; the built-in list (and dock.txt)
             // is still filled from the alphabetically sorted grid, as it always has.
-            HomeApps.Composed c = HomeApps.compose(readDockConfig(), byLabel, conf.hidden, !conf.dockSet, COLS);
+            // The grid order (order=) only rearranges what is left for the grid; it never changes the dock.
+            HomeApps.Composed c = HomeApps.compose(readDockConfig(), byLabel, conf.hidden, !conf.dockSet, COLS, conf.order);
             List<Ui.AppEntry> d = new ArrayList<>(), g = new ArrayList<>();
             for (String p : c.dock) d.add(map.get(p));
             for (String p : c.grid) g.add(map.get(p));
             for (Ui.AppEntry e : d) e.color = Ui.sampleColor(e.banner != null ? e.banner : e.icon);
-            ui.post(() -> bindApps(d, g));
+            ui.post(() -> { installedByLabel = byLabel; bindApps(d, g); });
         }).start();
     }
 
@@ -959,6 +961,13 @@ public class HomeActivity extends Activity {
         else addMenuRow(Ca.ADD_TO_DOCK, () -> addToDock(e));
         if (inDock && dockIdx > 0) addMenuRow(Ca.MOVE_LEFT, () -> editApps(HomeApps.moveInDock(shownDock(), hiddenList(), e.pkg, -1), e.pkg));
         if (inDock && dockIdx < dockApps.size() - 1) addMenuRow(Ca.MOVE_RIGHT, () -> editApps(HomeApps.moveInDock(shownDock(), hiddenList(), e.pkg, 1), e.pkg));
+        if (!inDock) {   // the grid order: one place, or a whole row; a move that would leave the grid is not shown
+            int n = gridApps.size();
+            if (gridIdx > 0) addMenuRow(Ca.MOVE_LEFT, () -> moveInGrid(e.pkg, -1));
+            if (gridIdx < n - 1) addMenuRow(Ca.MOVE_RIGHT, () -> moveInGrid(e.pkg, 1));
+            if (gridIdx - COLS >= 0) addMenuRow(Ca.MOVE_UP, () -> moveInGrid(e.pkg, -COLS));
+            if (gridIdx + COLS < n) addMenuRow(Ca.MOVE_DOWN, () -> moveInGrid(e.pkg, COLS));
+        }
         addMenuRow(Ca.HIDE, () -> editApps(HomeApps.hideApp(shownDock(), hiddenList(), e.pkg), e.pkg));
         addMenuRow(Ca.APP_INFO, () -> appInfo(e));
         showMenu(rectOf(targetView(), TileView.FOCUS_SCALE), region);
@@ -984,14 +993,30 @@ public class HomeActivity extends Activity {
      *  the apps with the focus following focusPkg (S6, S7). */
     void editApps(HomeApps.Edit edit, String focusPkg) {
         if (!edit.changed()) return;
+        // an explicit dock keeps its entries that are not shown (not installed or hidden) when it is rewritten
+        List<String> dock = conf.dockSet ? HomeApps.withUnshown(edit.dock, shownDock(), conf.dock) : edit.dock;
+        writeApps(edit.dockChanged ? String.join(",", dock) : null,
+                edit.hiddenChanged ? String.join(",", edit.hidden) : null, null, focusPkg);
+    }
+
+    /** Moves a grid app in the grid order; the first move writes the whole current sequence (GridOrder). */
+    void moveInGrid(String pkg, int delta) {
+        List<String> grid = new ArrayList<>();
+        for (Ui.AppEntry a : gridApps) grid.add(a.pkg);
+        List<String> order = GridOrder.move(conf.order, installedByLabel, conf.hidden, grid, pkg, delta);
+        if (order != null) writeApps(null, null, String.join(",", order), pkg);
+    }
+
+    /** Writes the given dock, hidden and order values (null: unchanged) to home.conf, keeping every other line,
+     *  then reloads the apps with the focus following focusPkg. */
+    void writeApps(String dock, String hidden, String order, String focusPkg) {
         File dir = getExternalFilesDir(null);
         if (dir == null) { Toast.makeText(this, Ca.CANT_SAVE, Toast.LENGTH_SHORT).show(); return; }
         try {
             String text = Config.read(dir);
-            // an explicit dock keeps its entries that are not shown (not installed or hidden) when it is rewritten
-            List<String> dock = conf.dockSet ? HomeApps.withUnshown(edit.dock, shownDock(), conf.dock) : edit.dock;
-            if (edit.dockChanged) text = Config.setInText(text, "dock", String.join(",", dock));
-            if (edit.hiddenChanged) text = Config.setInText(text, "hidden", String.join(",", edit.hidden));
+            if (dock != null) text = Config.setInText(text, "dock", dock);
+            if (hidden != null) text = Config.setInText(text, "hidden", hidden);
+            if (order != null) text = Config.setInText(text, "order", order);
             Config.write(dir, text);
         } catch (IOException ex) {
             Toast.makeText(this, Ca.CANT_SAVE, Toast.LENGTH_SHORT).show();
