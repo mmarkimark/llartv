@@ -216,4 +216,53 @@ public class ConfigTest {
         assertEquals("# mine\ncolumns=5\nfoo=bar # keep\norder=b,a\n", out);
         assertEquals("# mine\ncolumns=5\nfoo=bar # keep\norder=a,b\n", Config.setInText(out, "order", "a,b"));
     }
+
+    // ---------------------------------------------------------------- the interface language (issue #11)
+
+    @Test public void aNewInstallationIsInCatalan() {
+        assertEquals(Language.CA, new Config().language);
+    }
+
+    @Test public void anUpgradedInstallationWithoutALanguageLineStaysInCatalan() throws Exception {
+        java.io.File dir = java.nio.file.Files.createTempDirectory("conf").toFile();
+        Config.write(dir, "# LlarTV settings\ncolumns=5\nnews_source=automatic\n");
+        Config k = Config.parse(dir);
+        assertEquals(Language.CA, k.language);
+        assertEquals(NewsSource.THREE_CAT, NewsSource.resolve(k).key);
+    }
+
+    @Test public void theLanguageIsReadInAnyCase() {
+        Config k = new Config();
+        k.set("language", " ES ");
+        assertEquals(Language.ES, k.language);
+        k.set("language", "en");
+        assertEquals(Language.EN, k.language);
+    }
+
+    @Test public void anUnknownLanguageKeepsTheCurrentOneAndEmptyRestoresCatalan() {
+        Config k = new Config();
+        k.set("language", "fr");
+        assertEquals(Language.CA, k.language);
+        k.set("language", "es");
+        k.set("language", "klingon");
+        assertEquals(Language.ES, k.language);
+        k.set("language", "");
+        assertEquals(Language.CA, k.language);
+    }
+
+    @Test public void choosingALanguageSurvivesARestartAndKeepsEveryOtherLine() throws Exception {
+        java.io.File dir = java.nio.file.Files.createTempDirectory("conf").toFile();
+        String before = "# mine\nnews_rss=https://example.org/rss # my feed\nclock=12\nfoo=bar\n";
+        Config.write(dir, before);
+        Config.write(dir, Config.setInText(Config.read(dir), "language", Language.EN));
+        assertEquals(before + "language=en\n", Config.read(dir));
+        Config k = Config.parse(dir);   // a restart reads the file again
+        assertEquals(Language.EN, k.language);
+        // the language changes neither the custom feed nor the clock format
+        assertTrue(k.newsRssIsCustom());
+        assertEquals("https://example.org/rss", NewsSource.resolve(k).url);
+        assertEquals(Clock.H12, k.clock);
+        Config.write(dir, Config.setInText(Config.read(dir), "language", Language.ES));
+        assertEquals(before + "language=es\n", Config.read(dir));
+    }
 }

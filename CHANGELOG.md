@@ -5,6 +5,8 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [1.4] - 2026-10-31
+
 ### Added
 
 - Grid order from the remote (#13): holding OK on a grid app now also offers *Moure a l'esquerra* / *Moure a la
@@ -21,6 +23,32 @@ All notable changes to LlarTV are documented in this file. The format is based o
   is selected, the screensaver is switched off, the settings cannot be read, or the TV does not provide that
   entry, a message says so and nothing is started; no success message is shown, the screensaver itself is the
   confirmation.
+- Interface languages (#11): Catalan, Spanish and English, chosen under *Configuració → Idioma* (each language is
+  listed in its own name) or with the new `language` key (`ca`, `es`, `en`; also accepted by
+  `scripts/config.sh`). Catalan is the default for new installations and stays for existing ones on upgrade; an
+  empty or unknown value is Catalan. Every LlarTV text follows it on Home, the settings and the screensaver: the
+  greeting, the date, the pills, the cards, weather conditions, headline ages, the next-match card, menus,
+  messages and the settings values, with plurals where a count is shown. The settings panel switches at once;
+  Home on return; the screensaver when it next starts. The language never changes the TV's system language,
+  time zone or clock format, nor other apps. `news_source=automatic` follows it (3Cat, BBC News Mundo, BBC News
+  World); an explicit preset and a custom `news_rss` are kept as they are. Headlines, photo titles and credits
+  are shown as their providers supply them.
+- Settings reset (#9): *Configuració → Restablir la configuració* shows what is reset and what is kept, with
+  *Cancel·lar* focused first; Cancel or Back changes nothing. Confirming removes the lines of the documented
+  `home.conf` keys, so their defaults come back (language Catalan, dock from `dock.txt` or the built-in list, no
+  hidden apps, grid by name) and stay after a restart; comments and unknown lines are kept verbatim. `dock.txt`,
+  wallpaper images, music and other caches, installed apps and Android settings (launcher, screensaver) are not
+  touched. A failed read or write is reported and leaves `home.conf` unchanged. Home follows a changed dock,
+  hidden list, grid order or column count when it is shown again.
+- Screensaver playlist (#35): local music rotates between Dancing, Chill Wave and Dream Culture every two
+  minutes (or earlier at completion), wrapping without overlapping decoders and retaining audio focus. The
+  original Dancing cache is reused; the two additional individually pinned CC BY 4.0 tracks live outside the
+  APK. Offline ca/es/en credits provide the original titles, author, source and licence. Music stays off by
+  default; custom HTTPS streams retain their own programming without forced rotation. Exit releases focus/player
+  and timers; failures leave the visuals running silently. The full offline loop passed on an Android TV
+  emulator; real-TV rotation/normal exit and owner listening also passed. See the
+  [acceptance record](docs/v1.4-acceptance.md) for measured evidence and separate public-download gates.
+- A failed `home.conf` write no longer leaves a `home.conf.tmp` file behind; `home.conf` itself is unchanged.
 
 ## [1.3] - 2026-10-30
 

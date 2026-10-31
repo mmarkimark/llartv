@@ -22,6 +22,7 @@ public class MusicPlaybackTest {
         public void pause() { event("pause"); }
         public void release() { event("release"); }
         public void abandonFocus() { event("abandon"); }
+        public void nextTrack() { event("next"); }
         void expect(String... expected) { assertEquals(Arrays.asList(expected), events); }
     }
 
@@ -135,6 +136,58 @@ public class MusicPlaybackTest {
             if (complete) out.expect("prepare", "focus", "start", "release", "abandon");
             else out.expect("prepare", "release", "abandon");
         }
+    }
+
+    @Test public void playlistRotatesAtTwoMinutesAndPreparesDistinctSourcesWithoutRetakingFocus() {
+        assertEquals(120_000L, MusicPlayback.ROTATE_MS);
+        Output out = new Output();
+        MusicPlayback p = new MusicPlayback(out, true);
+        p.start(); p.sourceReady(() -> out.event("first")); p.prepared();
+        p.rotate(); p.rotate(); // no second advance while the next source is loading
+        p.sourceReady(() -> out.event("second")); p.prepared();
+        p.stop();
+        out.expect("prepare", "first", "focus", "start", "next", "second", "start", "release", "abandon");
+    }
+
+    @Test public void shortLocalTrackAdvancesAtCompletionButCustomStreamStillEnds() {
+        Output out = new Output();
+        MusicPlayback p = new MusicPlayback(out, true);
+        p.start(); p.prepared(); p.completed();
+        p.sourceReady(() -> out.event("second")); p.prepared(); p.stop();
+        out.expect("prepare", "focus", "start", "next", "second", "start", "release", "abandon");
+        Output custom = new Output(); MusicPlayback stream = new MusicPlayback(custom);
+        stream.start(); stream.prepared(); stream.rotate(); stream.completed();
+        custom.expect("prepare", "focus", "start", "release", "abandon");
+    }
+
+    @Test public void playlistDoesNotRotateWhilePausedOrRestartDuringFocusLossBetweenTracks() {
+        Output out = new Output(); MusicPlayback p = new MusicPlayback(out, true);
+        p.start(); p.prepared(); p.focus(MusicPlayback.Focus.TRANSIENT_LOSS); p.rotate();
+        out.expect("prepare", "focus", "start", "pause");
+        p.focus(MusicPlayback.Focus.GAIN); p.rotate();
+        p.focus(MusicPlayback.Focus.TRANSIENT_LOSS); // next track is still downloading
+        p.sourceReady(() -> out.event("second")); p.prepared();
+        out.expect("prepare", "focus", "start", "pause", "start", "next", "second");
+        p.focus(MusicPlayback.Focus.GAIN); p.stop();
+        out.expect("prepare", "focus", "start", "pause", "start", "next", "second", "start", "release", "abandon");
+    }
+
+    @Test public void permanentLossOrExitDuringRotationInvalidatesLateSourceTimerAndPlayerCallbacks() {
+        for (boolean loss : new boolean[]{true, false}) {
+            Output out = new Output(); MusicPlayback p = new MusicPlayback(out, true);
+            p.start(); p.prepared(); p.rotate();
+            if (loss) p.focus(MusicPlayback.Focus.LOSS); else p.stop();
+            p.sourceReady(() -> out.event("late")); p.prepared(); p.rotate(); p.completed();
+            p.focus(MusicPlayback.Focus.GAIN); p.stop();
+            out.expect("prepare", "focus", "start", "next", "release", "abandon");
+        }
+    }
+
+    @Test public void failedNextTrackIsTerminalWithoutAnotherDownloadOrFocusRequest() {
+        Output out = new Output(); MusicPlayback p = new MusicPlayback(out, true);
+        p.start(); p.prepared(); p.rotate(); p.failed(); p.prepared(); p.rotate();
+        p.sourceReady(() -> out.event("retry")); p.focus(MusicPlayback.Focus.GAIN);
+        out.expect("prepare", "focus", "start", "next", "release", "abandon");
     }
 
     @Test public void platformExceptionsLeaveTheSessionSilentAndReleased() {

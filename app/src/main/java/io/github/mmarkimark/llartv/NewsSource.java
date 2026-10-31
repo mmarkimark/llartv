@@ -6,8 +6,9 @@ import java.util.Locale;
  * Where the headlines come from, and the credit that goes with them (issue #12).
  *
  * The stored choice is home.conf "news_source": "automatic", "3cat", "bbc-mundo" or "bbc-world".
- * "automatic" follows the interface language; the language selector is issue #11 (v1.2), so until then
- * it is Catalan. A custom "news_rss" always wins over the preset and is never overwritten by one.
+ * "automatic" follows the interface language (home.conf "language", issue #11): 3Cat in Catalan, BBC News Mundo
+ * in Spanish, BBC News World in English. A custom "news_rss" always wins over the preset and is never overwritten
+ * by one, whatever the language. The labels and credits are the providers' own, so they are never translated.
  *
  * Every source carries the attribution the terms of use ask for: the BBC feeds need the text "BBC News"
  * and a hyperlink to bbc.co.uk/news near the headlines, and 3Cat needs no confusion about who wrote them.
@@ -43,13 +44,18 @@ final class NewsSource {
         this.key = key;
     }
 
-    /** The source in effect: the custom feed when there is one, the preset otherwise. */
+    /**
+     * The source in effect: the custom feed when there is one, else the chosen preset, else ("automatic") the
+     * preset of the interface language. The cache key is the resolved id, so the headlines cached for one
+     * language are never shown after a switch to another.
+     */
     static NewsSource resolve(Config conf) {
         if (conf.newsRssIsCustom()) return custom(conf.newsRss.trim());
-        return preset(conf.newsSource);
+        String id = canonicalId(conf.newsSource);
+        return preset(AUTOMATIC.equals(id) ? Language.newsPreset(conf.language) : id);
     }
 
-    /** The preset for a stored id. An unknown or empty id keeps the default. */
+    /** The preset for a stored id. An unknown or empty id, and "automatic" on its own, give the Catalan default. */
     static NewsSource preset(String id) {
         String p = canonicalId(id);
         if (BBC_MUNDO.equals(p)) return new NewsSource(BBC_MUNDO, URL_BBC_MUNDO, "BBC News", "BBC News Mundo · bbc.co.uk/news", BBC_MUNDO);

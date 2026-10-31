@@ -13,7 +13,6 @@ import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextClock;
 import android.widget.TextView;
 
 import java.io.File;
@@ -42,6 +41,10 @@ public class BingDream extends DreamService {
     List<DailyWallpaper.Slide> slides;
     int index, W, H;
     boolean motion = true;   // home.conf motion_screen: off keeps the images still, without zoom or drift
+    Strings tx;              // the interface language, read again every time the screensaver starts
+    TextView time;           // the clock, rendered by tickClock (TextClock would take AM/PM from the system locale)
+    String clockPref = Clock.SYSTEM;
+    final Runnable clockTick = this::tickClock;
 
     @Override public void onAttachedToWindow() {
         super.onAttachedToWindow();
@@ -67,9 +70,10 @@ public class BingDream extends DreamService {
         int pad = Math.round(W * 0.05f);
         LinearLayout clockCol = new LinearLayout(this);
         clockCol.setOrientation(LinearLayout.VERTICAL);
-        // The clock format follows LlarTV's own preference (home.conf "clock"); "system" keeps the TextClock default.
+        // The clock format follows LlarTV's own preference (home.conf "clock"), rendered by tickClock.
         Config conf = Config.parse(getExternalFilesDir(null));
-        TextClock time = clock(fonts, 150, 86, 0xFFFFFFFF, Clock.pattern(conf.clock, false), Clock.pattern(conf.clock, true));
+        clockPref = conf.clock;
+        time = text(fonts, 150, 86, 0xFFFFFFFF);
         time.setIncludeFontPadding(false);
         // clock_screen=off hides the time only: the date, the weather line and the photo credits stay
         time.setVisibility(conf.clockScreen ? View.VISIBLE : View.GONE);
@@ -103,6 +107,19 @@ public class BingDream extends DreamService {
         setContentView(root);
     }
 
+    /**
+     * Shows the time in the interface language and schedules itself for the next minute on the ui handler, which
+     * onDreamingStopped and onDetachedFromWindow already clear. "system" reads the TV's 12/24-hour setting on
+     * every tick, as TextClock did, and the time zone is the TV's current one.
+     */
+    void tickClock() {
+        ui.removeCallbacks(clockTick);
+        long now = System.currentTimeMillis();
+        if (tx != null) time.setText(Clock.time(clockPref, android.text.format.DateFormat.is24HourFormat(this),
+                tx.locale, new java.util.Date(now)));
+        ui.postDelayed(clockTick, Clock.untilNextMinute(now));
+    }
+
     /** Weather the home screen last fetched (the screensaver never goes online itself); hidden when stale or off. */
     void showWeather() {
         Config conf = Config.parse(getExternalFilesDir(null));
@@ -111,7 +128,7 @@ public class BingDream extends DreamService {
                 && bands.at(c.get(java.util.Calendar.HOUR_OF_DAY) * 60 + c.get(java.util.Calendar.MINUTE)) == TimeBands.Band.MORNING;
         Weather w = ContentPolicy.shows(conf.weatherScreen, morning) ? Weather.load(getExternalFilesDir(null)) : null;
         boolean fresh = w != null && System.currentTimeMillis() - w.fetchedAt < 6 * 3600_000L;
-        if (fresh) weather.setText(w.line());
+        if (fresh) weather.setText(w.line(tx));
         weather.setVisibility(fresh ? View.VISIBLE : View.GONE);
     }
 
@@ -146,8 +163,11 @@ public class BingDream extends DreamService {
 
     @Override public void onDreamingStarted() {
         super.onDreamingStarted();
-        date.setText(Ca.date(new java.util.Date()));
         Config conf = Config.load(this);
+        tx = Strings.of(this, conf.language);   // one snapshot for the whole session, so it never mixes two languages
+        date.setText(Ca.date(tx, new java.util.Date()));
+        clockPref = conf.clock;
+        tickClock();
         bands = conf.bands();
         motion = conf.motionScreen;
         applyNight();
@@ -200,7 +220,7 @@ public class BingDream extends DreamService {
             back.setAlpha(1f);
             front.animate().alpha(0f).setDuration(FADE_MS).withEndAction(() -> out.setImageDrawable(null)).start();
         }
-        date.setText(Ca.date(new java.util.Date()));   // refreshed with every image, so it rolls over at midnight
+        date.setText(Ca.date(tx, new java.util.Date()));   // refreshed with every image, so it rolls over at midnight
         applyNight();
         showWeather();
         title.setText(s.title);
@@ -251,16 +271,5 @@ public class BingDream extends DreamService {
         t.setSingleLine(true);
         t.setShadowLayer(18, 0, 2, 0x73000000);
         return t;
-    }
-
-    TextClock clock(Ui.Fonts fonts, int weight, float sp, int color, String f12, String f24) {
-        TextClock c = new TextClock(this);
-        c.setFormat12Hour(f12);
-        c.setFormat24Hour(f24);
-        c.setTypeface(fonts.get(weight));
-        c.setTextSize(sp);
-        c.setTextColor(color);
-        c.setShadowLayer(18, 0, 2, 0x73000000);
-        return c;
     }
 }
