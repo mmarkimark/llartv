@@ -54,7 +54,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -107,6 +106,8 @@ public class HomeActivity extends Activity {
     LinearLayout panel, wxCard, newsCard, newsList;
     TextView wxTemp, wxLine, wxRange;
     TextView newsCredit;
+    final List<TextView> cardHeads = new ArrayList<>();   // the card headings, renamed on a language change
+    final List<Integer> cardHeadIds = new ArrayList<>();  // their texts (the view tags hold the night-mode colours)
     long lastWx;
     final NewsSchedule newsSchedule = new NewsSchedule();   // when the headlines have to be fetched again
     boolean wxBusy, newsBusy;
@@ -136,6 +137,8 @@ public class HomeActivity extends Activity {
     TileView focusedTile;
     final OkPress ok = new OkPress(ViewConfiguration.getLongPressTimeout());   // short OK launches, a hold opens the app menu
     String pendingPkg;                  // the app to focus again after a dock, hidden or order edit
+    Strings tx;                         // the texts of the interface language (home.conf "language")
+    final TextView[] pillText = new TextView[3];   // the labels of the inputs, Wi-Fi and settings pills
 
     int region = DOCK, topIdx = 0, dockIdx = 0, gridIdx = 0, menuIdx = 0, minTop = 0;
     String restoreGridPkg;
@@ -153,6 +156,7 @@ public class HomeActivity extends Activity {
         Ui.density = dm.density;
         W = dm.widthPixels; H = dm.heightPixels;
         conf = Config.load(this);
+        tx = Strings.of(this, conf.language);
         bands = conf.bands();
         COLS = conf.columns;
         pad = dp(64); gap = dp(COLS <= 4 ? 28 : 22);
@@ -187,8 +191,12 @@ public class HomeActivity extends Activity {
 
     @Override protected void onResume() {
         super.onResume();
+        Config before = conf;
         conf = Config.load(this);          // LlarTV's own settings may have changed while we were away
+        // The tile sizes and the team are set up once in onCreate: a change to them (a settings reset) rebuilds Home.
+        if (before.columns != conf.columns || !before.teamId.equals(conf.teamId)) { recreate(); return; }
         bands = conf.bands();
+        applyLanguage();
         IntentFilter f = new IntentFilter();
         f.addAction(Intent.ACTION_TIME_TICK);
         f.addAction(Intent.ACTION_TIME_CHANGED);
@@ -203,7 +211,8 @@ public class HomeActivity extends Activity {
         refreshMatchCard();
         maybeFetchFixtures();
         updateInputsPill();
-        if (loaded) afterLayout(() -> applyFocus(false));
+        if (appsChanged(before, conf)) loadApps();   // dock, hidden apps or grid order changed elsewhere
+        else if (loaded) afterLayout(() -> applyFocus(false));
     }
 
     @Override protected void onPause() {
@@ -298,11 +307,10 @@ public class HomeActivity extends Activity {
 
         LinearLayout pillRow = new LinearLayout(this);
         pillRow.setOrientation(LinearLayout.HORIZONTAL);
-        pills[0] = pill(R.drawable.ic_input, Ca.INPUTS, null);
-        TextView[] wt = new TextView[1];
-        pills[1] = pill(R.drawable.ic_wifi, Ca.WIFI, wt);
-        wifiText = wt[0];
-        pills[2] = pill(R.drawable.ic_settings, Ca.SETTINGS, null);
+        pills[0] = pill(R.drawable.ic_input, tx.get(R.string.inputs), pillText, 0);
+        pills[1] = pill(R.drawable.ic_wifi, tx.get(R.string.wifi), pillText, 1);
+        wifiText = pillText[1];
+        pills[2] = pill(R.drawable.ic_settings, tx.get(R.string.settings), pillText, 2);
         for (int i = 0; i < 3; i++) {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-2, dp(42));
             if (i > 0) lp.leftMargin = dp(12);
@@ -335,7 +343,7 @@ public class HomeActivity extends Activity {
         labelRow.addView(dot, dlp);
         mLabel = text(500, 13, 0xFFAEAEB2);
         mLabel.setLetterSpacing(0.08f);
-        mLabel.setText(conf.teamName.isEmpty() ? Ca.NEXT_MATCH : conf.teamName.toUpperCase() + "  \u00B7  " + Ca.NEXT_MATCH);
+        mLabel.setText(matchLabel());
         labelRow.addView(mLabel);
         matchCard.addView(labelRow);
         mTitle = text(300, 30, 0xFFFFFFFF);
@@ -368,7 +376,7 @@ public class HomeActivity extends Activity {
         panel = new LinearLayout(this);
         panel.setOrientation(LinearLayout.VERTICAL);
         panel.setVisibility(View.GONE);
-        wxCard = card(Ca.WEATHER);
+        wxCard = card(R.string.weather);
         LinearLayout wxRow = new LinearLayout(this);
         wxRow.setOrientation(LinearLayout.HORIZONTAL);
         wxRow.setGravity(Gravity.CENTER_VERTICAL);
@@ -385,7 +393,7 @@ public class HomeActivity extends Activity {
         wtp.leftMargin = dp(14);
         wxRow.addView(wxText, wtp);
         wxCard.addView(wxRow);
-        newsCard = card(Ca.NEWS);
+        newsCard = card(R.string.news);
         newsList = new LinearLayout(this);
         newsList.setOrientation(LinearLayout.VERTICAL);
         newsCard.addView(newsList);
@@ -471,7 +479,7 @@ public class HomeActivity extends Activity {
         return t;
     }
 
-    View pill(int icon, String label, TextView[] out) {
+    View pill(int icon, String label, TextView[] out, int slot) {
         LinearLayout p = new LinearLayout(this);
         p.setOrientation(LinearLayout.HORIZONTAL);
         p.setGravity(Gravity.CENTER_VERTICAL);
@@ -492,7 +500,7 @@ public class HomeActivity extends Activity {
         t.setMaxWidth(dp(220));
         t.setEllipsize(android.text.TextUtils.TruncateAt.END);
         p.addView(t);
-        if (out != null) out[0] = t;
+        out[slot] = t;
         return p;
     }
 
@@ -546,6 +554,12 @@ public class HomeActivity extends Activity {
             for (Ui.AppEntry e : d) e.color = Ui.sampleColor(e.banner != null ? e.banner : e.icon);
             ui.post(() -> { installedByLabel = byLabel; bindApps(d, g); });
         }).start();
+    }
+
+    /** True when the dock, the hidden apps or the grid order differ, so the apps must be placed again. */
+    static boolean appsChanged(Config a, Config b) {
+        return a.dockSet != b.dockSet || !a.dock.equals(b.dock) || !new ArrayList<>(a.hidden).equals(new ArrayList<>(b.hidden))
+                || !a.order.equals(b.order);
     }
 
     /** Dock order: an explicit dock= list in home.conf (kept even when empty), else dock.txt in the app's files
@@ -835,7 +849,7 @@ public class HomeActivity extends Activity {
 
     void launch(Ui.AppEntry e) {
         try { startActivity(e.launch); }
-        catch (Exception ex) { Toast.makeText(this, Ca.CANT_OPEN + e.label, Toast.LENGTH_SHORT).show(); }
+        catch (Exception ex) { Toast.makeText(this, tx.get(R.string.cant_open, e.label), Toast.LENGTH_SHORT).show(); }
     }
 
     void appInfo(Ui.AppEntry e) {
@@ -844,7 +858,7 @@ public class HomeActivity extends Activity {
 
     void safeStart(Intent i) {
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        try { startActivity(i); } catch (Exception ex) { Toast.makeText(this, Ca.NOT_AVAILABLE, Toast.LENGTH_SHORT).show(); }
+        try { startActivity(i); } catch (Exception ex) { Toast.makeText(this, tx.get(R.string.not_available), Toast.LENGTH_SHORT).show(); }
     }
 
     void pillAction(int i) {
@@ -852,7 +866,7 @@ public class HomeActivity extends Activity {
         else if (i == 1) safeStart(new Intent(Settings.ACTION_WIFI_SETTINGS));
         else {
             try { startActivity(new Intent(this, SettingsActivity.class)); }
-            catch (Exception ex) { Toast.makeText(this, Ca.NOT_AVAILABLE, Toast.LENGTH_SHORT).show(); }
+            catch (Exception ex) { Toast.makeText(this, tx.get(R.string.not_available), Toast.LENGTH_SHORT).show(); }
         }
     }
 
@@ -896,7 +910,7 @@ public class HomeActivity extends Activity {
             final String id = in.getId();
             addMenuRow(label, () -> switchInput(id));
         }
-        if (liveTvIntent() != null) addMenuRow(Ca.LIVE_TV, this::openLiveTv);
+        if (liveTvIntent() != null) addMenuRow(tx.get(R.string.live_tv), this::openLiveTv);
 
         showMenu(rectOf(pills[0], 1f), TOP);
     }
@@ -957,19 +971,19 @@ public class HomeActivity extends Activity {
         menu.removeAllViews();
         menuRows.clear();
         menuActions.clear();
-        if (inDock) addMenuRow(Ca.REMOVE_FROM_DOCK, () -> editApps(HomeApps.removeFromDock(shownDock(), hiddenList(), e.pkg), e.pkg));
-        else addMenuRow(Ca.ADD_TO_DOCK, () -> addToDock(e));
-        if (inDock && dockIdx > 0) addMenuRow(Ca.MOVE_LEFT, () -> editApps(HomeApps.moveInDock(shownDock(), hiddenList(), e.pkg, -1), e.pkg));
-        if (inDock && dockIdx < dockApps.size() - 1) addMenuRow(Ca.MOVE_RIGHT, () -> editApps(HomeApps.moveInDock(shownDock(), hiddenList(), e.pkg, 1), e.pkg));
+        if (inDock) addMenuRow(tx.get(R.string.remove_from_dock), () -> editApps(HomeApps.removeFromDock(shownDock(), hiddenList(), e.pkg), e.pkg));
+        else addMenuRow(tx.get(R.string.add_to_dock), () -> addToDock(e));
+        if (inDock && dockIdx > 0) addMenuRow(tx.get(R.string.move_left), () -> editApps(HomeApps.moveInDock(shownDock(), hiddenList(), e.pkg, -1), e.pkg));
+        if (inDock && dockIdx < dockApps.size() - 1) addMenuRow(tx.get(R.string.move_right), () -> editApps(HomeApps.moveInDock(shownDock(), hiddenList(), e.pkg, 1), e.pkg));
         if (!inDock) {   // the grid order: one place, or a whole row; a move that would leave the grid is not shown
             int n = gridApps.size();
-            if (gridIdx > 0) addMenuRow(Ca.MOVE_LEFT, () -> moveInGrid(e.pkg, -1));
-            if (gridIdx < n - 1) addMenuRow(Ca.MOVE_RIGHT, () -> moveInGrid(e.pkg, 1));
-            if (gridIdx - COLS >= 0) addMenuRow(Ca.MOVE_UP, () -> moveInGrid(e.pkg, -COLS));
-            if (gridIdx + COLS < n) addMenuRow(Ca.MOVE_DOWN, () -> moveInGrid(e.pkg, COLS));
+            if (gridIdx > 0) addMenuRow(tx.get(R.string.move_left), () -> moveInGrid(e.pkg, -1));
+            if (gridIdx < n - 1) addMenuRow(tx.get(R.string.move_right), () -> moveInGrid(e.pkg, 1));
+            if (gridIdx - COLS >= 0) addMenuRow(tx.get(R.string.move_up), () -> moveInGrid(e.pkg, -COLS));
+            if (gridIdx + COLS < n) addMenuRow(tx.get(R.string.move_down), () -> moveInGrid(e.pkg, COLS));
         }
-        addMenuRow(Ca.HIDE, () -> editApps(HomeApps.hideApp(shownDock(), hiddenList(), e.pkg), e.pkg));
-        addMenuRow(Ca.APP_INFO, () -> appInfo(e));
+        addMenuRow(tx.get(R.string.hide), () -> editApps(HomeApps.hideApp(shownDock(), hiddenList(), e.pkg), e.pkg));
+        addMenuRow(tx.get(R.string.app_info), () -> appInfo(e));
         showMenu(rectOf(targetView(), TileView.FOCUS_SCALE), region);
     }
 
@@ -985,7 +999,7 @@ public class HomeActivity extends Activity {
     /** Adding to the dock: a full dock writes nothing and says so instead (S5). */
     void addToDock(Ui.AppEntry e) {
         HomeApps.Edit edit = HomeApps.addToDock(shownDock(), hiddenList(), e.pkg, COLS);
-        if (!edit.changed()) { Toast.makeText(this, Ca.DOCK_FULL, Toast.LENGTH_SHORT).show(); return; }
+        if (!edit.changed()) { Toast.makeText(this, tx.get(R.string.dock_full), Toast.LENGTH_SHORT).show(); return; }
         editApps(edit, e.pkg);
     }
 
@@ -1011,7 +1025,7 @@ public class HomeActivity extends Activity {
      *  then reloads the apps with the focus following focusPkg. */
     void writeApps(String dock, String hidden, String order, String focusPkg) {
         File dir = getExternalFilesDir(null);
-        if (dir == null) { Toast.makeText(this, Ca.CANT_SAVE, Toast.LENGTH_SHORT).show(); return; }
+        if (dir == null) { Toast.makeText(this, tx.get(R.string.cant_save), Toast.LENGTH_SHORT).show(); return; }
         try {
             String text = Config.read(dir);
             if (dock != null) text = Config.setInText(text, "dock", dock);
@@ -1019,7 +1033,7 @@ public class HomeActivity extends Activity {
             if (order != null) text = Config.setInText(text, "order", order);
             Config.write(dir, text);
         } catch (IOException ex) {
-            Toast.makeText(this, Ca.CANT_SAVE, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, tx.get(R.string.cant_save), Toast.LENGTH_SHORT).show();
             return;
         }
         conf = Config.load(this);
@@ -1033,7 +1047,7 @@ public class HomeActivity extends Activity {
         try { startActivity(i); return; } catch (ActivityNotFoundException ignored) {}
         Intent li = liveTvIntent();
         if (li != null) { li.setData(uri); safeStart(li); }
-        else Toast.makeText(this, Ca.CANT_SWITCH_INPUT, Toast.LENGTH_SHORT).show();
+        else Toast.makeText(this, tx.get(R.string.cant_switch_input), Toast.LENGTH_SHORT).show();
     }
 
     /** This TV's Live TV app: a known maker app, else whatever handles "view TV channels"; null if none. */
@@ -1056,17 +1070,40 @@ public class HomeActivity extends Activity {
     void openLiveTv() {
         Intent li = liveTvIntent();
         if (li != null) safeStart(li);
-        else Toast.makeText(this, Ca.NO_LIVE_TV, Toast.LENGTH_SHORT).show();
+        else Toast.makeText(this, tx.get(R.string.no_live_tv), Toast.LENGTH_SHORT).show();
+    }
+
+    // ---------------------------------------------------------------- the interface language
+
+    /**
+     * After a language change in the settings (or with scripts/config.sh) the fixed labels are renamed here; the
+     * clock, the date, the cards and the menus are rendered from tx anyway on their next refresh (onResume runs
+     * them all). The whole screen switches at once, from one immutable snapshot.
+     */
+    void applyLanguage() {
+        if (tx.language.equals(conf.language)) return;
+        tx = Strings.of(this, conf.language);
+        pillText[0].setText(tx.get(R.string.inputs));
+        pillText[2].setText(tx.get(R.string.settings));
+        for (int i = 0; i < cardHeads.size(); i++) cardHeads.get(i).setText(Ca.upper(tx, tx.get(cardHeadIds.get(i))));
+        mLabel.setText(matchLabel());
+        wifiText.setText("");   // updateWifi writes it again in the new language
+    }
+
+    /** "PROPER PARTIT", or the team's name in front of it. */
+    String matchLabel() {
+        String next = tx.get(R.string.next_match);
+        return conf.teamName.isEmpty() ? next : conf.teamName.toUpperCase(tx.locale) + "  \u00B7  " + next;
     }
 
     // ---------------------------------------------------------------- clock, wifi, wallpaper (event-driven, no polling)
 
     void tick() {
         Date now = new Date();
-        clock.setText(new SimpleDateFormat(Clock.pattern(conf.clock, DateFormat.is24HourFormat(this)), Locale.getDefault()).format(now));
-        date.setText(Ca.date(now));
+        clock.setText(Clock.format(Clock.pattern(conf.clock, DateFormat.is24HourFormat(this)), tx.locale, now));
+        date.setText(Ca.date(tx, now));
         int h = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
-        greeting.setText(Ca.greeting(h));
+        greeting.setText(Ca.greeting(tx, h));
         if (matchCard != null) { refreshMatchCard(); maybeFetchFixtures(); }
         loadWallpaper();
         maybeFetchWallpaper();
@@ -1098,19 +1135,19 @@ public class HomeActivity extends Activity {
 
     @SuppressWarnings("deprecation")
     void updateWifi() {
-        String s = Ca.OFFLINE;
+        String s = tx.get(R.string.offline);
         try {
             ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo ni = cm.getActiveNetworkInfo();
             if (ni != null && ni.isConnected()) {
-                if (ni.getType() == ConnectivityManager.TYPE_ETHERNET) s = Ca.ETHERNET;
+                if (ni.getType() == ConnectivityManager.TYPE_ETHERNET) s = tx.get(R.string.ethernet);
                 else if (ni.getType() == ConnectivityManager.TYPE_WIFI) {
                     WifiManager wm = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
                     String ssid = wm.getConnectionInfo().getSSID();
                     if (ssid == null || ssid.contains("unknown ssid")) ssid = ni.getExtraInfo();
                     if (ssid != null) ssid = ssid.replace("\"", "").trim();
-                    s = (ssid == null || ssid.isEmpty() || ssid.contains("unknown")) ? Ca.WIFI : ssid;
-                } else s = Ca.CONNECTED;
+                    s = (ssid == null || ssid.isEmpty() || ssid.contains("unknown")) ? tx.get(R.string.wifi) : ssid;
+                } else s = tx.get(R.string.connected);
             }
         } catch (Exception ignored) {}
         if (!s.contentEquals(wifiText.getText())) {
@@ -1174,7 +1211,8 @@ public class HomeActivity extends Activity {
 
     static final long WX_EVERY = 30 * 60_000L, NEWS_EVERY = 30 * 60_000L, RETRY = 10 * 60_000L;
 
-    LinearLayout card(String heading) {
+    /** A card of the morning panel, its heading kept in cardHeads so a language change can rename it. */
+    LinearLayout card(int heading) {
         LinearLayout c = new LinearLayout(this);
         c.setOrientation(LinearLayout.VERTICAL);
         c.setPadding(dp(16), dp(9), dp(16), dp(11));
@@ -1185,7 +1223,9 @@ public class HomeActivity extends Activity {
         c.setBackground(bg);
         TextView h = text(500, 10, 0xFFBDBAB3);
         h.setLetterSpacing(0.08f);
-        h.setText(heading.toUpperCase(Ca.LOCALE));
+        h.setText(Ca.upper(tx, tx.get(heading)));
+        cardHeads.add(h);
+        cardHeadIds.add(heading);
         LinearLayout.LayoutParams hp = new LinearLayout.LayoutParams(-2, -2);
         hp.bottomMargin = dp(3);
         c.addView(h, hp);
@@ -1216,7 +1256,7 @@ public class HomeActivity extends Activity {
 
         Weather w = showWx ? Weather.load(dir) : null;
         boolean hasWx = w != null && now - w.fetchedAt < 6 * 3600_000L;
-        if (hasWx) { wxTemp.setText(w.temp + "°"); wxLine.setText(Weather.describe(w.code)); wxRange.setText(w.range()); }
+        if (hasWx) { wxTemp.setText(w.temp + "°"); wxLine.setText(Weather.describe(tx, w.code)); wxRange.setText(w.range(tx)); }
         wxCard.setVisibility(hasWx ? View.VISIBLE : View.GONE);
 
         NewsSource source = NewsSource.resolve(conf);
@@ -1230,7 +1270,7 @@ public class HomeActivity extends Activity {
             t.setMaxLines(2);
             t.setEllipsize(android.text.TextUtils.TruncateAt.END);
             t.setText(it.title);
-            String age = News.age(it.published, now);
+            String age = News.age(tx, it.published, now);
             TextView src = rowText(300, 11, 0xFFA9A6A0);
             src.setText(age.isEmpty() ? source.label : source.label + " · " + age);
             LinearLayout.LayoutParams ip = new LinearLayout.LayoutParams(-1, -2);
@@ -1322,15 +1362,15 @@ public class HomeActivity extends Activity {
         if (m == null) { matchCard.setVisibility(View.GONE); return; }
         if (panel != null && panel.getVisibility() == View.VISIBLE) { matchCard.setVisibility(View.GONE); return; }   // morning panel has the spot
         matchCard.setVisibility(View.VISIBLE);
-        mTitle.setText(Ca.VS + m.opponent);
+        mTitle.setText(tx.get(R.string.versus, m.opponent));
         String comp = m.competition;
-        String where = m.home ? Ca.HOME : Ca.AWAY;
+        String where = tx.get(m.home ? R.string.home_game : R.string.away_game);
         mComp.setText(comp.isEmpty() ? where : comp + "  \u00B7  " + where);
         if (now >= m.kickoff) {
-            mWhen.setText(Ca.LIVE_NOW);
+            mWhen.setText(tx.get(R.string.live_now));
             mWhen.setTextColor(getColor(R.color.fixture_accent));
             long mins = (now - m.kickoff) / 60_000L;
-            mCountdown.setText(Ca.kickedOff(mins));
+            mCountdown.setText(Ca.kickedOff(tx, mins));
             return;
         }
         mWhen.setTextColor(0xFFFFFFFF);
@@ -1338,14 +1378,14 @@ public class HomeActivity extends Activity {
         Calendar today = Calendar.getInstance();
         Calendar tomorrow = Calendar.getInstance(); tomorrow.add(Calendar.DAY_OF_YEAR, 1);
         String day;
-        if (sameDay(k, today)) day = Ca.TODAY;
-        else if (sameDay(k, tomorrow)) day = Ca.TOMORROW;
-        else if (m.kickoff - now < 6L * 24 * 3600_000L) day = Ca.format("EEEE", new Date(m.kickoff));
-        else day = Ca.format("EEE d MMM", new Date(m.kickoff));
-        String time = new SimpleDateFormat(Clock.matchPattern(conf.clock, DateFormat.is24HourFormat(this)), Locale.getDefault()).format(new Date(m.kickoff));
+        if (sameDay(k, today)) day = tx.get(R.string.today);
+        else if (sameDay(k, tomorrow)) day = tx.get(R.string.tomorrow);
+        else if (m.kickoff - now < 6L * 24 * 3600_000L) day = Ca.weekday(tx, new Date(m.kickoff));
+        else day = Ca.shortDay(tx, new Date(m.kickoff));
+        String time = Clock.format(Clock.matchPattern(conf.clock, DateFormat.is24HourFormat(this)), tx.locale, new Date(m.kickoff));
         mWhen.setText(day + "  \u00B7  " + time);
         long mins = (m.kickoff - now) / 60_000L;
-        mCountdown.setText(Ca.countdown(mins));
+        mCountdown.setText(Ca.countdown(tx, mins));
     }
 
     static boolean sameDay(Calendar a, Calendar b) {

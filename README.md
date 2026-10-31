@@ -2,7 +2,7 @@
 
 A lightweight, native home screen for Android TV. (*Llar* is Catalan for "home".)
 
-[![Release](https://img.shields.io/badge/release-v1.3-blue)](https://github.com/mmarkimark/llartv/releases/tag/v1.3)
+[![Release](https://img.shields.io/badge/release-v1.4-blue)](https://github.com/mmarkimark/llartv/releases/tag/v1.4)
 [![CI](https://github.com/mmarkimark/llartv/actions/workflows/ci.yml/badge.svg)](https://github.com/mmarkimark/llartv/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 ![Android TV 9+](https://img.shields.io/badge/Android%20TV-9%2B-informational)
@@ -11,8 +11,9 @@ A lightweight, native home screen for Android TV. (*Llar* is Catalan for "home".
 
 LlarTV replaces the stock Android TV launcher with a clean, fast home screen built for the remote: a large clock, a
 dock with your streaming apps, a full app grid, daily wallpapers and a matching screensaver. It is written in plain
-Java, uses about 30–40 MB of RAM, and does no background polling: the clock and network name update from system
-broadcasts, and network data is fetched only while the home screen is showing.
+Java, with measured foreground Home PSS of about 35 MiB on the emulator and 63 MiB on the reference TV.
+It does no background polling: the clock and network name update from system broadcasts, and network data is
+fetched only while the home screen is showing.
 
 > **Project status:** LlarTV is a personal project. It is developed and tested on a Xiaomi MiTV-MSSP3
 > (Android TV 11) and an Android TV 11 emulator. Other devices should work but are not regularly tested.
@@ -75,8 +76,14 @@ broadcasts, and network data is fetched only while the home screen is showing.
   and shown as one more choice.
 - Screensaver clock and motion: hide the time (the date, the weather and the photo credits stay) and turn off the
   slow zoom, so each photo stays still and still changes every 25 seconds with a fade.
+- Iniciar el protector: starts the LlarTV screensaver now, with its current options, through the TV's own
+  "start now" entry (SystemUI's `Somnambulator`). It changes no setting: the inactivity timeout and the chosen
+  screensaver stay as they are. When LlarTV is not the TV's screensaver, the screensaver is switched off, or the
+  TV has no such entry, it shows why instead of starting anything else.
 - Apps amagades: the hidden apps, with their count as the value. OK opens the list by label (the package name
   when the app is not installed any more) and unhides one app, writing `hidden`.
+- Restablir la configuració: puts LlarTV's own settings back to their defaults after a confirmation that shows
+  what is reset and what is kept, with Cancel focused first (see [Resetting the settings](#resetting-the-settings)).
 - News source: 3Cat (Catalan), BBC News Mundo (Spanish) or BBC News World (English), with the source credited next
   to the headlines and the article link kept with them. A custom RSS feed always wins over the preset.
 
@@ -85,16 +92,20 @@ broadcasts, and network data is fetched only while the home screen is showing.
 - Daily wallpapers from Bing (the last eight images, optionally rotating) or from any image URL.
 - A built-in screensaver (*BingDream*) with a slow zoom and cross-fade over the wallpapers, the clock, the date
   and the current weather.
-- Optional screensaver music, off by default: switch it on from the settings menu to loop Holizna's CC0
-  "Dancing", downloaded once outside the APK and reused offline. A custom HTTPS stream can override it.
-  Music stops with the screensaver; failures leave the visuals running silently. Verified on the TV: audible
-  cached playback, an hour of looping with focus held and no traffic after the one-time download. See
+- Optional screensaver music, off by default: a cached playlist rotates approximately every two minutes
+  through Holizna's CC0 "Dancing" and Kevin MacLeod's CC BY 4.0 "Chill Wave" and "Dream Culture".
+  Original MP3s download outside the APK and are reused offline; the settings menu has offline music credits.
+  A custom HTTPS stream retains its own programming, without forced rotation. Music stops with the screensaver;
+  failures leave the visuals running silently. The full offline loop passed on an Android TV emulator;
+  three-track rotation and normal exit also passed on the reference TV, with owner-confirmed audible changes.
+  Public asset/Android cold-download verification remains a separate release step. See
   [docs/screensaver-music.md](docs/screensaver-music.md).
 
 **Other**
 
 - Optional "next match" card for a football club, using ESPN's public schedule. It hides itself if the feed fails.
-- All interface text is in Catalan, regardless of the system language.
+- Interface in Catalan (the default), Spanish or English, chosen under **Configuració → Idioma** or with
+  `language=`; it is independent of the TV's system language, time zone and clock format.
 
 ## Screenshots
 
@@ -207,10 +218,11 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 | `morning` | `08:00-11:00` | Morning panel time range; `off` turns it off. |
 | `night` | `23:00-08:00` | Night mode time range; `off` turns it off. |
 | `location` | `41.4235,2.2010` (Barcelona) | `latitude,longitude` used for the weather. |
-| `news_source` | `automatic` | News source: `automatic` (follows the interface language, Catalan until the language selector in v1.2), `3cat`, `bbc-mundo` or `bbc-world`. |
+| `language` | `ca` | Interface language: `ca` (Catalan), `es` (Spanish) or `en` (English). A new installation and an upgraded one without this line are in Catalan; an unknown value keeps Catalan. It never changes the TV's system language, time zone or clock format. |
+| `news_source` | `automatic` | News source: `automatic` (follows `language`: 3Cat, BBC News Mundo or BBC News World), `3cat`, `bbc-mundo` or `bbc-world`. |
 | `news_rss` | empty | Custom RSS feed for the morning headlines; it wins over `news_source` and is never overwritten by it. Remove the line to use a preset again. |
 | `music_screen` | `off` | Music during the screensaver: `on` or `off`. Off means no music download or player. |
-| `music_url` | empty | Empty selects cached Holizna CC0 music; a custom HTTPS audio URL overrides it without caching or looping. See [docs/screensaver-music.md](docs/screensaver-music.md). |
+| `music_url` | empty | Empty selects the verified cached playlist; a custom HTTPS audio URL overrides it without caching or forced rotation. See [docs/screensaver-music.md](docs/screensaver-music.md). |
 | `clock_screen` | `on` | The time on the screensaver: `on` or `off`. Off hides the time only; the date, the weather and the photo credits stay. |
 | `motion_screen` | `on` | The slow zoom and drift of the screensaver photos: `on` or `off`. Off keeps each photo still; the photos still change every 25 seconds with a fade. |
 | `dock_tint` | `on` | Tint the dock band from the wallpaper; `off` uses a plain band. |
@@ -227,6 +239,17 @@ at most every six hours, and only new Bing images are downloaded.
 The news source can also be changed from the TV itself: **Configuració → Font de notícies** offers the presets.
 A custom `news_rss` feed has priority over them; remove it from `home.conf` to use a preset again.
 
+### Resetting the settings
+
+**Configuració → Restablir la configuració** puts every setting in the table above back to its default. It first
+shows what is reset and what is kept, with *Cancel·lar* focused; Cancel or Back changes nothing. *Restablir*
+removes the lines of those keys from `home.conf` (so the language is Catalan again, the dock comes from
+`dock.txt` or the built-in list, no app is hidden and the grid is sorted by name), with the same atomic write as
+every other setting. Comments, blank lines and unknown lines in `home.conf` are kept as they are, and nothing else
+is touched: not `dock.txt`, the downloaded or pushed wallpaper images, the music, other caches, the installed
+apps, nor Android settings such as the default launcher or screensaver. If the file cannot be read or written, a
+message says so and `home.conf` stays exactly as it was. `scripts/config.sh` keeps working afterwards.
+
 ## Screensaver
 
 The screensaver shows the downloaded wallpapers full screen, with a slow zoom and a cross-fade every 25 seconds,
@@ -239,10 +262,13 @@ Preferences → Screen saver*.
 
 ## Performance
 
-LlarTV is kept small and fast: the released APK is about 4 MB, the app uses about 30–40 MB of RAM and it does no
-background polling. [`scripts/measure.sh`](scripts/measure.sh) records the APK size, the cold start, the Home
+LlarTV is kept small and fast: the v1.4 APK is 4,133,135 bytes, with foreground Home PSS about 35 MiB on the
+emulator and 63 MiB on the reference TV. Screensaver PSS is a different workload. It does no background polling. [`scripts/measure.sh`](scripts/measure.sh) records the APK size, the cold start, the Home
 return and the RAM on a connected TV or emulator. The measured baseline and the regression budgets used as release
 gates are in [`docs/performance/baseline-v1.0.md`](docs/performance/baseline-v1.0.md).
+The [v1.4 comparison](docs/performance/v1.4.md) and [acceptance record](docs/v1.4-acceptance.md) separate emulator,
+initial TV and controlled TV measurements. Both controlled candidate cohorts passed the paired TV budgets;
+initial over-budget data is retained, not hidden or replaced with emulator values. Public delivery checks are recorded separately.
 
 ## Building from source
 
@@ -255,7 +281,8 @@ echo "sdk.dir=$ANDROID_HOME" > local.properties
 ```
 
 Unit tests run on the JVM and cover configuration parsing, time bands, colour handling, weather and news parsing,
-wallpaper selection and the Catalan text helpers.
+wallpaper selection, and the three interface languages (every text resolved from the resource files, with
+key, placeholder and plural parity).
 
 Project layout:
 

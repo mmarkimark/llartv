@@ -2,6 +2,7 @@ package io.github.mmarkimark.llartv;
 
 /** One dream's audio lifecycle. All calls are serialized on Android's main thread; no Android dependency here. */
 final class MusicPlayback {
+    static final long ROTATE_MS = 120_000L;
     enum Focus { GAIN, TRANSIENT_LOSS, LOSS }
 
     interface Output {
@@ -11,12 +12,15 @@ final class MusicPlayback {
         void pause();
         void release();
         void abandonFocus();
+        default void nextTrack() { throw new IllegalStateException("playlist output unavailable"); }
     }
 
     private final Output output;
-    private boolean active = true, started, sourceResolved, ready, focused, playing;
+    private final boolean playlist;
+    private boolean active = true, started, sourceResolved, ready, focused, playing, focusRequested;
 
-    MusicPlayback(Output output) { this.output = output; }
+    MusicPlayback(Output output) { this(output, false); }
+    MusicPlayback(Output output, boolean playlist) { this.output = output; this.playlist = playlist; }
 
     void start() {
         if (!active || started) return;
@@ -36,13 +40,17 @@ final class MusicPlayback {
         ready = true;
         try {
             // Take focus only when there is audio ready to play, not while waiting for the network.
-            focused = output.acquireFocus();
-            if (focused) play(); else stop();
+            if (!focusRequested) {
+                focusRequested = true;
+                focused = output.acquireFocus();
+                if (!focused) { stop(); return; }
+            }
+            play();
         } catch (RuntimeException e) { stop(); }
     }
 
     void focus(Focus change) {
-        if (!active || !ready) return;
+        if (!active || (!ready && !focusRequested)) return;
         try {
             if (change == Focus.LOSS) {
                 stop(); // permanent loss is terminal; a late GAIN must not restart this dream's player
@@ -63,7 +71,15 @@ final class MusicPlayback {
         }
     }
 
-    void completed() { stop(); }
+    void rotate() { if (playlist && playing) next(); }
+
+    private void next() {
+        if (!active || !ready) return;
+        ready = sourceResolved = playing = false;
+        try { output.nextTrack(); } catch (RuntimeException e) { stop(); }
+    }
+
+    void completed() { if (playlist) next(); else stop(); }
     void failed() { stop(); }
 
     void stop() {

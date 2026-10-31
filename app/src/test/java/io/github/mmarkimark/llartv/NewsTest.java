@@ -73,20 +73,38 @@ public class NewsTest {
         assertEquals(0, News.parse(new byte[0]).size());
     }
 
+    static final Strings CA = LanguageTest.strings(Language.CA);
+
+    @Test public void ageBoundariesInSpanishAndEnglish() {
+        Strings es = LanguageTest.strings(Language.ES), en = LanguageTest.strings(Language.EN);
+        long now = 1_000L * DAY;
+        assertEquals("ahora mismo", News.age(es, now - 59_000, now));
+        assertEquals("hace 5 min", News.age(es, now - 5 * MIN, now));
+        assertEquals("hace 3 h", News.age(es, now - 3 * HOUR, now));
+        assertEquals("ayer", News.age(es, now - DAY, now));
+        assertEquals("hace 2 días", News.age(es, now - 2 * DAY, now));
+        assertEquals("just now", News.age(en, now - 59_000, now));
+        assertEquals("5 min ago", News.age(en, now - 5 * MIN, now));
+        assertEquals("3 h ago", News.age(en, now - 3 * HOUR, now));
+        assertEquals("yesterday", News.age(en, now - DAY, now));
+        assertEquals("2 days ago", News.age(en, now - 2 * DAY, now));
+        assertEquals("", News.age(en, 0, now));
+    }
+
     @Test public void ageBoundariesInCatalan() {
         long now = 1_000L * DAY;
-        assertEquals("ara mateix", News.age(now - 59_000, now));
-        assertEquals("ara mateix", News.age(now + 5 * MIN, now));   // clock skew: never "fa -5 min"
-        assertEquals("fa 1 min", News.age(now - MIN, now));
-        assertEquals("fa 5 min", News.age(now - 5 * MIN, now));
-        assertEquals("fa 59 min", News.age(now - HOUR + 1, now));
-        assertEquals("fa 1 h", News.age(now - HOUR, now));
-        assertEquals("fa 3 h", News.age(now - 3 * HOUR - 20 * MIN, now));
-        assertEquals("fa 23 h", News.age(now - DAY + 1, now));
-        assertEquals("ahir", News.age(now - DAY, now));
-        assertEquals("ahir", News.age(now - 2 * DAY + 1, now));
-        assertEquals("fa 2 dies", News.age(now - 2 * DAY, now));
-        assertEquals("", News.age(0, now));
+        assertEquals("ara mateix", News.age(CA, now - 59_000, now));
+        assertEquals("ara mateix", News.age(CA, now + 5 * MIN, now));   // clock skew: never "fa -5 min"
+        assertEquals("fa 1 min", News.age(CA, now - MIN, now));
+        assertEquals("fa 5 min", News.age(CA, now - 5 * MIN, now));
+        assertEquals("fa 59 min", News.age(CA, now - HOUR + 1, now));
+        assertEquals("fa 1 h", News.age(CA, now - HOUR, now));
+        assertEquals("fa 3 h", News.age(CA, now - 3 * HOUR - 20 * MIN, now));
+        assertEquals("fa 23 h", News.age(CA, now - DAY + 1, now));
+        assertEquals("ahir", News.age(CA, now - DAY, now));
+        assertEquals("ahir", News.age(CA, now - 2 * DAY + 1, now));
+        assertEquals("fa 2 dies", News.age(CA, now - 2 * DAY, now));
+        assertEquals("", News.age(CA, 0, now));
     }
 
     @Test public void cacheRoundTrips() throws Exception {
