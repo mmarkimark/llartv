@@ -38,6 +38,41 @@ start audio after exit.
 No music is bundled in the APK. Clearing app data or uninstalling removes the private cache; enabling music again
 then needs another download. The cache is rebuildable and does not replace `home.conf`.
 
+## Additional playlist sources prepared for v1.4
+
+The v1.4 playlist catalogue retains Dancing's exact filename, bytes and checksum, so an existing verified
+Dancing cache is reused. Two additional original MP3s were downloaded from the composer's official catalogue
+and fully decoded with ffprobe/ffmpeg on 2026-10-31. Their licence is **CC BY 4.0, not CC0**:
+
+| Track | Official recording | Bytes | SHA-256 |
+| --- | --- | ---: | --- |
+| Chill Wave | [Kevin MacLeod, USUAN1600048](https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1600048) | 7,684,325 | `7f07fbf89860959ff527f7b74606146dd0b0de263739989a70ce712c7c361614` |
+| Dream Culture | [Kevin MacLeod, USUAN1300046](https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1300046) | 8,576,659 | `f12cbb52bd4b92bd6cf8a343645567c119627e9cbf98108a3eb6ac2cc275ee46` |
+
+Official source files: [Chill Wave](https://incompetech.com/music/royalty-free/mp3-royaltyfree/Chill%20Wave.mp3)
+and [Dream Culture](https://incompetech.com/music/royalty-free/mp3-royaltyfree/Dream%20Culture.mp3).
+Observed durations: 240.065313 s and 214.360825 s respectively; both are MP3, 44.1 kHz, stereo.
+The [official attribution instructions](https://incompetech.com/music/royalty-free/faq.html) and
+[licence options](https://incompetech.com/music/royalty-free/licenses/) require discoverable credits:
+
+> "Chill Wave" and "Dream Culture" — Kevin MacLeod (incompetech.com).
+>
+> Licensed under Creative Commons: By Attribution 4.0.
+>
+> https://creativecommons.org/licenses/by/4.0/
+
+The original MP3s are not modified; playing an excerpt does not change the distributed file. The intended
+distribution is **separate v1.4 GitHub release assets**, not app hotlinks to the composer and not APK resources:
+`music-macleod-chill-wave-v1.mp3` and `music-macleod-dream-culture-v1.mp3`.
+Asset publication and Android playlist acceptance are still pending at this implementation stage.
+
+Each cache file has its own byte/hash pin and temporary-file validation. GitHub downloads may follow at most
+two manually checked HTTPS redirects to the exact `release-assets.githubusercontent.com` host, without URL
+credentials, fragments or nonstandard ports. Only these pinned release assets additionally allow
+`application/octet-stream`; Dancing's original source still requires MP3 MIME and does not follow redirects.
+A failed new-track download never replaces the already verified Dancing file. All three files total
+21,690,949 bytes (about 21.69 MB) outside the APK.
+
 ## Playback and interruptions
 
 - Exiting the screensaver releases the player and focus, including while downloading or preparing audio. Remote-key
