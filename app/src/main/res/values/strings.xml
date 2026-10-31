@@ -136,6 +136,9 @@
     <string name="move">Moure</string>
     <string name="move_hint_dock">Movent %1$s: fletxes esquerra/dreta per moure · OK desa · Enrere desfà</string>
     <string name="move_hint_grid">Movent %1$s: fletxes per moure · OK desa · Enrere desfà</string>
+    <string name="move_position">Posició %1$d de %2$d</string>
+    <string name="move_saved">Ordre desat</string>
+    <string name="move_undone">Moviment desfet</string>
     <string name="hide">Amagar</string>
     <string name="app_info">Informació de l\'app</string>
     <string name="dock_full">El dock ja està ple</string>

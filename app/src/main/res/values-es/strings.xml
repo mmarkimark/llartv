@@ -132,6 +132,9 @@
     <string name="move">Mover</string>
     <string name="move_hint_dock">Moviendo %1$s: flechas izquierda/derecha para mover · OK guarda · Atrás deshace</string>
     <string name="move_hint_grid">Moviendo %1$s: flechas para mover · OK guarda · Atrás deshace</string>
+    <string name="move_position">Posición %1$d de %2$d</string>
+    <string name="move_saved">Orden guardado</string>
+    <string name="move_undone">Movimiento deshecho</string>
     <string name="hide">Ocultar</string>
     <string name="app_info">Información de la app</string>
     <string name="dock_full">El dock ya está lleno</string>
