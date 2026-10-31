@@ -32,6 +32,11 @@ final class NewsSchedule {
         attemptedAt = now;
     }
 
+    /** Usable connectivity came back (#38): a source whose last attempt failed is due again at once. */
+    void retryFailed() {
+        if (!attemptedSource.equals(fetchedSource)) attemptedSource = "";
+    }
+
     /** The fetch of that source worked; it now counts as fetched. */
     void success(String key, long now) {
         fetchedSource = key;

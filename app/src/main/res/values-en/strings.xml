@@ -91,6 +91,8 @@
     <string name="music_screen">Music on the screensaver</string>
     <string name="clock_screen">Clock on the screensaver</string>
     <string name="motion_screen">Motion on the screensaver</string>
+    <string name="night_screen">Quiet night screensaver</string>
+    <string name="night_mute">Silence music at night</string>
     <string name="wallpaper">Wallpaper</string>
     <string name="wallpaper_bing">Bing photos</string>
     <string name="wallpaper_plain">Plain background</string>
@@ -130,6 +132,9 @@
     <string name="move">Move</string>
     <string name="move_hint_dock">Moving %1$s: left/right arrows to move · OK saves · Back undoes</string>
     <string name="move_hint_grid">Moving %1$s: arrows to move · OK saves · Back undoes</string>
+    <string name="move_position">Position %1$d of %2$d</string>
+    <string name="move_saved">Order saved</string>
+    <string name="move_undone">Move undone</string>
     <string name="hide">Hide</string>
     <string name="app_info">App info</string>
     <string name="dock_full">The dock is full</string>

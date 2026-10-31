@@ -33,6 +33,8 @@ import java.util.Set;
  *   music_url=https://...         (custom HTTPS audio; empty selects cached Holizna CC0 music)
  *   morning=08:00-11:00          (empty turns the morning panel off)
  *   night=23:00-08:00            (empty turns night mode off)
+ *   night_screen=off             (on: the screensaver shows only the clock on black in the night band)
+ *   night_mute=off               (on: no screensaver music in the night band)
  *   dock_tint=on                 (dock band takes a dark colour from the wallpaper)
  *   clock=system                 (system, 24 or 12: the clock format)
  *   weather_home=morning         (never, morning or all: the weather on the home screen)
@@ -58,6 +60,8 @@ final class Config {
     boolean musicScreen = false;    // optional music while the screensaver is showing
     boolean clockScreen = true;     // the time on the screensaver (the date and the credits always show)
     boolean motionScreen = true;    // the slow zoom and drift of the screensaver images
+    boolean nightScreen = false;    // the quiet night screensaver: the clock on black in the night band (NightQuiet)
+    boolean nightMute = false;      // no screensaver music in the night band (NightQuiet)
     String musicUrl = "";           // empty selects cached Holizna; otherwise a custom HTTPS stream
     String morning = TimeBands.DEFAULT_MORNING, night = TimeBands.DEFAULT_NIGHT;
     boolean dockTint = true;
@@ -156,6 +160,8 @@ final class Config {
             case "music_url": musicUrl = v; break;
             case "clock_screen": clockScreen = onOff(v, true); break;
             case "motion_screen": motionScreen = onOff(v, true); break;
+            case "night_screen": nightScreen = onOff(v, false); break;
+            case "night_mute": nightMute = onOff(v, false); break;
             case "morning": morning = v; break;
             case "night": night = v; break;
             case "dock_tint": dockTint = !v.equalsIgnoreCase("off") && !v.equalsIgnoreCase("false") && !v.equals("0"); break;

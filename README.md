@@ -46,7 +46,8 @@ fetched only while the home screen is showing.
   *Amagar* or *Informació de l'app*. *Moure* starts move mode (see below). The edits write `dock`, `hidden`
   and `order` to `home.conf`, a full dock says so and writes nothing, and hidden apps come back from
   **Configuració → Apps amagades** — a short message says so when you hide one, and only when the save succeeded.
-- Move mode (*Moure*): a highlighted banner at the top names the app and the keys. Each arrow moves the app one
+- Move mode (*Moure*): the app being moved has a warm amber outline instead of the usual white one, and a banner
+  just above the dock (in place of the large app name, which is hidden meanwhile) names it and the keys. Each arrow moves the app one
   step and you can keep going without reopening the menu — in the grid left/right one place (crossing rows) and
   up/down a whole row, in the dock left/right only; an arrow that would leave the row does nothing. **OK** saves
   the final place with one write to `home.conf`; **Back** (or MENU, Home, or leaving Home) undoes every step and
@@ -65,6 +66,9 @@ fetched only while the home screen is showing.
   latest headlines from an RSS feed.
 - The weather and the news are controlled separately, for the home screen and for the screensaver: never, only in
   the morning band or all day. What is switched off everywhere is not downloaded either.
+- When the Internet comes back while Home is on screen (Android reports the network as validated, so a Wi-Fi
+  without Internet does not count), whatever failed to download — weather, headlines, wallpaper photos, fixtures —
+  is retried at once instead of waiting for its retry window; at most once a minute, with no polling.
 - **Night mode** (default 23:00–08:00): a dimmer, warmer palette on the home screen and the screensaver, applied
   gradually when the band changes.
 - **Photo-tinted dock**: the dock band takes a dark colour from the current wallpaper.
@@ -82,6 +86,11 @@ fetched only while the home screen is showing.
   and shown as one more choice.
 - Screensaver clock and motion: hide the time (the date, the weather and the photo credits stay) and turn off the
   slow zoom, so each photo stays still and still changes every 25 seconds with a fade.
+- Quiet night screensaver (both off by default, each independent): *Protector discret de nit* shows only the
+  clock on black during the night band (the photos, their credits, the weather and the zoom are hidden; the clock
+  shows even with the screensaver clock off), and *Música en silenci de nit* stops the screensaver music during the
+  night band. A running screensaver switches at the band's start and end, and the music starts again when the night
+  ends. With night mode off neither acts. It only quiets the screensaver; it does not turn the TV's backlight off.
 - Iniciar el protector: starts the LlarTV screensaver now, with its current options, through the TV's own
   "start now" entry (SystemUI's `Somnambulator`). It changes no setting: the inactivity timeout and the chosen
   screensaver stay as they are. When LlarTV is not the TV's screensaver, the screensaver is switched off, or the
@@ -231,6 +240,8 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 | `music_url` | empty | Empty selects the verified cached playlist; a custom HTTPS audio URL overrides it without caching or forced rotation. See [docs/screensaver-music.md](docs/screensaver-music.md). |
 | `clock_screen` | `on` | The time on the screensaver: `on` or `off`. Off hides the time only; the date, the weather and the photo credits stay. |
 | `motion_screen` | `on` | The slow zoom and drift of the screensaver photos: `on` or `off`. Off keeps each photo still; the photos still change every 25 seconds with a fade. |
+| `night_screen` | `off` | Quiet night screensaver: `on` shows only the clock on black during the `night` range (no photos, credits, weather or motion; the clock shows even with `clock_screen=off`). Outside the range, or with `night=off`, the screensaver is unchanged. |
+| `night_mute` | `off` | Night silence: `on` stops the screensaver music during the `night` range and starts it again when the range ends. Independent of `night_screen`; `music_screen=off` never plays. |
 | `dock_tint` | `on` | Tint the dock band from the wallpaper; `off` uses a plain band. |
 | `clock` | `system` | Clock format: `system` follows the TV, `24` is 24-hour, `12` is 12-hour with AM/PM. |
 | `weather_home` | `morning` | Weather on the home screen: `never`, `morning` or `all`. |

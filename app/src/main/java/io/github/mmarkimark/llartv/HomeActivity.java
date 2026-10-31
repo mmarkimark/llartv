@@ -24,6 +24,8 @@ import android.media.tv.TvContract;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
 import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
@@ -111,6 +113,9 @@ public class HomeActivity extends Activity {
     long lastWx;
     final NewsSchedule newsSchedule = new NewsSchedule();   // when the headlines have to be fetched again
     boolean wxBusy, newsBusy;
+    boolean wxFailed, wallFailed, fixFailed;   // the last attempt failed: retried when the network comes back (#38)
+    final Reconnect reconnect = new Reconnect();
+    ConnectivityManager.NetworkCallback netCallback;
     // football fixtures card
     LinearLayout matchCard;
     TextView mLabel, mTitle, mComp, mWhen, mCountdown;
@@ -206,6 +211,7 @@ public class HomeActivity extends Activity {
         f.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         f.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         registerReceiver(sysReceiver, f);
+        watchNetwork();
         tick();
         updateWifi();
         loadWallpaper();
@@ -221,6 +227,7 @@ public class HomeActivity extends Activity {
         super.onPause();
         cancelMove();   // leaving Home in move mode saves nothing (#39)
         try { unregisterReceiver(sysReceiver); } catch (Exception ignored) {}
+        unwatchNetwork();
         saveFocus();
         nightTarget = -1;   // on return, show the right mode at once instead of fading
     }
@@ -247,6 +254,42 @@ public class HomeActivity extends Activity {
             if (a.startsWith("android.intent.action.TIME")) tick(); else updateWifi();
         }
     };
+
+    // ---------------------------------------------------------------- reconnect (#38)
+
+    /** While Home is visible, follows the default network's validated Internet capability (no polling). */
+    void watchNetwork() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm == null || netCallback != null) return;
+        netCallback = new ConnectivityManager.NetworkCallback() {
+            @Override public void onCapabilitiesChanged(Network n, NetworkCapabilities caps) {
+                boolean usable = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
+                ui.post(() -> onNetwork(usable));
+            }
+            @Override public void onLost(Network n) { ui.post(() -> onNetwork(false)); }
+        };
+        try { cm.registerDefaultNetworkCallback(netCallback); } catch (RuntimeException e) { netCallback = null; }
+    }
+
+    void unwatchNetwork() {
+        reconnect.reset();
+        if (netCallback == null) return;
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        try { if (cm != null) cm.unregisterNetworkCallback(netCallback); } catch (RuntimeException ignored) {}
+        netCallback = null;
+    }
+
+    /** Usable Internet came back: only content whose last attempt failed is made due; the usual rules fetch it. */
+    void onNetwork(boolean usable) {
+        if (netCallback == null || !reconnect.regained(usable, System.currentTimeMillis())) return;
+        if (wxFailed) lastWx = 0;
+        if (wallFailed) lastWallFetch = 0;
+        if (fixFailed) lastFetch = 0;
+        newsSchedule.retryFailed();
+        if (matchCard != null) maybeFetchFixtures();
+        maybeFetchWallpaper();
+        refreshMorning();   // weather and news, each only when a surface still wants it
+    }
 
     final BroadcastReceiver pkgReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context c, Intent i) {
@@ -469,18 +512,25 @@ public class HomeActivity extends Activity {
         hl = new HighlightView(this);
         root.addView(hl, new FrameLayout.LayoutParams(-1, -1));
 
-        // --- move mode hint (#39): only while an app is being moved, above the highlight
+        // --- move mode hint (#39): only while an app is being moved, above the highlight. It sits centred just
+        // above the dock band, where the (then hidden) hero label is, so it never covers the top-bar pills (#57).
         moveHint = text(500, 16, 0xFFFFFFFF);
         GradientDrawable hb = new GradientDrawable();
         hb.setColor(0xF01C1C1F);
         hb.setCornerRadius(dp(18));
-        hb.setStroke(dp(2), 0xCCFFFFFF);
+        hb.setStroke(dp(2), HighlightView.MOVING_STROKE);   // same warm accent as the moving tile's outline
         moveHint.setBackground(hb);
         moveHint.setPadding(dp(18), dp(8), dp(18), dp(8));
         moveHint.setVisibility(View.GONE);
-        FrameLayout.LayoutParams mh = new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.CENTER_HORIZONTAL);
-        mh.topMargin = dp(24);
-        root.addView(moveHint, mh);
+        root.addView(moveHint, new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.CENTER_HORIZONTAL));
+        final View heroSecView = heroSec;
+        root.getViewTreeObserver().addOnPreDrawListener(() -> {   // follows the page while it scrolls
+            if (moving != null) {
+                float anchor = page.getTop() + heroSecView.getBottom() - dp(20) - moveHint.getHeight();
+                moveHint.setTranslationY(MoveMode.hintTop(anchor, page.getTranslationY(), dp(24)));
+            }
+            return true;
+        });
 
         root.setFocusable(true);
         root.setFocusableInTouchMode(true);
@@ -602,17 +652,26 @@ public class HomeActivity extends Activity {
         String keepGrid = loaded && region == GRID && gridIdx < gridApps.size() ? gridApps.get(gridIdx).pkg : null;
         dockApps.clear(); dockApps.addAll(d);
         gridApps.clear(); gridApps.addAll(g);
-        dockRow.removeAllViews();
-        dockTiles.clear();
-        focusedTile = null;
-        for (int i = 0; i < dockApps.size(); i++) {
-            TileView t = new TileView(this, fonts, tileW, tileH, false);
-            t.bind(dockApps.get(i));
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(tileW, tileH);
-            if (i < dockApps.size() - 1) lp.rightMargin = gap;
-            dockRow.addView(t, lp);
-            dockTiles.add(t);
+        if (dockTiles.size() == dockApps.size()) {
+            // Same number of tiles (every move-mode step, most reloads): rebind them instead of building new views.
+            // The margins depend only on the count; applyFocus sets the focused look again after focusedTile resets.
+            for (int i = 0; i < dockTiles.size(); i++) {
+                dockTiles.get(i).setFocusedLook(false, false);
+                dockTiles.get(i).bind(dockApps.get(i));
+            }
+        } else {
+            dockRow.removeAllViews();
+            dockTiles.clear();
+            for (int i = 0; i < dockApps.size(); i++) {
+                TileView t = new TileView(this, fonts, tileW, tileH, false);
+                t.bind(dockApps.get(i));
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(tileW, tileH);
+                if (i < dockApps.size() - 1) lp.rightMargin = gap;
+                dockRow.addView(t, lp);
+                dockTiles.add(t);
+            }
         }
+        focusedTile = null;
         adapter.notifyDataSetChanged();
 
         if (!restored) { keepGrid = restoreGridPkg; restored = true; }
@@ -751,7 +810,7 @@ public class HomeActivity extends Activity {
         updateHero(animate);
         scrollPage(animate);
         moveHighlight(animate);
-        saveFocus();
+        // The focus is remembered in onPause, not here: this runs on every D-pad step (#56).
     }
 
     TileView gridTile(int pos) {
@@ -821,7 +880,7 @@ public class HomeActivity extends Activity {
     }
 
     void updateHero(boolean animate) {
-        float a = region == DOCK ? 1f : 0.4f;
+        float g = region == DOCK ? 1f : 0.4f, a = MoveMode.heroAlpha(moving != null, region == DOCK);
         if (dockApps.isEmpty()) { hero.setText(""); return; }
         final Ui.AppEntry e = dockApps.get(dockIdx);
         if (!e.label.contentEquals(hero.getText())) {
@@ -836,7 +895,7 @@ public class HomeActivity extends Activity {
         } else {
             if (animate) hero.animate().alpha(a).setDuration(180).start(); else hero.setAlpha(a);
         }
-        glow.animate().alpha(a).setDuration(animate ? 220 : 0).start();
+        glow.animate().alpha(g).setDuration(animate ? 220 : 0).start();
     }
 
     void animateGlow(int to, boolean animate) {
@@ -1052,6 +1111,7 @@ public class HomeActivity extends Activity {
         moveHint.setText(hint);
         moveHint.setContentDescription(hint);
         moveHint.setVisibility(View.VISIBLE);
+        hl.setMoving(true);
         root.announceForAccessibility(hint);
         applyFocus(true);
     }
@@ -1059,9 +1119,19 @@ public class HomeActivity extends Activity {
     void onMoveKey(int k) {
         int dir = k == KeyEvent.KEYCODE_DPAD_LEFT ? MoveMode.LEFT : k == KeyEvent.KEYCODE_DPAD_RIGHT ? MoveMode.RIGHT
                 : k == KeyEvent.KEYCODE_DPAD_UP ? MoveMode.UP : k == KeyEvent.KEYCODE_DPAD_DOWN ? MoveMode.DOWN : -1;
-        if (dir >= 0) { if (moving.step(dir)) showMoveOrder(moving.current()); }
-        else if (isOk(k)) finishMove();
-        else if (k == KeyEvent.KEYCODE_BACK || k == KeyEvent.KEYCODE_MENU) cancelMove();
+        // Every outcome is also spoken (TalkBack), since the keys never move the accessibility focus here.
+        if (dir >= 0) {
+            if (moving.step(dir)) {
+                showMoveOrder(moving.current());
+                root.announceForAccessibility(tx.get(R.string.move_position, moving.index() + 1, moving.current().size()));
+            }
+        } else if (isOk(k)) {
+            boolean changed = moving.changed();
+            if (finishMove() && changed) root.announceForAccessibility(tx.get(R.string.move_saved));
+        } else if (k == KeyEvent.KEYCODE_BACK || k == KeyEvent.KEYCODE_MENU) {
+            cancelMove();   // also called when Home is left, where nothing is announced
+            root.announceForAccessibility(tx.get(R.string.move_undone));
+        }
     }
 
     /** Shows the dock or the grid in the given order, with the focus on the app being moved; nothing is written. */
@@ -1072,8 +1142,8 @@ public class HomeActivity extends Activity {
         if (moving.dock) bindApps(out, new ArrayList<>(gridApps)); else bindApps(new ArrayList<>(dockApps), out);
     }
 
-    /** OK: saves the final place once. A failed write says so (writeApps) and shows the initial order again. */
-    void finishMove() {
+    /** OK: saves the final place once; true when saved. A failed write says so (writeApps) and shows the initial order again. */
+    boolean finishMove() {
         MoveMode m = moving;
         endMove();
         boolean saved;
@@ -1085,6 +1155,7 @@ public class HomeActivity extends Activity {
             saved = order == null || writeApps(null, null, String.join(",", order), m.pkg);
         }
         if (!saved) { moving = m; showMoveOrder(m.initial()); endMove(); }
+        return saved;
     }
 
     /** Back or MENU: undoes every step. */
@@ -1097,6 +1168,8 @@ public class HomeActivity extends Activity {
     void endMove() {
         moving = null;
         moveHint.setVisibility(View.GONE);
+        hl.setMoving(false);
+        updateHero(true);   // the hero label comes back (#57)
     }
 
     /** Writes the given dock, hidden and order values (null: unchanged) to home.conf, keeping every other line,
@@ -1279,6 +1352,7 @@ public class HomeActivity extends Activity {
             boolean done = ok;
             ui.post(() -> {
                 lastWallFetch = System.currentTimeMillis();
+                wallFailed = !done;
                 if (done) prefs.edit().putLong("wallFetched", lastWallFetch).apply();
                 wallFetching = false;
                 loadWallpaper();
@@ -1372,8 +1446,10 @@ public class HomeActivity extends Activity {
         wxBusy = true;
         double lat = conf.lat, lon = conf.lon;
         new Thread(() -> {
-            try { Weather.fetch(lat, lon).save(dir); } catch (Exception ignored) {}
-            ui.post(() -> { lastWx = System.currentTimeMillis(); wxBusy = false; refreshMorning(); });
+            boolean ok;
+            try { Weather.fetch(lat, lon).save(dir); ok = true; } catch (Exception ignored) { ok = false; }
+            final boolean fetched = ok;
+            ui.post(() -> { lastWx = System.currentTimeMillis(); wxFailed = !fetched; wxBusy = false; refreshMorning(); });
         }).start();
     }
 
@@ -1425,11 +1501,12 @@ public class HomeActivity extends Activity {
                     }
                     lastFetch = System.currentTimeMillis();
                     prefs.edit().putLong("fixFetched", lastFetch).apply();
+                    fixFailed = false;
                     fetching = false;
                     refreshMatchCard();
                 });
             } catch (Exception e) {
-                ui.post(() -> { lastFetch = System.currentTimeMillis(); fetching = false; });
+                ui.post(() -> { lastFetch = System.currentTimeMillis(); fixFailed = true; fetching = false; });
             }
         }).start();
     }
