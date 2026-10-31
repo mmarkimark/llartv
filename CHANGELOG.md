@@ -50,6 +50,11 @@ All notable changes to LlarTV are documented in this file. The format is based o
 ### Fixed
 
 - A news feed larger than 2 MiB is refused like any other network error instead of being read whole into memory.
+- Football fixtures (#59): a response that is not HTTP 200 now counts as a failed fetch (the cached matches stay
+  and the usual retry applies) instead of being taken as an empty schedule. Every other download is size-bounded
+  too: fixtures 1 MiB, weather 256 KiB, the Bing image list 1 MiB and each wallpaper image 20 MiB. A larger body
+  fails like a network error, an image download is streamed to disk and never leaves a partial file, and the
+  previous image is kept.
 
 ## [1.4] - 2026-10-31
 
