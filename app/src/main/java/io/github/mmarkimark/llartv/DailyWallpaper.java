@@ -7,7 +7,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -144,27 +143,19 @@ final class DailyWallpaper {
         return files.get((int) ((now / (minutes * 60_000L)) % files.size()));
     }
 
-    /** Downloads one image to f (via a temp file, so a failed download never leaves half an image). */
-    static void save(String url, File f) throws Exception {
-        HttpURLConnection c = open(url);
-        File tmp = new File(f.getPath() + ".part");
-        try (InputStream in = c.getInputStream(); FileOutputStream out = new FileOutputStream(tmp)) {
-            byte[] buf = new byte[16384];
-            int n;
-            while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
-        } finally { c.disconnect(); }
-        if (tmp.length() == 0 || !tmp.renameTo(f)) { tmp.delete(); throw new Exception("empty or rename failed"); }
-    }
+    /** A 1920x1080 Bing JPEG is a few hundred KB; larger images fail and the one already on disk stays. */
+    static final long MAX_IMAGE_BYTES = 20L * 1024 * 1024;
+    /** Bing's JSON list of 8 images is a few KB. */
+    static final int MAX_LIST_BYTES = 1024 * 1024;
 
-    static String get(String url) throws Exception {
-        HttpURLConnection c = open(url);
-        try (BufferedReader r = new BufferedReader(new InputStreamReader(c.getInputStream(), "UTF-8"))) {
-            StringBuilder sb = new StringBuilder();
-            String l;
-            while ((l = r.readLine()) != null) sb.append(l);
-            return sb.toString();
-        } finally { c.disconnect(); }
-    }
+    /** Downloads one image to f, streamed via a temp file, so a failed download never leaves half an image. */
+    static void save(String url, File f) throws Exception { save(open(url), f); }
+
+    static void save(HttpURLConnection c, File f) throws Exception { Http.save(c, f, MAX_IMAGE_BYTES); }
+
+    static String get(String url) throws Exception { return read(open(url)); }
+
+    static String read(HttpURLConnection c) throws Exception { return Http.text(c, MAX_LIST_BYTES); }
 
     static HttpURLConnection open(String url) throws Exception {
         HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();

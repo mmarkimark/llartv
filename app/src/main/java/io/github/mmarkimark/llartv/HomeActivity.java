@@ -512,18 +512,25 @@ public class HomeActivity extends Activity {
         hl = new HighlightView(this);
         root.addView(hl, new FrameLayout.LayoutParams(-1, -1));
 
-        // --- move mode hint (#39): only while an app is being moved, above the highlight
+        // --- move mode hint (#39): only while an app is being moved, above the highlight. It sits centred just
+        // above the dock band, where the (then hidden) hero label is, so it never covers the top-bar pills (#57).
         moveHint = text(500, 16, 0xFFFFFFFF);
         GradientDrawable hb = new GradientDrawable();
         hb.setColor(0xF01C1C1F);
         hb.setCornerRadius(dp(18));
-        hb.setStroke(dp(2), 0xCCFFFFFF);
+        hb.setStroke(dp(2), HighlightView.MOVING_STROKE);   // same warm accent as the moving tile's outline
         moveHint.setBackground(hb);
         moveHint.setPadding(dp(18), dp(8), dp(18), dp(8));
         moveHint.setVisibility(View.GONE);
-        FrameLayout.LayoutParams mh = new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.CENTER_HORIZONTAL);
-        mh.topMargin = dp(24);
-        root.addView(moveHint, mh);
+        root.addView(moveHint, new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.CENTER_HORIZONTAL));
+        final View heroSecView = heroSec;
+        root.getViewTreeObserver().addOnPreDrawListener(() -> {   // follows the page while it scrolls
+            if (moving != null) {
+                float anchor = page.getTop() + heroSecView.getBottom() - dp(20) - moveHint.getHeight();
+                moveHint.setTranslationY(MoveMode.hintTop(anchor, page.getTranslationY(), dp(24)));
+            }
+            return true;
+        });
 
         root.setFocusable(true);
         root.setFocusableInTouchMode(true);
@@ -803,7 +810,7 @@ public class HomeActivity extends Activity {
         updateHero(animate);
         scrollPage(animate);
         moveHighlight(animate);
-        saveFocus();
+        // The focus is remembered in onPause, not here: this runs on every D-pad step (#56).
     }
 
     TileView gridTile(int pos) {
@@ -873,7 +880,7 @@ public class HomeActivity extends Activity {
     }
 
     void updateHero(boolean animate) {
-        float a = region == DOCK ? 1f : 0.4f;
+        float g = region == DOCK ? 1f : 0.4f, a = MoveMode.heroAlpha(moving != null, region == DOCK);
         if (dockApps.isEmpty()) { hero.setText(""); return; }
         final Ui.AppEntry e = dockApps.get(dockIdx);
         if (!e.label.contentEquals(hero.getText())) {
@@ -888,7 +895,7 @@ public class HomeActivity extends Activity {
         } else {
             if (animate) hero.animate().alpha(a).setDuration(180).start(); else hero.setAlpha(a);
         }
-        glow.animate().alpha(a).setDuration(animate ? 220 : 0).start();
+        glow.animate().alpha(g).setDuration(animate ? 220 : 0).start();
     }
 
     void animateGlow(int to, boolean animate) {
@@ -1104,6 +1111,7 @@ public class HomeActivity extends Activity {
         moveHint.setText(hint);
         moveHint.setContentDescription(hint);
         moveHint.setVisibility(View.VISIBLE);
+        hl.setMoving(true);
         root.announceForAccessibility(hint);
         applyFocus(true);
     }
@@ -1160,6 +1168,8 @@ public class HomeActivity extends Activity {
     void endMove() {
         moving = null;
         moveHint.setVisibility(View.GONE);
+        hl.setMoving(false);
+        updateHero(true);   // the hero label comes back (#57)
     }
 
     /** Writes the given dock, hidden and order values (null: unchanged) to home.conf, keeping every other line,

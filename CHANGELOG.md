@@ -18,6 +18,10 @@ All notable changes to LlarTV are documented in this file. The format is based o
   announced to accessibility services) shows the mode, **OK** saves the final place with one `home.conf` write,
   and **Back**/MENU undoes every step. Leaving Home, pressing Home or an app install/removal drops unsaved steps.
   The saved `order` is the same one the equivalent single-step moves would have written.
+  Move mode is unmistakable (#57): the moving app's highlight has a thicker warm amber outline (normal selection
+  keeps its white hairline), the banner sits centred just above the dock band instead of covering the top-bar
+  buttons (and stays on screen when a long grid scrolls), and the large app name is hidden while moving, so it
+  never names a different app than the one being moved, grid included.
 
 - Content recovers when the Internet comes back (#38): while Home is visible, LlarTV follows Android's validated
   Internet state (no polling). When it changes from unusable to usable, only the content whose last download
@@ -46,6 +50,11 @@ All notable changes to LlarTV are documented in this file. The format is based o
 ### Fixed
 
 - A news feed larger than 2 MiB is refused like any other network error instead of being read whole into memory.
+- Football fixtures (#59): a response that is not HTTP 200 now counts as a failed fetch (the cached matches stay
+  and the usual retry applies) instead of being taken as an empty schedule. Every other download is size-bounded
+  too: fixtures 1 MiB, weather 256 KiB, the Bing image list 1 MiB and each wallpaper image 20 MiB. A larger body
+  fails like a network error, an image download is streamed to disk and never leaves a partial file, and the
+  previous image is kept.
 
 ## [1.4] - 2026-10-31
 
