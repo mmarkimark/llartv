@@ -65,6 +65,9 @@ fetched only while the home screen is showing.
   latest headlines from an RSS feed.
 - The weather and the news are controlled separately, for the home screen and for the screensaver: never, only in
   the morning band or all day. What is switched off everywhere is not downloaded either.
+- When the Internet comes back while Home is on screen (Android reports the network as validated, so a Wi-Fi
+  without Internet does not count), whatever failed to download — weather, headlines, wallpaper photos, fixtures —
+  is retried at once instead of waiting for its retry window; at most once a minute, with no polling.
 - **Night mode** (default 23:00–08:00): a dimmer, warmer palette on the home screen and the screensaver, applied
   gradually when the band changes.
 - **Photo-tinted dock**: the dock band takes a dark colour from the current wallpaper.

@@ -19,6 +19,13 @@ All notable changes to LlarTV are documented in this file. The format is based o
   and **Back**/MENU undoes every step. Leaving Home, pressing Home or an app install/removal drops unsaved steps.
   The saved `order` is the same one the equivalent single-step moves would have written.
 
+- Content recovers when the Internet comes back (#38): while Home is visible, LlarTV follows Android's validated
+  Internet state (no polling). When it changes from unusable to usable, only the content whose last download
+  failed — weather, headlines, wallpaper photos, football fixtures — is retried at once, through the same rules
+  as before (a feature turned off everywhere still makes no request, one download per kind at a time). Joining a
+  Wi-Fi network without Internet (or a captive portal) does not count, and repeated or flapping notifications
+  recover at most once a minute. Previously the retry waited for the failure window (10 min to 3 h).
+
 ## [1.4] - 2026-10-31
 
 ### Added

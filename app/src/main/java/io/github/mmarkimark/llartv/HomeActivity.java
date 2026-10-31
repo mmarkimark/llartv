@@ -24,6 +24,8 @@ import android.media.tv.TvContract;
 import android.media.tv.TvInputInfo;
 import android.media.tv.TvInputManager;
 import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
@@ -111,6 +113,9 @@ public class HomeActivity extends Activity {
     long lastWx;
     final NewsSchedule newsSchedule = new NewsSchedule();   // when the headlines have to be fetched again
     boolean wxBusy, newsBusy;
+    boolean wxFailed, wallFailed, fixFailed;   // the last attempt failed: retried when the network comes back (#38)
+    final Reconnect reconnect = new Reconnect();
+    ConnectivityManager.NetworkCallback netCallback;
     // football fixtures card
     LinearLayout matchCard;
     TextView mLabel, mTitle, mComp, mWhen, mCountdown;
@@ -206,6 +211,7 @@ public class HomeActivity extends Activity {
         f.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         f.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         registerReceiver(sysReceiver, f);
+        watchNetwork();
         tick();
         updateWifi();
         loadWallpaper();
@@ -221,6 +227,7 @@ public class HomeActivity extends Activity {
         super.onPause();
         cancelMove();   // leaving Home in move mode saves nothing (#39)
         try { unregisterReceiver(sysReceiver); } catch (Exception ignored) {}
+        unwatchNetwork();
         saveFocus();
         nightTarget = -1;   // on return, show the right mode at once instead of fading
     }
@@ -247,6 +254,42 @@ public class HomeActivity extends Activity {
             if (a.startsWith("android.intent.action.TIME")) tick(); else updateWifi();
         }
     };
+
+    // ---------------------------------------------------------------- reconnect (#38)
+
+    /** While Home is visible, follows the default network's validated Internet capability (no polling). */
+    void watchNetwork() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm == null || netCallback != null) return;
+        netCallback = new ConnectivityManager.NetworkCallback() {
+            @Override public void onCapabilitiesChanged(Network n, NetworkCapabilities caps) {
+                boolean usable = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
+                ui.post(() -> onNetwork(usable));
+            }
+            @Override public void onLost(Network n) { ui.post(() -> onNetwork(false)); }
+        };
+        try { cm.registerDefaultNetworkCallback(netCallback); } catch (RuntimeException e) { netCallback = null; }
+    }
+
+    void unwatchNetwork() {
+        reconnect.reset();
+        if (netCallback == null) return;
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        try { if (cm != null) cm.unregisterNetworkCallback(netCallback); } catch (RuntimeException ignored) {}
+        netCallback = null;
+    }
+
+    /** Usable Internet came back: only content whose last attempt failed is made due; the usual rules fetch it. */
+    void onNetwork(boolean usable) {
+        if (netCallback == null || !reconnect.regained(usable, System.currentTimeMillis())) return;
+        if (wxFailed) lastWx = 0;
+        if (wallFailed) lastWallFetch = 0;
+        if (fixFailed) lastFetch = 0;
+        newsSchedule.retryFailed();
+        if (matchCard != null) maybeFetchFixtures();
+        maybeFetchWallpaper();
+        refreshMorning();   // weather and news, each only when a surface still wants it
+    }
 
     final BroadcastReceiver pkgReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context c, Intent i) {
@@ -1279,6 +1322,7 @@ public class HomeActivity extends Activity {
             boolean done = ok;
             ui.post(() -> {
                 lastWallFetch = System.currentTimeMillis();
+                wallFailed = !done;
                 if (done) prefs.edit().putLong("wallFetched", lastWallFetch).apply();
                 wallFetching = false;
                 loadWallpaper();
@@ -1372,8 +1416,10 @@ public class HomeActivity extends Activity {
         wxBusy = true;
         double lat = conf.lat, lon = conf.lon;
         new Thread(() -> {
-            try { Weather.fetch(lat, lon).save(dir); } catch (Exception ignored) {}
-            ui.post(() -> { lastWx = System.currentTimeMillis(); wxBusy = false; refreshMorning(); });
+            boolean ok;
+            try { Weather.fetch(lat, lon).save(dir); ok = true; } catch (Exception ignored) { ok = false; }
+            final boolean fetched = ok;
+            ui.post(() -> { lastWx = System.currentTimeMillis(); wxFailed = !fetched; wxBusy = false; refreshMorning(); });
         }).start();
     }
 
@@ -1425,11 +1471,12 @@ public class HomeActivity extends Activity {
                     }
                     lastFetch = System.currentTimeMillis();
                     prefs.edit().putLong("fixFetched", lastFetch).apply();
+                    fixFailed = false;
                     fetching = false;
                     refreshMatchCard();
                 });
             } catch (Exception e) {
-                ui.post(() -> { lastFetch = System.currentTimeMillis(); fetching = false; });
+                ui.post(() -> { lastFetch = System.currentTimeMillis(); fixFailed = true; fetching = false; });
             }
         }).start();
     }
