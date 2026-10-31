@@ -33,11 +33,11 @@ final class Appearance {
         return all;
     }
 
-    static String minutesLabel(int m) {
-        if (m == 0) return Ca.PHOTO_FIXED;
-        if (m == 60) return Ca.PHOTO_HOURLY;
-        if (m % 60 == 0) return "Cada " + m / 60 + " hores";
-        return "Cada " + m + " min";
+    /** A photo-change choice in the interface language: fixed (0), every n hours, or every n minutes. */
+    static String minutesLabel(Strings s, int m) {
+        if (m == 0) return s.get(R.string.photo_fixed);
+        if (m % 60 == 0) return s.plural(R.plurals.photo_every_hours, m / 60);   // "one" is "Cada hora"
+        return s.get(R.string.photo_every_minutes, m);
     }
 
     /** The night setting the way TimeBands reads it: "off", a zero-padded range, or the default when unreadable. */
@@ -56,8 +56,9 @@ final class Appearance {
         return all;
     }
 
-    static String nightLabel(String value) {
-        return value.equals("off") ? Ca.NIGHT_OFF : value.replace("-", " – ");
+    /** A night-mode choice in the interface language: off, or its range with a dash (the same in every language). */
+    static String nightLabel(Strings s, String value) {
+        return value.equals("off") ? s.get(R.string.night_off) : value.replace("-", " – ");
     }
 
     static int indexOf(int[] values, int v) {

@@ -1,1 +1,141 @@
-<resources><string name="app_name">LlarTV</string></resources>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- LlarTV's texts in Catalan: the default interface language and the fallback for the other two.
+     values-es and values-en carry the same names, placeholders and plurals (LanguageTest checks it).
+     Brand names, the news credits and anything an external feed supplies are not here: they are never translated. -->
+<resources>
+    <string name="app_name" translatable="false">LlarTV</string>
+
+    <!-- Home: the pills, the cards and the messages -->
+    <string name="inputs">Entrades</string>
+    <string name="wifi">Wi-Fi</string>
+    <string name="settings">Configuració</string>
+    <string name="offline">Sense connexió</string>
+    <string name="ethernet">Ethernet</string>
+    <string name="connected">Connectat</string>
+    <string name="live_tv">TV en directe</string>
+    <string name="no_live_tv">Aquesta TV no té cap app de TV en directe</string>
+    <string name="cant_open">No es pot obrir %1$s</string>
+    <string name="not_available">No disponible</string>
+    <string name="cant_switch_input">No es pot canviar d\'entrada</string>
+    <string name="weather">Temps</string>
+    <string name="news">Notícies</string>
+
+    <!-- Greetings: Ca.greeting picks the slot for the hour in each language -->
+    <string name="greeting_morning">Bon dia</string>
+    <string name="greeting_afternoon">Bona tarda</string>
+    <string name="greeting_evening">Bon vespre</string>
+    <string name="greeting_night">Bona nit</string>
+
+    <!-- Dates: SimpleDateFormat patterns in the language's locale -->
+    <string name="date_pattern">EEEE, d MMMM</string>
+    <string name="weekday_pattern">EEEE</string>
+    <string name="short_day_pattern">EEE d MMM</string>
+
+    <!-- The next-match card -->
+    <string name="next_match">PROPER PARTIT</string>
+    <string name="live_now">EN DIRECTE</string>
+    <string name="today">Avui</string>
+    <string name="tomorrow">Demà</string>
+    <string name="home_game">A casa</string>
+    <string name="away_game">Fora</string>
+    <string name="versus">contra %1$s</string>
+    <string name="countdown_minutes">d\'aquí a %1$d min</string>
+    <string name="countdown_hours">d\'aquí a %1$d h %2$d min</string>
+    <plurals name="countdown_days">
+        <item quantity="one">d\'aquí a %1$d dia</item>
+        <item quantity="other">d\'aquí a %1$d dies</item>
+    </plurals>
+    <string name="kicked_off">ha començat fa %1$d min</string>
+
+    <!-- Weather: Open-Meteo's WMO codes, and today's range -->
+    <string name="wx_clear">Serè</string>
+    <string name="wx_mainly_clear">Poc ennuvolat</string>
+    <string name="wx_partly_cloudy">Mig ennuvolat</string>
+    <string name="wx_overcast">Ennuvolat</string>
+    <string name="wx_fog">Boira</string>
+    <string name="wx_drizzle">Plugim</string>
+    <string name="wx_freezing_drizzle">Plugim gelat</string>
+    <string name="wx_rain">Pluja</string>
+    <string name="wx_heavy_rain">Pluja forta</string>
+    <string name="wx_freezing_rain">Pluja gelada</string>
+    <string name="wx_snow">Neu</string>
+    <string name="wx_heavy_snow">Neu forta</string>
+    <string name="wx_showers">Ruixats</string>
+    <string name="wx_heavy_showers">Ruixats forts</string>
+    <string name="wx_snow_showers">Ruixats de neu</string>
+    <string name="wx_thunderstorm">Tempesta</string>
+    <string name="wx_thunderstorm_hail">Tempesta amb calamarsa</string>
+    <string name="weather_range">Màx. %1$d° · Mín. %2$d°</string>
+
+    <!-- The age of a headline -->
+    <string name="age_now">ara mateix</string>
+    <string name="age_minutes">fa %1$d min</string>
+    <string name="age_hours">fa %1$d h</string>
+    <string name="age_yesterday">ahir</string>
+    <plurals name="age_days">
+        <item quantity="one">fa %1$d dia</item>
+        <item quantity="other">fa %1$d dies</item>
+    </plurals>
+
+    <!-- LlarTV settings -->
+    <string name="settings_title">Configuració de LlarTV</string>
+    <string name="system_settings">Configuració del sistema</string>
+    <string name="language">Idioma</string>
+    <string name="clock">Rellotge</string>
+    <string name="clock_system">Segueix el sistema</string>
+    <string name="clock_24">24 h</string>
+    <string name="clock_12">12 h</string>
+    <string name="weather_home">Temps a la pantalla</string>
+    <string name="weather_screen">Temps al protector</string>
+    <string name="news_home">Notícies a la pantalla</string>
+    <string name="news_source">Font de notícies</string>
+    <string name="news_source_auto">Automàtic</string>
+    <string name="news_source_custom">Personalitzada</string>
+    <string name="news_custom_tip">El feed personalitzat té prioritat: elimina news_rss de home.conf per usar un predefinit.</string>
+    <string name="music_screen">Música al protector</string>
+    <string name="clock_screen">Rellotge al protector</string>
+    <string name="motion_screen">Moviment al protector</string>
+    <string name="wallpaper">Fons de pantalla</string>
+    <string name="wallpaper_bing">Fotos de Bing</string>
+    <string name="wallpaper_plain">Fons llis</string>
+    <string name="wallpaper_custom">Imatge pròpia</string>
+    <string name="wallpaper_custom_tip">La imatge pròpia té prioritat: canvia wallpaper amb scripts/config.sh per usar Bing o un fons llis</string>
+    <string name="photo_change">Canvi de foto</string>
+    <string name="photo_fixed">Fixa (la més nova)</string>
+    <string name="photo_every_minutes">Cada %1$d min</string>
+    <plurals name="photo_every_hours">
+        <item quantity="one">Cada hora</item>
+        <item quantity="other">Cada %1$d hores</item>
+    </plurals>
+    <string name="night_mode">Mode nit</string>
+    <string name="night_off">Desactivat</string>
+    <string name="on">Sí</string>
+    <string name="off">No</string>
+    <string name="never">Mai</string>
+    <string name="morning_only">Només matí</string>
+    <string name="all_day">Tot el dia</string>
+    <string name="cant_save">No s\'ha pogut desar</string>
+    <string name="start_screen">Iniciar el protector</string>
+    <string name="screen_not_selected">LlarTV no és el protector de la TV: tria\'l a Configuració del sistema &gt; Protector de pantalla</string>
+    <string name="screen_disabled">El protector està desactivat: activa\'l a Configuració del sistema &gt; Protector de pantalla</string>
+    <string name="screen_unchecked">No es pot comprovar quin protector té la TV</string>
+    <string name="screen_cant_start">Aquesta TV no permet iniciar el protector des d\'aquí</string>
+
+    <!-- The long-press menu of an app, and the hidden apps in the settings -->
+    <string name="add_to_dock">Afegir al dock</string>
+    <string name="remove_from_dock">Treure del dock</string>
+    <string name="move_left">Moure a l\'esquerra</string>
+    <string name="move_right">Moure a la dreta</string>
+    <string name="move_up">Moure amunt</string>
+    <string name="move_down">Moure avall</string>
+    <string name="hide">Amagar</string>
+    <string name="app_info">Informació de l\'app</string>
+    <string name="dock_full">El dock ja està ple</string>
+    <string name="hidden_apps_title">Apps amagades</string>
+    <string name="none">Cap</string>
+    <string name="no_hidden_apps">No hi ha cap app amagada</string>
+    <plurals name="hidden_apps">
+        <item quantity="one">%1$d app</item>
+        <item quantity="other">%1$d apps</item>
+    </plurals>
+</resources>

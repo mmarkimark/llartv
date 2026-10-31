@@ -21,6 +21,16 @@ All notable changes to LlarTV are documented in this file. The format is based o
   is selected, the screensaver is switched off, the settings cannot be read, or the TV does not provide that
   entry, a message says so and nothing is started; no success message is shown, the screensaver itself is the
   confirmation.
+- Interface languages (#11): Catalan, Spanish and English, chosen under *Configuració → Idioma* (each language is
+  listed in its own name) or with the new `language` key (`ca`, `es`, `en`; also accepted by
+  `scripts/config.sh`). Catalan is the default for new installations and stays for existing ones on upgrade; an
+  empty or unknown value is Catalan. Every LlarTV text follows it on Home, the settings and the screensaver: the
+  greeting, the date, the pills, the cards, weather conditions, headline ages, the next-match card, menus,
+  messages and the settings values, with plurals where a count is shown. The settings panel switches at once;
+  Home on return; the screensaver when it next starts. The language never changes the TV's system language,
+  time zone or clock format, nor other apps. `news_source=automatic` follows it (3Cat, BBC News Mundo, BBC News
+  World); an explicit preset and a custom `news_rss` are kept as they are. Headlines, photo titles and credits
+  are shown as their providers supply them.
 
 ## [1.3] - 2026-10-30
 

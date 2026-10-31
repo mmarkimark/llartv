@@ -26,7 +26,8 @@ import java.util.Set;
  *   wallpaper=bing               (default; an image URL, or off for a plain background)
  *   wallpaper_minutes=30         (default; 0 always shows the newest image)
  *   location=41.4235,2.2010      (latitude,longitude for the weather)
- *   news_source=automatic       (automatic, 3cat, bbc-mundo or bbc-world: the news feed)
+ *   language=ca                  (ca, es or en: the interface language; missing or unknown is Catalan)
+ *   news_source=automatic       (automatic, 3cat, bbc-mundo or bbc-world: the news feed; automatic follows language)
  *   news_rss=https://...         (a custom feed; it wins over the preset and is never overwritten by one)
  *   music_screen=off             (on: music while the screensaver is showing)
  *   music_url=https://...         (custom HTTPS audio; empty selects cached Holizna CC0 music)
@@ -50,6 +51,7 @@ final class Config {
     String wallpaper = "bing";       // "bing" or an image URL: refreshed daily (DailyWallpaper); empty or "off" = none
     int wallpaperMinutes = 30;       // > 0: rotate through the downloaded images (Bing: last 8) every N minutes
     double lat = 41.4235, lon = 2.2010;   // weather location (La Verneda, Barcelona)
+    String language = Language.DEFAULT;        // "ca", "es" or "en"; never the TV's system language
     String newsSource = NewsSource.AUTOMATIC;   // "automatic", "3cat", "bbc-mundo" or "bbc-world"
     String newsRss = "";           // a custom feed; empty when the preset decides
     boolean newsRssCustom = false; // true when home.conf sets news_rss, so the custom feed wins over the preset
@@ -124,6 +126,11 @@ final class Config {
                 String[] p = v.split(",");
                 try { if (p.length == 2) { double a = Double.parseDouble(p[0].trim()), b = Double.parseDouble(p[1].trim()); lat = a; lon = b; } }
                 catch (NumberFormatException ignored) {}
+                break;
+            }
+            case "language": {
+                String p = Language.parse(v);
+                language = v.trim().isEmpty() ? Language.DEFAULT : p.isEmpty() ? language : p;
                 break;
             }
             case "news_rss": newsRss = v; newsRssCustom = true; break;
