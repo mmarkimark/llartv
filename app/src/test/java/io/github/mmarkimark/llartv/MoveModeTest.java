@@ -119,4 +119,23 @@ public class MoveModeTest {
         assertFalse(m.step(MoveMode.UP));   // the dock has no rows: same position
         assertEquals(3, m.index() + 1);
     }
+
+    // ---------------------------------------------------------------- what the screen shows (#57)
+
+    @Test public void outsideMoveModeTheHeroKeepsItsUsualStrength() {
+        assertEquals(1f, MoveMode.heroAlpha(false, true), 0f);     // dock focused
+        assertEquals(0.4f, MoveMode.heroAlpha(false, false), 0f);  // grid or top bar focused
+    }
+
+    @Test public void inMoveModeTheHeroNeverNamesAnotherApp() {
+        // the banner names the moving app; the hero (always a dock app) is hidden, grid included
+        assertEquals(0f, MoveMode.heroAlpha(true, true), 0f);
+        assertEquals(0f, MoveMode.heroAlpha(true, false), 0f);
+    }
+
+    @Test public void theBannerFollowsThePageAboveTheDockButStaysOnScreen() {
+        assertEquals(500f, MoveMode.hintTop(500f, 0f, 24f), 0f);       // page not scrolled: above the dock band
+        assertEquals(200f, MoveMode.hintTop(500f, -300f, 24f), 0f);    // grid scrolled: moves up with the page
+        assertEquals(24f, MoveMode.hintTop(500f, -900f, 24f), 0f);     // hero area scrolled away: kept on screen
+    }
 }

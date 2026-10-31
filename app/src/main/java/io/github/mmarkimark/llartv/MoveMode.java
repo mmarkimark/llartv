@@ -57,6 +57,23 @@ final class MoveMode {
         }
     }
 
+    /**
+     * Opacity of the large hero label (#57): it always names a dock app, so while any app is being moved it is
+     * hidden (the banner names the moving app instead); otherwise full on the dock, dimmed elsewhere, as before.
+     */
+    static float heroAlpha(boolean moving, boolean dockFocused) {
+        if (moving) return 0f;
+        return dockFocused ? 1f : 0.4f;
+    }
+
+    /**
+     * Top of the move banner (#57): its place just above the dock band (anchorTop, page not scrolled) moved with
+     * the page, but never above minTop, so it stays on screen when a long grid scrolls the hero area away.
+     */
+    static float hintTop(float anchorTop, float pageShift, float minTop) {
+        return Math.max(anchorTop + pageShift, minTop);
+    }
+
     List<String> current() { return Collections.unmodifiableList(current); }
     List<String> initial() { return initial; }
     int index() { return current.indexOf(pkg); }
