@@ -1102,9 +1102,19 @@ public class HomeActivity extends Activity {
     void onMoveKey(int k) {
         int dir = k == KeyEvent.KEYCODE_DPAD_LEFT ? MoveMode.LEFT : k == KeyEvent.KEYCODE_DPAD_RIGHT ? MoveMode.RIGHT
                 : k == KeyEvent.KEYCODE_DPAD_UP ? MoveMode.UP : k == KeyEvent.KEYCODE_DPAD_DOWN ? MoveMode.DOWN : -1;
-        if (dir >= 0) { if (moving.step(dir)) showMoveOrder(moving.current()); }
-        else if (isOk(k)) finishMove();
-        else if (k == KeyEvent.KEYCODE_BACK || k == KeyEvent.KEYCODE_MENU) cancelMove();
+        // Every outcome is also spoken (TalkBack), since the keys never move the accessibility focus here.
+        if (dir >= 0) {
+            if (moving.step(dir)) {
+                showMoveOrder(moving.current());
+                root.announceForAccessibility(tx.get(R.string.move_position, moving.index() + 1, moving.current().size()));
+            }
+        } else if (isOk(k)) {
+            boolean changed = moving.changed();
+            if (finishMove() && changed) root.announceForAccessibility(tx.get(R.string.move_saved));
+        } else if (k == KeyEvent.KEYCODE_BACK || k == KeyEvent.KEYCODE_MENU) {
+            cancelMove();   // also called when Home is left, where nothing is announced
+            root.announceForAccessibility(tx.get(R.string.move_undone));
+        }
     }
 
     /** Shows the dock or the grid in the given order, with the focus on the app being moved; nothing is written. */
@@ -1115,8 +1125,8 @@ public class HomeActivity extends Activity {
         if (moving.dock) bindApps(out, new ArrayList<>(gridApps)); else bindApps(new ArrayList<>(dockApps), out);
     }
 
-    /** OK: saves the final place once. A failed write says so (writeApps) and shows the initial order again. */
-    void finishMove() {
+    /** OK: saves the final place once; true when saved. A failed write says so (writeApps) and shows the initial order again. */
+    boolean finishMove() {
         MoveMode m = moving;
         endMove();
         boolean saved;
@@ -1128,6 +1138,7 @@ public class HomeActivity extends Activity {
             saved = order == null || writeApps(null, null, String.join(",", order), m.pkg);
         }
         if (!saved) { moving = m; showMoveOrder(m.initial()); endMove(); }
+        return saved;
     }
 
     /** Back or MENU: undoes every step. */

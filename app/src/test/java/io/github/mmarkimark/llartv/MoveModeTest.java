@@ -108,4 +108,15 @@ public class MoveModeTest {
         assertNull(MoveMode.start(seq("a", "b"), "z", false, 3));
         assertNull(MoveMode.start(seq("a"), "a", false, 3));   // nothing to move around
     }
+
+    @Test public void theSpokenPositionFollowsEveryAcceptedStep() {
+        // TalkBack hears "position index()+1 of size" after each accepted step; a refused step announces nothing new
+        MoveMode m = MoveMode.start(seq("a", "b", "c", "d"), "a", true, 4);
+        m.step(MoveMode.RIGHT);
+        m.step(MoveMode.RIGHT);
+        assertEquals(3, m.index() + 1);
+        assertEquals(4, m.current().size());
+        assertFalse(m.step(MoveMode.UP));   // the dock has no rows: same position
+        assertEquals(3, m.index() + 1);
+    }
 }
