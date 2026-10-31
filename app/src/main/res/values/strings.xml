@@ -95,6 +95,8 @@
     <string name="music_screen">Música al protector</string>
     <string name="clock_screen">Rellotge al protector</string>
     <string name="motion_screen">Moviment al protector</string>
+    <string name="night_screen">Protector discret de nit</string>
+    <string name="night_mute">Música en silenci de nit</string>
     <string name="wallpaper">Fons de pantalla</string>
     <string name="wallpaper_bing">Fotos de Bing</string>
     <string name="wallpaper_plain">Fons llis</string>
@@ -131,10 +133,12 @@
     <!-- The long-press menu of an app, and the hidden apps in the settings -->
     <string name="add_to_dock">Afegir al dock</string>
     <string name="remove_from_dock">Treure del dock</string>
-    <string name="move_left">Moure a l\'esquerra</string>
-    <string name="move_right">Moure a la dreta</string>
-    <string name="move_up">Moure amunt</string>
-    <string name="move_down">Moure avall</string>
+    <string name="move">Moure</string>
+    <string name="move_hint_dock">Movent %1$s: fletxes esquerra/dreta per moure · OK desa · Enrere desfà</string>
+    <string name="move_hint_grid">Movent %1$s: fletxes per moure · OK desa · Enrere desfà</string>
+    <string name="move_position">Posició %1$d de %2$d</string>
+    <string name="move_saved">Ordre desat</string>
+    <string name="move_undone">Moviment desfet</string>
     <string name="hide">Amagar</string>
     <string name="app_info">Informació de l\'app</string>
     <string name="dock_full">El dock ja està ple</string>

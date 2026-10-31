@@ -271,7 +271,10 @@ public class SettingsActivity extends Activity {
         rows.add(r);
     }
 
-    /** The time and the slow zoom of the screensaver, each on or off; both on by default. */
+    /**
+     * The time and the slow zoom of the screensaver, each on or off; both on by default. Then the quiet night
+     * screensaver and the night music silence (NightQuiet), each on or off; both off by default.
+     */
     void addScreensaverRows(Config conf) {
         Row c = new Row(tx.get(R.string.clock_screen), "clock_screen", new String[]{tx.get(R.string.on), tx.get(R.string.off)}, new String[]{"on", "off"}, null);
         c.selected = conf.clockScreen ? 0 : 1;
@@ -279,6 +282,12 @@ public class SettingsActivity extends Activity {
         Row m = new Row(tx.get(R.string.motion_screen), "motion_screen", new String[]{tx.get(R.string.on), tx.get(R.string.off)}, new String[]{"on", "off"}, null);
         m.selected = conf.motionScreen ? 0 : 1;
         rows.add(m);
+        Row n = new Row(tx.get(R.string.night_screen), "night_screen", new String[]{tx.get(R.string.on), tx.get(R.string.off)}, new String[]{"on", "off"}, null);
+        n.selected = conf.nightScreen ? 0 : 1;
+        rows.add(n);
+        Row q = new Row(tx.get(R.string.night_mute), "night_mute", new String[]{tx.get(R.string.on), tx.get(R.string.off)}, new String[]{"on", "off"}, null);
+        q.selected = conf.nightMute ? 0 : 1;
+        rows.add(q);
     }
 
     /** The screensaver music: on or off. The stream itself comes from the configuration, not from the remote. */

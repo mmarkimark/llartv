@@ -91,6 +91,8 @@
     <string name="music_screen">Música en el salvapantallas</string>
     <string name="clock_screen">Reloj en el salvapantallas</string>
     <string name="motion_screen">Movimiento en el salvapantallas</string>
+    <string name="night_screen">Salvapantallas discreto de noche</string>
+    <string name="night_mute">Música en silencio de noche</string>
     <string name="wallpaper">Fondo de pantalla</string>
     <string name="wallpaper_bing">Fotos de Bing</string>
     <string name="wallpaper_plain">Fondo liso</string>
@@ -127,10 +129,12 @@
     <!-- The long-press menu of an app, and the hidden apps in the settings -->
     <string name="add_to_dock">Añadir al dock</string>
     <string name="remove_from_dock">Quitar del dock</string>
-    <string name="move_left">Mover a la izquierda</string>
-    <string name="move_right">Mover a la derecha</string>
-    <string name="move_up">Mover arriba</string>
-    <string name="move_down">Mover abajo</string>
+    <string name="move">Mover</string>
+    <string name="move_hint_dock">Moviendo %1$s: flechas izquierda/derecha para mover · OK guarda · Atrás deshace</string>
+    <string name="move_hint_grid">Moviendo %1$s: flechas para mover · OK guarda · Atrás deshace</string>
+    <string name="move_position">Posición %1$d de %2$d</string>
+    <string name="move_saved">Orden guardado</string>
+    <string name="move_undone">Movimiento deshecho</string>
     <string name="hide">Ocultar</string>
     <string name="app_info">Información de la app</string>
     <string name="dock_full">El dock ya está lleno</string>
