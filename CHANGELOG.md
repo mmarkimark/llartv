@@ -5,6 +5,8 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [1.4] - 2026-10-31
+
 ### Added
 
 - Grid order from the remote (#13): holding OK on a grid app now also offers *Moure a l'esquerra* / *Moure a la
@@ -38,6 +40,14 @@ All notable changes to LlarTV are documented in this file. The format is based o
   wallpaper images, music and other caches, installed apps and Android settings (launcher, screensaver) are not
   touched. A failed read or write is reported and leaves `home.conf` unchanged. Home follows a changed dock,
   hidden list, grid order or column count when it is shown again.
+- Screensaver playlist (#35): local music rotates between Dancing, Chill Wave and Dream Culture every two
+  minutes (or earlier at completion), wrapping without overlapping decoders and retaining audio focus. The
+  original Dancing cache is reused; the two additional individually pinned CC BY 4.0 tracks live outside the
+  APK. Offline ca/es/en credits provide the original titles, author, source and licence. Music stays off by
+  default; custom HTTPS streams retain their own programming without forced rotation. Exit releases focus/player
+  and timers; failures leave the visuals running silently. The full offline loop passed on an Android TV
+  emulator; real-TV rotation/normal exit and owner listening also passed. See the
+  [acceptance record](docs/v1.4-acceptance.md) for measured evidence and separate public-download gates.
 - A failed `home.conf` write no longer leaves a `home.conf.tmp` file behind; `home.conf` itself is unchanged.
 
 ## [1.3] - 2026-10-30
