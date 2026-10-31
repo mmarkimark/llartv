@@ -645,17 +645,26 @@ public class HomeActivity extends Activity {
         String keepGrid = loaded && region == GRID && gridIdx < gridApps.size() ? gridApps.get(gridIdx).pkg : null;
         dockApps.clear(); dockApps.addAll(d);
         gridApps.clear(); gridApps.addAll(g);
-        dockRow.removeAllViews();
-        dockTiles.clear();
-        focusedTile = null;
-        for (int i = 0; i < dockApps.size(); i++) {
-            TileView t = new TileView(this, fonts, tileW, tileH, false);
-            t.bind(dockApps.get(i));
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(tileW, tileH);
-            if (i < dockApps.size() - 1) lp.rightMargin = gap;
-            dockRow.addView(t, lp);
-            dockTiles.add(t);
+        if (dockTiles.size() == dockApps.size()) {
+            // Same number of tiles (every move-mode step, most reloads): rebind them instead of building new views.
+            // The margins depend only on the count; applyFocus sets the focused look again after focusedTile resets.
+            for (int i = 0; i < dockTiles.size(); i++) {
+                dockTiles.get(i).setFocusedLook(false, false);
+                dockTiles.get(i).bind(dockApps.get(i));
+            }
+        } else {
+            dockRow.removeAllViews();
+            dockTiles.clear();
+            for (int i = 0; i < dockApps.size(); i++) {
+                TileView t = new TileView(this, fonts, tileW, tileH, false);
+                t.bind(dockApps.get(i));
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(tileW, tileH);
+                if (i < dockApps.size() - 1) lp.rightMargin = gap;
+                dockRow.addView(t, lp);
+                dockTiles.add(t);
+            }
         }
+        focusedTile = null;
         adapter.notifyDataSetChanged();
 
         if (!restored) { keepGrid = restoreGridPkg; restored = true; }
