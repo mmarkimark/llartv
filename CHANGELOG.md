@@ -35,6 +35,18 @@ All notable changes to LlarTV are documented in this file. The format is based o
   boundaries through its existing per-minute clock tick (no new polling). It quiets the screensaver content only;
   it does not turn the backlight off.
 
+- Move mode is also spoken (#39): with TalkBack, each step announces the new position, OK announces that the
+  order was saved and Back announces that the move was undone, in the interface language.
+
+### Changed
+
+- Moving apps reuses the dock tiles instead of rebuilding them on every step, which removes visible jank while
+  holding an arrow (emulator: janky frames 19 → 1 in the worst run).
+
+### Fixed
+
+- A news feed larger than 2 MiB is refused like any other network error instead of being read whole into memory.
+
 ## [1.4] - 2026-10-31
 
 ### Added
