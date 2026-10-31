@@ -269,6 +269,7 @@ public class ConfigLocationTest {
         assertEquals(CONF, new String(bytes(priv, Config.FILE), StandardCharsets.UTF_8));
         assertEquals(DOCK, new String(bytes(priv, ConfigLocation.DOCK), StandardCharsets.UTF_8));
         assertFalse(new File(ext, Config.FILE).exists());
+        assertFalse(new File(ext, ConfigLocation.DOCK).exists());   // the identical old dock.txt goes too
         assertTrue(new File(priv, ConfigLocation.MARKER).isFile());
     }
 

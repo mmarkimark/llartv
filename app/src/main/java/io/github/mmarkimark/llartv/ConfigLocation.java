@@ -103,8 +103,16 @@ final class ConfigLocation {
         // Every private copy is in place and verified: record the move, then the external copies can go. One that
         // cannot be deleted is harmless: the private copy and the marker now win.
         mark(privateDir);
-        for (String name : pending) new File(externalDir, name).delete();
+        for (String name : FILES) {   // the moved files, and an old copy an interrupted move already moved in
+            File old = new File(externalDir, name), now = new File(privateDir, name);
+            if (pending.contains(name) || sameBytes(old, now)) old.delete();
+        }
         return Result.DONE;
+    }
+
+    private static boolean sameBytes(File a, File b) {
+        try { return a.isFile() && b.isFile() && Arrays.equals(Files.readAllBytes(a.toPath()), Files.readAllBytes(b.toPath())); }
+        catch (IOException | RuntimeException e) { return false; }
     }
 
     /** Copies src to dest through a temporary file and a rename; dest then holds exactly the bytes of src. */
