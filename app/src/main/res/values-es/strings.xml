@@ -141,4 +141,7 @@
         <item quantity="one">%1$d app</item>
         <item quantity="other">%1$d apps</item>
     </plurals>
+    <string name="music_credits">Créditos de la música</string>
+    <string name="music_credits_body">Grabaciones originales:\n\nDancing — Holizna\nCC0 1.0\nhttps://opengameart.org/content/chillout-instrumentals-collection\n\nChill Wave · Dream Culture\nKevin MacLeod (incompetech.com)\nCC BY 4.0\nhttps://creativecommons.org/licenses/by/4.0/</string>
+    <string name="close">Cerrar</string>
 </resources>
