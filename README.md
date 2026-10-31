@@ -2,10 +2,14 @@
 
 A lightweight, native home screen for Android TV. (*Llar* is Catalan for "home".)
 
+**Available in English, Catalan and Spanish** — choose the interface language in the LlarTV settings or with
+`language=`. The screenshots below show the English interface.
+
 [![Release](https://img.shields.io/badge/release-v1.4-blue)](https://github.com/mmarkimark/llartv/releases/tag/v1.4)
 [![CI](https://github.com/mmarkimark/llartv/actions/workflows/ci.yml/badge.svg)](https://github.com/mmarkimark/llartv/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 ![Android TV 9+](https://img.shields.io/badge/Android%20TV-9%2B-informational)
+![Languages: English, Catalan, Spanish](https://img.shields.io/badge/languages-English%20%C2%B7%20Catal%C3%A0%20%C2%B7%20Espa%C3%B1ol-informational)
 
 ![LlarTV home screen](docs/screenshots/day.jpg)
 
