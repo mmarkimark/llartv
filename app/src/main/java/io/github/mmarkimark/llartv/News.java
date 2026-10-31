@@ -1,6 +1,5 @@
 package io.github.mmarkimark.llartv;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -130,16 +129,14 @@ final class News {
         return items.size() > max ? new ArrayList<>(items.subList(0, max)) : items;
     }
 
+    /** A news feed is tens of KB; a larger body is refused instead of filling the launcher's memory. */
+    static final int MAX_FEED_BYTES = 2 * 1024 * 1024;
+
     /** The raw bytes behind a URL (DailyWallpaper.get decodes as UTF-8 and drops line breaks, which feeds can't afford). */
     static byte[] read(String url) throws Exception {
         HttpURLConnection c = DailyWallpaper.open(url);
-        try (InputStream in = c.getInputStream()) {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            byte[] buf = new byte[16384];
-            int n;
-            while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
-            return out.toByteArray();
-        } finally { c.disconnect(); }
+        try (InputStream in = c.getInputStream()) { return Http.readCapped(in, MAX_FEED_BYTES); }
+        finally { c.disconnect(); }
     }
 
     /** Relative age in the interface language: "ara mateix", "fa 5 min", "fa 3 h", "ahir", "fa 2 dies"; empty when unknown. */

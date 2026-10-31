@@ -2,6 +2,10 @@ package io.github.mmarkimark.llartv;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.fail;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -9,6 +13,11 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.SequenceInputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.List;
 
 public class DailyWallpaperTest {
@@ -81,5 +90,55 @@ public class DailyWallpaperTest {
     @Test public void listLineKeepsFieldsOnOneLine() {
         assertEquals("wallpaper-a.jpg\tTwo words\tLine one line two",
                 DailyWallpaper.listLine("wallpaper-a.jpg", "Two\twords", "Line one\nline two"));
+    }
+
+    static final int MIB = 1024 * 1024;
+
+    File previousImage() throws Exception {
+        File f = new File(tmp.newFolder(), "wallpaper-a.jpg");
+        Files.write(f.toPath(), "previous".getBytes(StandardCharsets.UTF_8));
+        return f;
+    }
+
+    void assertPreviousKeptAndNoPart(File f) throws Exception {
+        assertArrayEquals("previous".getBytes(StandardCharsets.UTF_8), Files.readAllBytes(f.toPath()));
+        assertFalse("no partial download is left behind", new File(f.getPath() + ".part").exists());
+    }
+
+    @Test public void anImageIsSavedWhole() throws Exception {
+        File f = previousImage();
+        DailyWallpaper.save(new FakeConnection(200, "new image"), f);
+        assertArrayEquals("new image".getBytes(StandardCharsets.UTF_8), Files.readAllBytes(f.toPath()));
+        assertFalse(new File(f.getPath() + ".part").exists());
+    }
+
+    @Test public void anImageOver20MibFailsAndKeepsThePreviousOne() throws Exception {
+        File f = previousImage();
+        FakeConnection c = FakeConnection.ofSize(20L * MIB + 1);
+        try {
+            DailyWallpaper.save(c, f);
+            fail("an oversized image must fail");
+        } catch (Exception expected) { /* download() then keeps the image already on disk */ }
+        assertPreviousKeptAndNoPart(f);
+        assertTrue(c.disconnected);
+    }
+
+    @Test public void aDownloadCutHalfwayLeavesNoPartialFile() throws Exception {
+        File f = previousImage();
+        InputStream broken = new SequenceInputStream(FakeConnection.sized(MIB), new InputStream() {
+            @Override public int read() throws IOException { throw new IOException("connection reset"); }
+        });
+        try {
+            DailyWallpaper.save(new FakeConnection(200, broken), f);
+            fail("a cut download must fail");
+        } catch (Exception expected) { /* network error */ }
+        assertPreviousKeptAndNoPart(f);
+    }
+
+    @Test public void aBingListOverOneMebibyteFails() throws Exception {
+        try {
+            DailyWallpaper.read(FakeConnection.ofSize(MIB + 1));
+            fail("an oversized image list must fail");
+        } catch (Exception expected) { /* no new list; the saved photos stay */ }
     }
 }
