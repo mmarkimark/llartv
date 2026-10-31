@@ -1,6 +1,8 @@
 package io.github.mmarkimark.llartv;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -166,6 +168,9 @@ public class SettingsActivity extends Activity {
         addSourceRow(conf);
         addScreensaverRows(conf);
         addMusicRow(conf);
+        rows.add(new Row(Ca.START_SCREEN, null, null, null, new Runnable() {
+            @Override public void run() { startScreensaver(); }
+        }));
         addHiddenRow();
         rows.add(new Row(Ca.SYSTEM_SETTINGS, null, null, null, new Runnable() {
             @Override public void run() { openSystemSettings(); }
@@ -309,6 +314,30 @@ public class SettingsActivity extends Activity {
     void openSystemSettings() {
         try { startActivity(new Intent(Settings.ACTION_SETTINGS)); }
         catch (Exception ex) { Toast.makeText(this, Ca.NOT_AVAILABLE, Toast.LENGTH_SHORT).show(); }
+    }
+
+    /**
+     * Starts LlarTV's screensaver now through SystemUI's exported Somnambulator, only when LlarTV is the
+     * screensaver Android would start. It reads the settings and writes none. The dream covering the screen is
+     * the success; every case it cannot start is reported, and nothing claims a start it cannot see.
+     */
+    void startScreensaver() {
+        ScreenSaverStart.Check check;
+        try {
+            check = ScreenSaverStart.check(
+                    Settings.Secure.getString(getContentResolver(), ScreenSaverStart.COMPONENTS_KEY),
+                    Settings.Secure.getString(getContentResolver(), ScreenSaverStart.ENABLED_KEY));
+        } catch (SecurityException ex) {   // a newer Android may not let apps read these keys
+            toast(Ca.SCREEN_UNCHECKED);
+            return;
+        }
+        if (check == ScreenSaverStart.Check.NOT_SELECTED) { toast(Ca.SCREEN_NOT_SELECTED); return; }
+        if (check == ScreenSaverStart.Check.DISABLED) { toast(Ca.SCREEN_DISABLED); return; }
+        Intent i = new Intent(Intent.ACTION_MAIN).setComponent(
+                new ComponentName(ScreenSaverStart.LAUNCHER_PACKAGE, ScreenSaverStart.LAUNCHER_CLASS));
+        if (i.resolveActivityInfo(getPackageManager(), 0) == null) { toast(Ca.SCREEN_CANT_START); return; }
+        try { startActivity(i); }
+        catch (ActivityNotFoundException | SecurityException ex) { toast(Ca.SCREEN_CANT_START); }
     }
 
     void toast(String msg) { Toast.makeText(this, msg, Toast.LENGTH_LONG).show(); }

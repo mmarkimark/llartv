@@ -56,6 +56,11 @@ final class Ca {
     static final String MORNING_ONLY = "Només matí";
     static final String ALL_DAY = "Tot el dia";
     static final String CANT_SAVE = "No s'ha pogut desar";
+    static final String START_SCREEN = "Iniciar el protector";
+    static final String SCREEN_NOT_SELECTED = "LlarTV no és el protector de la TV: tria'l a Configuració del sistema > Protector de pantalla";
+    static final String SCREEN_DISABLED = "El protector està desactivat: activa'l a Configuració del sistema > Protector de pantalla";
+    static final String SCREEN_UNCHECKED = "No es pot comprovar quin protector té la TV";
+    static final String SCREEN_CANT_START = "Aquesta TV no permet iniciar el protector des d'aquí";
 
     // The long-press menu of an app, and the hidden apps in the settings
     static final String ADD_TO_DOCK = "Afegir al dock", REMOVE_FROM_DOCK = "Treure del dock";

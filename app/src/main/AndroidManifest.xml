@@ -20,6 +20,8 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent>
         <package android:name="com.mediatek.wwtv.tvcenter" />
+        <!-- SystemUI's Somnambulator starts the screensaver from the settings menu -->
+        <package android:name="com.android.systemui" />
     </queries>
 
     <application

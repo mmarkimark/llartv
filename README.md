@@ -75,6 +75,10 @@ broadcasts, and network data is fetched only while the home screen is showing.
   and shown as one more choice.
 - Screensaver clock and motion: hide the time (the date, the weather and the photo credits stay) and turn off the
   slow zoom, so each photo stays still and still changes every 25 seconds with a fade.
+- Iniciar el protector: starts the LlarTV screensaver now, with its current options, through the TV's own
+  "start now" entry (SystemUI's `Somnambulator`). It changes no setting: the inactivity timeout and the chosen
+  screensaver stay as they are. When LlarTV is not the TV's screensaver, the screensaver is switched off, or the
+  TV has no such entry, it shows why instead of starting anything else.
 - Apps amagades: the hidden apps, with their count as the value. OK opens the list by label (the package name
   when the app is not installed any more) and unhides one app, writing `hidden`.
 - News source: 3Cat (Catalan), BBC News Mundo (Spanish) or BBC News World (English), with the source credited next
