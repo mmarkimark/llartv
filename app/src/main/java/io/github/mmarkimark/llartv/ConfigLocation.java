@@ -21,10 +21,10 @@ import java.util.List;
  * external folder is never read nor touched again, so a home.conf or dock.txt that appears there later (an older
  * LlarTV put back, a manual push) is ignored and left where it is. Rules, in order:
  *  - marker present: done, nothing else is looked at;
- *  - a private home.conf or dock.txt present (a build before the marker already moved or saved them): done, and
- *    the marker is written;
+ *  - a private home.conf present (moved earlier, or saved on a fresh install): done, and the marker is written. A
+ *    private dock.txt alone does not count: an interrupted move may have left it, so the missing files are moved;
  *  - external folder missing, unreadable or not reported (storage not ready): unknown, nothing is written, retry;
- *  - otherwise each of home.conf and dock.txt found there is copied to a temporary private file (synced), renamed
+ *  - otherwise each of dock.txt and home.conf found there and still missing privately is copied to a temporary private file (synced), renamed
  *    into place and checked to hold exactly the external bytes; then the marker is written and only then are the
  *    external copies deleted. Nothing found: the marker alone is written (fresh install);
  *  - any failure: the private copies made in that run are removed, no marker is written, every external file
@@ -82,13 +82,14 @@ final class ConfigLocation {
     static Result migrate(File privateDir, File externalDir) {
         if (privateDir == null) return Result.FAILED;
         if (new File(privateDir, MARKER).exists()) return Result.DONE;   // the external folder is not looked at
-        for (String name : FILES) {
-            if (new File(privateDir, name).exists()) { mark(privateDir); return Result.DONE; }
-        }
+        // Only a private home.conf proves an earlier move ended (it is copied last); a private dock.txt alone may be
+        // what an interrupted move left, so the files still missing are moved below.
+        if (new File(privateDir, Config.FILE).exists()) { mark(privateDir); return Result.DONE; }
         // Storage not ready (null, missing or unlistable) must not be taken for a fresh install.
         if (externalDir == null || !externalDir.isDirectory() || externalDir.list() == null) return Result.UNKNOWN;
         List<String> pending = new ArrayList<>();
-        for (String name : FILES) if (new File(externalDir, name).isFile()) pending.add(name);
+        for (String name : FILES)
+            if (new File(externalDir, name).isFile() && !new File(privateDir, name).exists()) pending.add(name);
         if (pending.isEmpty()) { mark(privateDir); return Result.DONE; }
 
         List<File> copied = new ArrayList<>();
@@ -123,8 +124,8 @@ final class ConfigLocation {
     }
 
     /**
-     * Records that the move has run (atomically, synced). A failure is not an error: a private home.conf or
-     * dock.txt also counts as moved, and with neither the check simply runs again the next time.
+     * Records that the move has run (atomically, synced). A failure is not an error: a private home.conf also
+     * counts as moved, and without one the check simply runs again the next time.
      */
     private static void mark(File privateDir) {
         File marker = new File(privateDir, MARKER), tmp = new File(privateDir, MARKER + TMP);

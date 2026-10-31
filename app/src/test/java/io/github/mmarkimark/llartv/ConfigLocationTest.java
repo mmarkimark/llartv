@@ -260,12 +260,15 @@ public class ConfigLocationTest {
         assertEquals("columns=4\n", new String(bytes(priv, Config.FILE), StandardCharsets.UTF_8));
     }
 
-    @Test public void anInstallOfThePreviousBuildWithOnlyAPrivateDockTxtIsTreatedAsMoved() throws Exception {
+    @Test public void aMoveInterruptedAfterDockTxtStillMovesHomeConf() throws Exception {
+        // killed after dock.txt was moved in but before home.conf: only a private home.conf proves the move ended
         put(priv, ConfigLocation.DOCK, DOCK);
+        put(ext, ConfigLocation.DOCK, DOCK);
         put(ext, Config.FILE, CONF);
         assertEquals(ConfigLocation.Result.DONE, ConfigLocation.migrate(priv, ext));
-        assertFalse(new File(priv, Config.FILE).exists());
-        assertEquals(CONF, new String(bytes(ext, Config.FILE), StandardCharsets.UTF_8));
+        assertEquals(CONF, new String(bytes(priv, Config.FILE), StandardCharsets.UTF_8));
+        assertEquals(DOCK, new String(bytes(priv, ConfigLocation.DOCK), StandardCharsets.UTF_8));
+        assertFalse(new File(ext, Config.FILE).exists());
         assertTrue(new File(priv, ConfigLocation.MARKER).isFile());
     }
 
