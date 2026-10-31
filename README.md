@@ -5,7 +5,7 @@ A lightweight, native home screen for Android TV. (*Llar* is Catalan for "home".
 **Available in English, Catalan and Spanish** — choose the interface language in the LlarTV settings or with
 `language=`. The screenshots below show the English interface.
 
-[![Release](https://img.shields.io/badge/release-v1.4-blue)](https://github.com/mmarkimark/llartv/releases/tag/v1.4)
+[![Release](https://img.shields.io/badge/release-v1.5-blue)](https://github.com/mmarkimark/llartv/releases/tag/v1.5)
 [![CI](https://github.com/mmarkimark/llartv/actions/workflows/ci.yml/badge.svg)](https://github.com/mmarkimark/llartv/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 ![Android TV 9+](https://img.shields.io/badge/Android%20TV-9%2B-informational)
@@ -290,14 +290,14 @@ Preferences → Screen saver*.
 
 ## Performance
 
-LlarTV is kept small and fast: the v1.4 APK is 4,133,135 bytes, with foreground Home PSS about 35 MiB on the
-emulator and 63 MiB on the reference TV. Screensaver PSS is a different workload. It does no background polling. [`scripts/measure.sh`](scripts/measure.sh) records the APK size, the cold start, the Home
-return and the RAM on a connected TV or emulator. The measured baseline and the regression budgets used as release
-gates are in [`docs/performance/baseline-v1.0.md`](docs/performance/baseline-v1.0.md).
-The [v1.4 comparison](docs/performance/v1.4.md) and [acceptance record](docs/v1.4-acceptance.md) separate emulator,
-initial TV and controlled TV measurements. Both controlled v1.4 cohorts passed the paired TV budgets;
-initial over-budget data is retained, not hidden or replaced with emulator values. The released APK is the exact
-artifact that passed those checks.
+LlarTV is kept small and fast: the v1.5 APK is 4,149,623 bytes (+0.40% over v1.4), with foreground Home PSS about
+40 MiB on the emulator and 63 MiB on the reference TV. Screensaver PSS is a different workload. It does no background
+polling. [`scripts/measure.sh`](scripts/measure.sh) records the APK size, the cold start, the Home return and the RAM
+on a connected TV or emulator. The measured baseline and the regression budgets used as release gates are in
+[`docs/performance/baseline-v1.0.md`](docs/performance/baseline-v1.0.md). The [v1.5 comparison](docs/performance/v1.5.md)
+records the emulator and reference-TV pairs against the published v1.4, including a first over-budget TV pair kept
+next to the larger matched sample that passed; earlier versions are in [v1.4](docs/performance/v1.4.md). The released
+APK is the exact artifact that passed those checks.
 
 ## Building from source
 
