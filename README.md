@@ -91,10 +91,12 @@ broadcasts, and network data is fetched only while the home screen is showing.
 - Daily wallpapers from Bing (the last eight images, optionally rotating) or from any image URL.
 - A built-in screensaver (*BingDream*) with a slow zoom and cross-fade over the wallpapers, the clock, the date
   and the current weather.
-- Optional screensaver music, off by default: switch it on from the settings menu to loop Holizna's CC0
-  "Dancing", downloaded once outside the APK and reused offline. A custom HTTPS stream can override it.
-  Music stops with the screensaver; failures leave the visuals running silently. Verified on the TV: audible
-  cached playback, an hour of looping with focus held and no traffic after the one-time download. See
+- Optional screensaver music, off by default: a cached playlist rotates approximately every two minutes
+  through Holizna's CC0 "Dancing" and Kevin MacLeod's CC BY 4.0 "Chill Wave" and "Dream Culture".
+  Original MP3s download outside the APK and are reused offline; the settings menu has offline music credits.
+  A custom HTTPS stream retains its own programming, without forced rotation. Music stops with the screensaver;
+  failures leave the visuals running silently. Historical real-TV evidence covers the v1.2 single-track loop,
+  not the new v1.4 playlist, whose final device/release checks are still pending. See
   [docs/screensaver-music.md](docs/screensaver-music.md).
 
 **Other**
@@ -218,7 +220,7 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 | `news_source` | `automatic` | News source: `automatic` (follows `language`: 3Cat, BBC News Mundo or BBC News World), `3cat`, `bbc-mundo` or `bbc-world`. |
 | `news_rss` | empty | Custom RSS feed for the morning headlines; it wins over `news_source` and is never overwritten by it. Remove the line to use a preset again. |
 | `music_screen` | `off` | Music during the screensaver: `on` or `off`. Off means no music download or player. |
-| `music_url` | empty | Empty selects cached Holizna CC0 music; a custom HTTPS audio URL overrides it without caching or looping. See [docs/screensaver-music.md](docs/screensaver-music.md). |
+| `music_url` | empty | Empty selects the verified cached playlist; a custom HTTPS audio URL overrides it without caching or forced rotation. See [docs/screensaver-music.md](docs/screensaver-music.md). |
 | `clock_screen` | `on` | The time on the screensaver: `on` or `off`. Off hides the time only; the date, the weather and the photo credits stay. |
 | `motion_screen` | `on` | The slow zoom and drift of the screensaver photos: `on` or `off`. Off keeps each photo still; the photos still change every 25 seconds with a fade. |
 | `dock_tint` | `on` | Tint the dock band from the wallpaper; `off` uses a plain band. |

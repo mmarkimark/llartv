@@ -216,6 +216,23 @@ public class LanguageTest {
             "Fixtures.java:Community Shield", "Fixtures.java:^\\\\d{4}-\\\\d{2} ",
             "DreamMusic.java:), staying silent"));   // the second line of a log call
 
+    @Test public void musicCreditsAreAccessibleInAllLanguagesWithOriginalAttributionAndLicenceLinks() {
+        String[] langs = {"ca", "es", "en"};
+        String[] headings = {"Crèdits de la música", "Créditos de la música", "Music credits"};
+        String[] buttons = {"Tancar", "Cerrar", "Close"};
+        for (int i = 0; i < langs.length; i++) {
+            Strings tx = strings(langs[i]);
+            assertEquals(headings[i], tx.get(R.string.music_credits));
+            assertEquals(buttons[i], tx.get(R.string.close));
+            String body = tx.get(R.string.music_credits_body);
+            for (String required : new String[]{"Dancing", "Holizna", "CC0 1.0",
+                    "https://opengameart.org/content/chillout-instrumentals-collection",
+                    "Chill Wave", "Dream Culture", "Kevin MacLeod (incompetech.com)",
+                    "CC BY 4.0", "https://creativecommons.org/licenses/by/4.0/"})
+                assertTrue(langs[i] + " missing attribution: " + required, body.contains(required));
+        }
+    }
+
     static final Pattern LITERAL = Pattern.compile("\"((?:[^\"\\\\]|\\\\.)*)\"");
 
     @Test public void noAppTextIsWrittenInTheCode() throws Exception {

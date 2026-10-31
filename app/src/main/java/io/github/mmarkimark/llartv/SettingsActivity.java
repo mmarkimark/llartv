@@ -197,6 +197,11 @@ public class SettingsActivity extends Activity {
         addSourceRow(conf);
         addScreensaverRows(conf);
         addMusicRow(conf);
+        rows.add(new Row(tx.get(R.string.music_credits), null, null, null, () ->
+                new android.app.AlertDialog.Builder(this)
+                        .setTitle(tx.get(R.string.music_credits))
+                        .setMessage(tx.get(R.string.music_credits_body))
+                        .setPositiveButton(tx.get(R.string.close), (dialog, which) -> dialog.dismiss()).show()));
         rows.add(new Row(tx.get(R.string.start_screen), null, null, null, new Runnable() {
             @Override public void run() { startScreensaver(); }
         }));
