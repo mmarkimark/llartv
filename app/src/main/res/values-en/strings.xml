@@ -91,6 +91,8 @@
     <string name="music_screen">Music on the screensaver</string>
     <string name="clock_screen">Clock on the screensaver</string>
     <string name="motion_screen">Motion on the screensaver</string>
+    <string name="night_screen">Quiet night screensaver</string>
+    <string name="night_mute">Silence music at night</string>
     <string name="wallpaper">Wallpaper</string>
     <string name="wallpaper_bing">Bing photos</string>
     <string name="wallpaper_plain">Plain background</string>
@@ -127,15 +129,18 @@
     <!-- The long-press menu of an app, and the hidden apps in the settings -->
     <string name="add_to_dock">Add to dock</string>
     <string name="remove_from_dock">Remove from dock</string>
-    <string name="move_left">Move left</string>
-    <string name="move_right">Move right</string>
-    <string name="move_up">Move up</string>
-    <string name="move_down">Move down</string>
+    <string name="move">Move</string>
+    <string name="move_hint_dock">Moving %1$s: left/right arrows to move · OK saves · Back undoes</string>
+    <string name="move_hint_grid">Moving %1$s: arrows to move · OK saves · Back undoes</string>
+    <string name="move_position">Position %1$d of %2$d</string>
+    <string name="move_saved">Order saved</string>
+    <string name="move_undone">Move undone</string>
     <string name="hide">Hide</string>
     <string name="app_info">App info</string>
     <string name="dock_full">The dock is full</string>
     <string name="hidden_apps_title">Hidden apps</string>
     <string name="none">None</string>
+    <string name="hidden_guide">App hidden. Recover it from Settings → Hidden apps.</string>
     <string name="no_hidden_apps">There are no hidden apps</string>
     <plurals name="hidden_apps">
         <item quantity="one">%1$d app</item>

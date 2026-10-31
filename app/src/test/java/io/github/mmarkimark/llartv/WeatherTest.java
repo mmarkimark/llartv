@@ -2,6 +2,7 @@ package io.github.mmarkimark.llartv;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -118,5 +119,17 @@ public class WeatherTest {
         assertNull(Weather.load(dir));
         try (FileWriter w = new FileWriter(new File(dir, "weather.cache"))) { w.write("garbage"); }
         assertNull(Weather.load(dir));
+    }
+
+    @Test public void anOkResponseIsParsedAsBefore() throws Exception {
+        assertEquals(16, Weather.parse(Weather.read(new FakeConnection(200, JSON)), 0).temp);
+    }
+
+    @Test public void aWeatherBodyOver256KibFailsInsteadOfFillingTheMemory() throws Exception {
+        FakeConnection c = FakeConnection.ofSize(256 * 1024 + 1);
+        try {
+            Weather.read(c);
+            fail("an oversized weather response must fail");
+        } catch (Exception expected) { /* a failed fetch: wxFailed and the cache stays */ }
     }
 }
