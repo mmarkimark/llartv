@@ -26,7 +26,8 @@ final class SettingsReset {
     static final List<String> KEYS = Collections.unmodifiableList(Arrays.asList(
             "columns", "dock", "hidden", "order", "team_id", "team_name", "wallpaper", "wallpaper_minutes",
             "location", "language", "news_source", "news_rss", "music_screen", "music_url", "clock_screen",
-            "motion_screen", "morning", "night", "dock_tint", "clock", "weather_home", "weather_screen", "news_home"));
+            "motion_screen", "morning", "night", "dock_tint", "clock", "weather_home", "weather_screen", "news_home",
+            "night_screen", "night_mute"));
     private static final Set<String> KNOWN = new LinkedHashSet<>(KEYS);
 
     /** The choices of the confirmation, in the order shown. */

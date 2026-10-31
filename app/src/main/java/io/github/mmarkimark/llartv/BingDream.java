@@ -24,6 +24,9 @@ import java.util.concurrent.Executors;
  * Screensaver: the downloaded wallpapers (wallpaper=bing, see DailyWallpaper) shown full screen with a slow
  * zoom-and-drift ("Ken Burns") and a cross-fade, plus the clock, the date and each image's title and caption.
  * Images and weather use the local cache; optional music streams from the configured HTTPS URL.
+ * In the night band the optional quiet visual (night_screen) shows only the clock on black and the optional night
+ * silence (night_mute) holds the music back; see NightQuiet. The band is checked at start, on every per-minute clock
+ * tick and with every image, so a running session follows both boundaries without any extra polling.
  * Any remote key closes it.
  * Enable with: adb shell settings put secure screensaver_components io.github.mmarkimark.llartv/.BingDream
  */
@@ -45,6 +48,14 @@ public class BingDream extends DreamService {
     TextView time;           // the clock, rendered by tickClock (TextClock would take AM/PM from the system locale)
     String clockPref = Clock.SYSTEM;
     final Runnable clockTick = this::tickClock;
+    final Runnable slideTick = this::next;   // one instance, so the quiet visual can remove the pending slide
+    View credit;             // the photo title and caption
+    Config conf;             // this session's settings, read in onDreamingStarted
+    NightQuiet quiet = new NightQuiet(false, false);
+    boolean clockScreen = true, shouldPlay;
+    boolean quietShown;      // the quiet visual is showing: the clock on black, no photos, credits or weather
+    Boolean lastNight;       // the band at the previous check of this session; null before the first one
+    int slideGen;            // bumped by showQuiet, so an image decoded for an earlier slide loop is dropped
 
     @Override public void onAttachedToWindow() {
         super.onAttachedToWindow();
@@ -71,7 +82,7 @@ public class BingDream extends DreamService {
         LinearLayout clockCol = new LinearLayout(this);
         clockCol.setOrientation(LinearLayout.VERTICAL);
         // The clock format follows LlarTV's own preference (home.conf "clock"), rendered by tickClock.
-        Config conf = Config.parse(getExternalFilesDir(null));
+        Config conf = Config.parse(ConfigLocation.dir(this));
         clockPref = conf.clock;
         time = text(fonts, 150, 86, 0xFFFFFFFF);
         time.setIncludeFontPadding(false);
@@ -89,6 +100,7 @@ public class BingDream extends DreamService {
         root.addView(clockCol, cp);
 
         LinearLayout credit = new LinearLayout(this);
+        this.credit = credit;
         credit.setOrientation(LinearLayout.VERTICAL);
         credit.setGravity(Gravity.END);
         title = text(fonts, 500, 20, 0xFFFFFFFF);
@@ -117,12 +129,15 @@ public class BingDream extends DreamService {
         long now = System.currentTimeMillis();
         if (tx != null) time.setText(Clock.time(clockPref, android.text.format.DateFormat.is24HourFormat(this),
                 tx.locale, new java.util.Date(now)));
+        if (tx != null && quietShown) date.setText(Ca.date(tx, new java.util.Date(now)));   // no photos to refresh it
+        checkNight();   // the per-minute tick also catches the night band's start and end while no photo changes
         ui.postDelayed(clockTick, Clock.untilNextMinute(now));
     }
 
     /** Weather the home screen last fetched (the screensaver never goes online itself); hidden when stale or off. */
     void showWeather() {
-        Config conf = Config.parse(getExternalFilesDir(null));
+        if (quietShown) { weather.setVisibility(View.GONE); return; }
+        Config conf = Config.parse(ConfigLocation.dir(this));
         java.util.Calendar c = java.util.Calendar.getInstance();
         boolean morning = bands != null
                 && bands.at(c.get(java.util.Calendar.HOUR_OF_DAY) * 60 + c.get(java.util.Calendar.MINUTE)) == TimeBands.Band.MORNING;
@@ -132,15 +147,56 @@ public class BingDream extends DreamService {
         weather.setVisibility(fresh ? View.VISIBLE : View.GONE);
     }
 
-    /** Same night mode as the home screen: checked at start and with every image, so it switches at 23:00 too. */
+    /** Same night mode as the home screen: checked at start, every minute and with every image (see checkNight). */
     void applyNight() {
-        java.util.Calendar c = java.util.Calendar.getInstance();
-        float a = bands.at(c.get(java.util.Calendar.HOUR_OF_DAY) * 60 + c.get(java.util.Calendar.MINUTE)) == TimeBands.Band.NIGHT ? 1f : 0f;
+        float a = inNight() ? 1f : 0f;
         if (a == night) return;
         night = a;
         android.graphics.ColorFilter f = a > 0f ? new android.graphics.ColorMatrixColorFilter(Look.nightMatrix(a)) : null;
         front.setColorFilter(f); back.setColorFilter(f);
         for (TextView t : inks) t.setTextColor(Look.ink((Integer) t.getTag(), a));
+    }
+
+    boolean inNight() {
+        java.util.Calendar c = java.util.Calendar.getInstance();
+        return bands != null
+                && bands.at(c.get(java.util.Calendar.HOUR_OF_DAY) * 60 + c.get(java.util.Calendar.MINUTE)) == TimeBands.Band.NIGHT;
+    }
+
+    /**
+     * Checks the night band (NightQuiet): the night tint, then on a change the quiet visual and the music. Called at
+     * start, from the per-minute clock tick and with every image; does nothing before the session's settings are read.
+     */
+    void checkNight() {
+        if (conf == null || bands == null) return;
+        applyNight();
+        boolean n = inNight();
+        boolean q = quiet.quiet(n);
+        if (q != quietShown) showQuiet(q, true);
+        int change = quiet.musicChange(lastNight, n, shouldPlay);
+        lastNight = n;
+        if (change == NightQuiet.STOP) stopMusic();
+        else if (change == NightQuiet.START) startMusic(conf);   // startMusic stops any previous player first
+    }
+
+    /**
+     * Shows or leaves the quiet visual. Entering it stops the slide loop and hides the photos, their credits and the
+     * weather, leaving the clock (always) and the date on black. Leaving it restores the photos, the credits, the
+     * weather and clock_screen, and restarts the slide loop when there are photos (only when restart is true).
+     */
+    void showQuiet(boolean q, boolean restart) {
+        quietShown = q;
+        slideGen++;
+        ui.removeCallbacks(slideTick);
+        int photos = q ? View.GONE : View.VISIBLE;
+        if (q) {
+            front.animate().cancel(); back.animate().cancel();
+            front.setImageDrawable(null); back.setImageDrawable(null);   // frees the bitmaps while they are hidden
+        }
+        front.setVisibility(photos); back.setVisibility(photos); credit.setVisibility(photos);
+        time.setVisibility(NightQuiet.clockShown(clockScreen, q) ? View.VISIBLE : View.GONE);
+        showWeather();
+        if (!q && restart && slides != null && !slides.isEmpty()) next();
     }
 
     DreamMusic music;
@@ -164,18 +220,25 @@ public class BingDream extends DreamService {
     @Override public void onDreamingStarted() {
         super.onDreamingStarted();
         Config conf = Config.load(this);
+        this.conf = null;   // no night check until this session's settings are all in place
         tx = Strings.of(this, conf.language);   // one snapshot for the whole session, so it never mixes two languages
         date.setText(Ca.date(tx, new java.util.Date()));
         clockPref = conf.clock;
         tickClock();
         bands = conf.bands();
         motion = conf.motionScreen;
-        applyNight();
-        showWeather();
-        startMusic(conf);
+        clockScreen = conf.clockScreen;
+        quiet = new NightQuiet(conf.nightScreen, conf.nightMute);
+        shouldPlay = Music.shouldPlay(conf);
         File dir = getExternalFilesDir(null);
         slides = DailyWallpaper.slides(conf.wallpaper, dir);
-        if (slides.isEmpty()) return;   // nothing downloaded yet, or wallpaper=off: just the clock on black
+        applyNight();
+        boolean n = inNight();
+        lastNight = n;   // the first check only records the band: the music is decided right here
+        this.conf = conf;
+        showQuiet(quiet.quiet(n), false);   // also shows the weather unless the quiet visual hides it
+        if (quiet.musicAllowed(shouldPlay, n)) startMusic(conf);
+        if (quietShown || slides.isEmpty()) return;   // quiet night, nothing downloaded or wallpaper=off: clock on black
         // start on the image the home screen is showing, so the screensaver picks up where home left off
         File now = DailyWallpaper.current(dir, conf.wallpaperMinutes, System.currentTimeMillis());
         for (int i = 0; i < slides.size(); i++) if (slides.get(i).file.equals(now)) index = i;
@@ -199,15 +262,17 @@ public class BingDream extends DreamService {
     /** Decodes the next image off the main thread, then fades it in over the current one and starts its drift. */
     void next() {
         DailyWallpaper.Slide s = slides.get(index % slides.size());
-        int n = index++;
+        int n = index++, gen = slideGen;
         decoder.execute(() -> {
             Bitmap b = decode(s.file);
-            ui.post(() -> show(b, s, n));
+            ui.post(() -> { if (gen == slideGen) show(b, s, n); });
         });
     }
 
     void show(Bitmap b, DailyWallpaper.Slide s, int n) {
-        if (b == null) { ui.postDelayed(this::next, 1000); return; }
+        checkNight();   // with every image too; entering the quiet visual stops the slide loop
+        if (quietShown) return;   // an image decoded just before the night began is dropped
+        if (b == null) { ui.postDelayed(slideTick, 1000); return; }
         // the two image views keep their z-order (back below front); the incoming image goes into whichever one is
         // hidden, and the cross-fade either fades the upper view in or fades it out to reveal the lower one
         ImageView in = front.getAlpha() > 0.5f ? back : front, out = in == front ? back : front;
@@ -221,13 +286,12 @@ public class BingDream extends DreamService {
             front.animate().alpha(0f).setDuration(FADE_MS).withEndAction(() -> out.setImageDrawable(null)).start();
         }
         date.setText(Ca.date(tx, new java.util.Date()));   // refreshed with every image, so it rolls over at midnight
-        applyNight();
         showWeather();
         title.setText(s.title);
         caption.setText(s.caption);
         title.setVisibility(s.title.isEmpty() ? View.GONE : View.VISIBLE);
         caption.setVisibility(s.caption.isEmpty() ? View.GONE : View.VISIBLE);
-        ui.postDelayed(this::next, SLIDE_MS);
+        ui.postDelayed(slideTick, SLIDE_MS);
     }
 
     /** Slow zoom and drift (see Drift); with motion off the image stays still and no animation is started. */

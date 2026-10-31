@@ -35,6 +35,15 @@ final class HighlightView extends View {
 
     void hide() { shown = false; invalidate(); }
 
+    /** Move mode (#57): a thicker warm stroke marks the app being moved; false restores the normal hairline. */
+    void setMoving(boolean moving) {
+        stroke.setStrokeWidth(Ui.dp(moving ? 3f : 1.5f));
+        stroke.setColor(moving ? MOVING_STROKE : 0x6BFFFFFF);
+        invalidate();
+    }
+
+    static final int MOVING_STROKE = 0xFFFFC857;
+
     @Override protected void onDraw(Canvas c) {
         if (!shown || rect.isEmpty()) return;
         c.drawRoundRect(rect, radius, radius, fill);

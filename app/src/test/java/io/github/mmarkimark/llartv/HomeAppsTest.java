@@ -16,6 +16,20 @@ public class HomeAppsTest {
     static List<String> hidden(String... pkgs) { return Arrays.asList(pkgs); }
     static Set<String> hiddenSet(String... pkgs) { return new HashSet<>(Arrays.asList(pkgs)); }
 
+
+    // ---------------------------------------------------------------- hiding guidance (#36)
+
+    @Test public void theHideGuidanceShowsOnlyForASavedHide() {
+        List<String> before = hidden();
+        List<String> hidden = HomeApps.hideApp(dock("a", "b"), before, "b").hidden;
+        assertTrue(HomeApps.hiddenGuidance(true, before, hidden));   // saved hide: explain how to recover
+        assertFalse(HomeApps.hiddenGuidance(false, before, hidden)); // failed write: no success claim
+        assertFalse(HomeApps.hiddenGuidance(true, hidden, before));  // unhide is not a hide
+        assertFalse(HomeApps.hiddenGuidance(true, before, before));  // nothing changed
+        HomeApps.Edit dockOnly = HomeApps.moveInDock(dock("a", "b"), before, "a", 1);
+        assertFalse(HomeApps.hiddenGuidance(true, before, dockOnly.hidden)); // a dock-only edit hides nothing
+    }
+
     // ---------------------------------------------------------------- dock and hidden edits
 
     @Test public void addingToTheDockAppendsIt() {
