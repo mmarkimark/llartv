@@ -47,6 +47,14 @@ All notable changes to LlarTV are documented in this file. The format is based o
 - Moving apps reuses the dock tiles instead of rebuilding them on every step, which removes visible jank while
   holding an arrow (emulator: janky frames 19 → 1 in the worst run).
 
+- The configuration now lives in app-private storage (#58): `home.conf` and the optional `dock.txt` are moved
+  once, the first time LlarTV reads its settings after the upgrade, from the external app folder to LlarTV's
+  private files folder. The move is byte for byte (every value, comment and unknown line is kept), and the old
+  copy is removed only after the new one has been checked; if the move cannot be completed, LlarTV keeps using
+  the old file and tries again next time. After the move, a `home.conf` put back in the old folder is ignored.
+  `scripts/config.sh`, the settings panel and the reset work as before; caches and pushed wallpaper images stay
+  where they were.
+
 ### Fixed
 
 - A news feed larger than 2 MiB is refused like any other network error instead of being read whole into memory.

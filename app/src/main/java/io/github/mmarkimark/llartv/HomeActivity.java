@@ -636,8 +636,9 @@ public class HomeActivity extends Activity {
      *  dir if present (no rebuild needed), else res/values/dock.xml. */
     List<String> readDockConfig() {
         if (conf.dockSet) return conf.dock;
-        File f = new File(getExternalFilesDir(null), "dock.txt");
-        if (f.exists()) {
+        File dir = ConfigLocation.dir(this);
+        File f = dir == null ? null : new File(dir, ConfigLocation.DOCK);
+        if (f != null && f.exists()) {
             List<String> out = new ArrayList<>();
             try (BufferedReader r = new BufferedReader(new FileReader(f))) {
                 String l;
@@ -1175,7 +1176,7 @@ public class HomeActivity extends Activity {
     /** Writes the given dock, hidden and order values (null: unchanged) to home.conf, keeping every other line,
      *  then reloads the apps with the focus following focusPkg. */
     boolean writeApps(String dock, String hidden, String order, String focusPkg) {
-        File dir = getExternalFilesDir(null);
+        File dir = ConfigLocation.dir(this);
         if (dir == null) { Toast.makeText(this, tx.get(R.string.cant_save), Toast.LENGTH_SHORT).show(); return false; }
         try {
             String text = Config.read(dir);

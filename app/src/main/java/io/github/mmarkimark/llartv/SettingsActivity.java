@@ -402,7 +402,7 @@ public class SettingsActivity extends Activity {
      */
     void resetChoice(int choice) {
         if (choice != SettingsReset.CONFIRM) return;
-        File dir = getExternalFilesDir(null);
+        File dir = ConfigLocation.dir(this);
         SettingsReset.Result result;
         try {
             if (dir == null) throw new IOException();
@@ -425,7 +425,7 @@ public class SettingsActivity extends Activity {
     /** Writes one key to home.conf, keeping every other line, and shows the new value. */
     void persist(Row r, int index) {
         if (r.isAction()) return;
-        File dir = getExternalFilesDir(null);
+        File dir = ConfigLocation.dir(this);
         if (dir == null) {
             Toast.makeText(this, tx.get(R.string.cant_save), Toast.LENGTH_SHORT).show();
             return;

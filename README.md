@@ -250,8 +250,13 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 | `team_id` | empty | ESPN team id for the next-match card (for example `83` for FC Barcelona). |
 | `team_name` | empty | Name shown on the next-match card. |
 
-Settings are stored on the TV in LlarTV's `home.conf` (one `key=value` per line). Remote wallpapers are refreshed
-at most every six hours, and only new Bing images are downloaded.
+Settings are stored on the TV in LlarTV's `home.conf` (one `key=value` per line), together with the optional
+`dock.txt`. The configuration lives in LlarTV's app-private storage; `scripts/config.sh` reads and writes it
+through the app over ADB, exactly as before. Versions up to 1.4 kept these files in the external app folder:
+the first start after the upgrade moves them once, byte for byte, and removes the old copies only after the new
+ones have been checked (if the move fails, the old file stays in use and the move is retried). After the move, a
+`home.conf` placed in the old folder is ignored. Caches and pushed wallpaper images stay in the external app
+folder. Remote wallpapers are refreshed at most every six hours, and only new Bing images are downloaded.
 
 The news source can also be changed from the TV itself: **Configuració → Font de notícies** offers the presets.
 A custom `news_rss` feed has priority over them; remove it from `home.conf` to use a preset again.

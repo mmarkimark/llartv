@@ -82,7 +82,7 @@ public class BingDream extends DreamService {
         LinearLayout clockCol = new LinearLayout(this);
         clockCol.setOrientation(LinearLayout.VERTICAL);
         // The clock format follows LlarTV's own preference (home.conf "clock"), rendered by tickClock.
-        Config conf = Config.parse(getExternalFilesDir(null));
+        Config conf = Config.parse(ConfigLocation.dir(this));
         clockPref = conf.clock;
         time = text(fonts, 150, 86, 0xFFFFFFFF);
         time.setIncludeFontPadding(false);
@@ -137,7 +137,7 @@ public class BingDream extends DreamService {
     /** Weather the home screen last fetched (the screensaver never goes online itself); hidden when stale or off. */
     void showWeather() {
         if (quietShown) { weather.setVisibility(View.GONE); return; }
-        Config conf = Config.parse(getExternalFilesDir(null));
+        Config conf = Config.parse(ConfigLocation.dir(this));
         java.util.Calendar c = java.util.Calendar.getInstance();
         boolean morning = bands != null
                 && bands.at(c.get(java.util.Calendar.HOUR_OF_DAY) * 60 + c.get(java.util.Calendar.MINUTE)) == TimeBands.Band.MORNING;
