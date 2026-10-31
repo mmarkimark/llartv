@@ -64,7 +64,9 @@ A later, separate piece of work will let the owner edit these from a phone brows
 - Must stay light on the MediaTek SoC; no blur, no video.
 - The dock order is never changed.
 - **Language: everything in Catalan** (owner's decision, 2026-10-25), regardless of the TV's locale (the TV is
-  set to Spanish). This covers the new texts (card headings, weather conditions, news age such as "fa 20 min",
+  set to Spanish). Since issue #11 (v1.4) the same rule holds for the chosen interface language (`language=ca`,
+  `es` or `en`, Catalan by default and as the fallback): every LlarTV text, date and plural comes from that
+  language's resources, never from the TV's locale. This covers the new texts (card headings, weather conditions, news age such as "fa 20 min",
   max/min) and also LlarTV's existing text: the greeting ("Bon dia", "Bona tarda", "Bon vespre", "Bona nit"),
   the top pills ("Entrades", "Wi-Fi", "Configuració"), the date on the home screen and the screensaver
   (e.g. "diumenge, 25 d'octubre"), and any other visible LlarTV string. Use the `ca` locale explicitly for

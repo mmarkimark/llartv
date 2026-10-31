@@ -1,6 +1,8 @@
 package io.github.mmarkimark.llartv;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -73,12 +75,15 @@ public class SettingsActivity extends Activity {
     View scrim;
     LinearLayout side, list, panel;
     ScrollView scroll, panelScroll;
-    TextView panelTitle;
+    TextView panelTitle, panelNote;   // the note: the reset scope, shown only on its confirmation
     LinearLayout panelList;
     int focus = 0;
     int panelIdx = 0;
     Row panelRow;
     Row hiddenRow;                 // the hidden apps: OK opens the list, to unhide one
+    Row resetRow;                  // the settings reset: OK opens its confirmation, Cancel first
+    Strings tx;                    // the texts of the interface language; rebuilt when the language row changes
+    TextView title;
     boolean closing;
 
     @Override protected void onCreate(Bundle b) {
@@ -97,8 +102,7 @@ public class SettingsActivity extends Activity {
         side.setOrientation(LinearLayout.VERTICAL);
         side.setBackgroundColor(PANEL_BG);
         side.setPadding(0, dp(48), 0, dp(24));
-        TextView title = text(500, 20, INK);
-        title.setText(Ca.SETTINGS_TITLE);
+        title = text(500, 20, INK);
         title.setPadding(dp(24), 0, dp(24), dp(20));
         side.addView(title, new LinearLayout.LayoutParams(-1, -2));
 
@@ -119,6 +123,11 @@ public class SettingsActivity extends Activity {
         panelList = new LinearLayout(this);
         panelList.setOrientation(LinearLayout.VERTICAL);
         panel.addView(panelTitle, new LinearLayout.LayoutParams(-1, -2));
+        panelNote = text(400, 14, INK_DIM);
+        panelNote.setSingleLine(false);
+        panelNote.setPadding(dp(24), 0, dp(24), dp(12));
+        panelNote.setVisibility(View.GONE);
+        panel.addView(panelNote, new LinearLayout.LayoutParams(-1, -2));
         panelScroll = new ScrollView(this);   // a custom value adds one more choice than the panel can hold
         panelScroll.setFocusable(false);
         panelScroll.setVerticalScrollBarEnabled(false);
@@ -151,23 +160,56 @@ public class SettingsActivity extends Activity {
                 }).start();
     }
 
+    /** A language set while the panel was away (scripts/config.sh) shows at once when it comes back. */
+    @Override protected void onResume() {
+        super.onResume();
+        if (tx != null && !tx.language.equals(Config.load(this).language)) rebuild();
+    }
+
+    /** The menu again, in the language just chosen: every label, value and later message, focus kept in place. */
+    void rebuild() {
+        rows.clear();
+        list.removeAllViews();
+        buildRows();
+        focus = Math.min(focus, rows.size() - 1);
+        applyFocus();
+    }
+
     /** The settings the menu shows. Each one writes to home.conf and nothing else. */
     void buildRows() {
         Config conf = Config.load(this);
-        rows.add(new Row(Ca.CLOCK, "clock",
-                new String[]{Ca.CLOCK_SYSTEM, Ca.CLOCK_24, Ca.CLOCK_12},
-                new String[]{Clock.SYSTEM, Clock.H24, Clock.H12}, null));
-        rows.get(0).selected = Math.max(0, indexOf(rows.get(0).values, conf.clock));
+        tx = Strings.of(this, conf.language);
+        title.setText(tx.get(R.string.settings_title));
+        // The language comes first, and each one is named in its own language, so it can be found in any of them.
+        Row lang = new Row(tx.get(R.string.language), "language", Language.NAMES, Language.OPTIONS, null);
+        lang.selected = Math.max(0, indexOf(lang.values, conf.language));
+        rows.add(lang);
+        Row clock = new Row(tx.get(R.string.clock), "clock",
+                new String[]{tx.get(R.string.clock_system), tx.get(R.string.clock_24), tx.get(R.string.clock_12)},
+                new String[]{Clock.SYSTEM, Clock.H24, Clock.H12}, null);
+        clock.selected = Math.max(0, indexOf(clock.values, conf.clock));
+        rows.add(clock);
         addWallpaperRows(conf);
         addNightRow(conf);
-        addPolicyRow(Ca.WEATHER_HOME, "weather_home", conf.weatherHome);
-        addPolicyRow(Ca.WEATHER_SCREEN, "weather_screen", conf.weatherScreen);
-        addPolicyRow(Ca.NEWS_HOME, "news_home", conf.newsHome);
+        addPolicyRow(tx.get(R.string.weather_home), "weather_home", conf.weatherHome);
+        addPolicyRow(tx.get(R.string.weather_screen), "weather_screen", conf.weatherScreen);
+        addPolicyRow(tx.get(R.string.news_home), "news_home", conf.newsHome);
         addSourceRow(conf);
         addScreensaverRows(conf);
         addMusicRow(conf);
+        rows.add(new Row(tx.get(R.string.music_credits), null, null, null, () ->
+                new android.app.AlertDialog.Builder(this)
+                        .setTitle(tx.get(R.string.music_credits))
+                        .setMessage(tx.get(R.string.music_credits_body))
+                        .setPositiveButton(tx.get(R.string.close), (dialog, which) -> dialog.dismiss()).show()));
+        rows.add(new Row(tx.get(R.string.start_screen), null, null, null, new Runnable() {
+            @Override public void run() { startScreensaver(); }
+        }));
         addHiddenRow();
-        rows.add(new Row(Ca.SYSTEM_SETTINGS, null, null, null, new Runnable() {
+        resetRow = new Row(tx.get(R.string.reset_settings), null,
+                new String[]{tx.get(R.string.reset_cancel), tx.get(R.string.reset_confirm)}, null, null);
+        rows.add(resetRow);
+        rows.add(new Row(tx.get(R.string.system_settings), null, null, null, new Runnable() {
             @Override public void run() { openSystemSettings(); }
         }));
         for (Row r : rows) addRowView(r);
@@ -176,11 +218,11 @@ public class SettingsActivity extends Activity {
 
     /** The news source. A custom "news_rss" wins over the presets, so the row shows that instead. */
     void addSourceRow(Config conf) {
-        Row r = new Row(Ca.NEWS_SOURCE, "news_source", Ca.NEWS_SOURCE_LABELS, NewsSource.OPTIONS, null);
+        Row r = new Row(tx.get(R.string.news_source), "news_source", Ca.newsSources(tx), NewsSource.OPTIONS, null);
         r.selected = Math.max(0, indexOf(r.values, conf.newsSource));
         r.custom = conf.newsRssIsCustom();
-        r.customLabel = Ca.NEWS_SOURCE_CUSTOM;
-        r.customTip = Ca.NEWS_CUSTOM_TIP;
+        r.customLabel = tx.get(R.string.news_source_custom);
+        r.customTip = tx.get(R.string.news_custom_tip);
         rows.add(r);
     }
 
@@ -189,22 +231,22 @@ public class SettingsActivity extends Activity {
      * scripts wins over both choices, so the row shows it and leaves it alone, like a custom news feed.
      */
     void addWallpaperRows(Config conf) {
-        Row w = new Row(Ca.WALLPAPER, "wallpaper", new String[]{Ca.WALLPAPER_BING, Ca.WALLPAPER_PLAIN},
+        Row w = new Row(tx.get(R.string.wallpaper), "wallpaper", new String[]{tx.get(R.string.wallpaper_bing), tx.get(R.string.wallpaper_plain)},
                 new String[]{"bing", "off"}, null);
         Appearance.Wallpaper kind = Appearance.wallpaper(conf.wallpaper);
         w.selected = kind == Appearance.Wallpaper.PLAIN ? 1 : 0;
         w.custom = kind == Appearance.Wallpaper.CUSTOM;
-        w.customLabel = Ca.WALLPAPER_CUSTOM;
-        w.customTip = Ca.WALLPAPER_CUSTOM_TIP;
+        w.customLabel = tx.get(R.string.wallpaper_custom);
+        w.customTip = tx.get(R.string.wallpaper_custom_tip);
         rows.add(w);
 
         int[] minutes = Appearance.minutes(conf.wallpaperMinutes);
         String[] labels = new String[minutes.length], values = new String[minutes.length];
         for (int i = 0; i < minutes.length; i++) {
-            labels[i] = Appearance.minutesLabel(minutes[i]);
+            labels[i] = Appearance.minutesLabel(tx, minutes[i]);
             values[i] = String.valueOf(minutes[i]);
         }
-        Row m = new Row(Ca.PHOTO_CHANGE, "wallpaper_minutes", labels, values, null);
+        Row m = new Row(tx.get(R.string.photo_change), "wallpaper_minutes", labels, values, null);
         m.selected = Appearance.indexOf(minutes, conf.wallpaperMinutes);
         rows.add(m);
     }
@@ -213,8 +255,8 @@ public class SettingsActivity extends Activity {
     void addNightRow(Config conf) {
         String[] nights = Appearance.nights(conf.night);
         String[] labels = new String[nights.length];
-        for (int i = 0; i < nights.length; i++) labels[i] = Appearance.nightLabel(nights[i]);
-        Row r = new Row(Ca.NIGHT_MODE, "night", labels, nights, null);
+        for (int i = 0; i < nights.length; i++) labels[i] = Appearance.nightLabel(tx, nights[i]);
+        Row r = new Row(tx.get(R.string.night_mode), "night", labels, nights, null);
         r.selected = Appearance.indexOf(nights, Appearance.night(conf.night));
         rows.add(r);
     }
@@ -222,7 +264,7 @@ public class SettingsActivity extends Activity {
     /** A row with the three content states: never, only in the morning band, all day. */
     void addPolicyRow(String label, String key, int policy) {
         Row r = new Row(label, key,
-                new String[]{Ca.NEVER, Ca.MORNING_ONLY, Ca.ALL_DAY},
+                new String[]{tx.get(R.string.never), tx.get(R.string.morning_only), tx.get(R.string.all_day)},
                 new String[]{ContentPolicy.value(ContentPolicy.NEVER), ContentPolicy.value(ContentPolicy.MORNING),
                         ContentPolicy.value(ContentPolicy.ALL)}, null);
         r.selected = policy;   // NEVER, MORNING and ALL are 0, 1 and 2, the same order as the options
@@ -231,36 +273,36 @@ public class SettingsActivity extends Activity {
 
     /** The time and the slow zoom of the screensaver, each on or off; both on by default. */
     void addScreensaverRows(Config conf) {
-        Row c = new Row(Ca.CLOCK_SCREEN, "clock_screen", new String[]{Ca.ON, Ca.OFF}, new String[]{"on", "off"}, null);
+        Row c = new Row(tx.get(R.string.clock_screen), "clock_screen", new String[]{tx.get(R.string.on), tx.get(R.string.off)}, new String[]{"on", "off"}, null);
         c.selected = conf.clockScreen ? 0 : 1;
         rows.add(c);
-        Row m = new Row(Ca.MOTION_SCREEN, "motion_screen", new String[]{Ca.ON, Ca.OFF}, new String[]{"on", "off"}, null);
+        Row m = new Row(tx.get(R.string.motion_screen), "motion_screen", new String[]{tx.get(R.string.on), tx.get(R.string.off)}, new String[]{"on", "off"}, null);
         m.selected = conf.motionScreen ? 0 : 1;
         rows.add(m);
     }
 
     /** The screensaver music: on or off. The stream itself comes from the configuration, not from the remote. */
     void addMusicRow(Config conf) {
-        Row r = new Row(Ca.MUSIC_SCREEN, "music_screen", new String[]{Ca.ON, Ca.OFF}, new String[]{"on", "off"}, null);
+        Row r = new Row(tx.get(R.string.music_screen), "music_screen", new String[]{tx.get(R.string.on), tx.get(R.string.off)}, new String[]{"on", "off"}, null);
         r.selected = conf.musicScreen ? 0 : 1;
         rows.add(r);
     }
 
     /** The hidden apps, with how many there are as the value; OK opens the list, to unhide one. */
     void addHiddenRow() {
-        hiddenRow = new Row(Ca.HIDDEN_APPS, "hidden", new String[]{Ca.NONE}, new String[]{""}, null);
+        hiddenRow = new Row(tx.get(R.string.hidden_apps_title), "hidden", new String[]{tx.get(R.string.none)}, new String[]{""}, null);
         rows.add(hiddenRow);
     }
 
     void updateHiddenRow(int count) {
         hiddenRow.selected = 0;
-        hiddenRow.value.setText(count == 0 ? Ca.NONE : count + (count == 1 ? " app" : " apps"));
+        hiddenRow.value.setText(Ca.hiddenApps(tx, count));
     }
 
     /** The hidden apps by label (the package name when it is not installed); OK on one writes the rest. */
     void openHiddenPanel() {
         Config conf = Config.load(this);
-        if (conf.hidden.isEmpty()) { Toast.makeText(this, Ca.NO_HIDDEN_APPS, Toast.LENGTH_SHORT).show(); return; }
+        if (conf.hidden.isEmpty()) { Toast.makeText(this, tx.get(R.string.no_hidden_apps), Toast.LENGTH_SHORT).show(); return; }
         List<String[]> items = new ArrayList<>();   // {label, package}, alphabetical by label
         for (String pkg : conf.hidden) items.add(new String[]{appLabel(pkg), pkg});
         Collections.sort(items, (a, b) -> a[0].compareToIgnoreCase(b[0]));
@@ -308,10 +350,61 @@ public class SettingsActivity extends Activity {
 
     void openSystemSettings() {
         try { startActivity(new Intent(Settings.ACTION_SETTINGS)); }
-        catch (Exception ex) { Toast.makeText(this, Ca.NOT_AVAILABLE, Toast.LENGTH_SHORT).show(); }
+        catch (Exception ex) { Toast.makeText(this, tx.get(R.string.not_available), Toast.LENGTH_SHORT).show(); }
+    }
+
+    /**
+     * Starts LlarTV's screensaver now through SystemUI's exported Somnambulator, only when LlarTV is the
+     * screensaver Android would start. It reads the settings and writes none. The dream covering the screen is
+     * the success; every case it cannot start is reported, and nothing claims a start it cannot see.
+     */
+    void startScreensaver() {
+        ScreenSaverStart.Check check;
+        try {
+            check = ScreenSaverStart.check(
+                    Settings.Secure.getString(getContentResolver(), ScreenSaverStart.COMPONENTS_KEY),
+                    Settings.Secure.getString(getContentResolver(), ScreenSaverStart.ENABLED_KEY));
+        } catch (SecurityException ex) {   // a newer Android may not let apps read these keys
+            toast(tx.get(R.string.screen_unchecked));
+            return;
+        }
+        if (check == ScreenSaverStart.Check.NOT_SELECTED) { toast(tx.get(R.string.screen_not_selected)); return; }
+        if (check == ScreenSaverStart.Check.DISABLED) { toast(tx.get(R.string.screen_disabled)); return; }
+        Intent i = new Intent(Intent.ACTION_MAIN).setComponent(
+                new ComponentName(ScreenSaverStart.LAUNCHER_PACKAGE, ScreenSaverStart.LAUNCHER_CLASS));
+        if (i.resolveActivityInfo(getPackageManager(), 0) == null) { toast(tx.get(R.string.screen_cant_start)); return; }
+        try { startActivity(i); }
+        catch (ActivityNotFoundException | SecurityException ex) { toast(tx.get(R.string.screen_cant_start)); }
     }
 
     void toast(String msg) { Toast.makeText(this, msg, Toast.LENGTH_LONG).show(); }
+
+    /** The reset's confirmation: its scope above Cancel and Reset, with the focus on Cancel. */
+    void openResetPanel() {
+        resetRow.selected = SettingsReset.DEFAULT_CHOICE;
+        openPanel(resetRow);
+        panelNote.setText(tx.get(R.string.reset_scope));
+        panelNote.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Runs the choice of the reset's confirmation. Cancel writes nothing; a failed write says so and leaves the
+     * panel as it is. After a reset the panel is built again from home.conf, in the default language.
+     */
+    void resetChoice(int choice) {
+        if (choice != SettingsReset.CONFIRM) return;
+        File dir = getExternalFilesDir(null);
+        SettingsReset.Result result;
+        try {
+            if (dir == null) throw new IOException();
+            result = SettingsReset.choose(dir, choice);
+        } catch (IOException e) {
+            toast(tx.get(R.string.reset_failed));
+            return;
+        }
+        rebuild();   // the language (back to Catalan), every value and the hidden apps count, as read again
+        toast(tx.get(result == SettingsReset.Result.RESET ? R.string.reset_done : R.string.reset_already));
+    }
 
     static int indexOf(String[] values, String v) {
         for (int i = 0; i < values.length; i++) if (values[i].equals(v)) return i;
@@ -325,18 +418,19 @@ public class SettingsActivity extends Activity {
         if (r.isAction()) return;
         File dir = getExternalFilesDir(null);
         if (dir == null) {
-            Toast.makeText(this, Ca.CANT_SAVE, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, tx.get(R.string.cant_save), Toast.LENGTH_SHORT).show();
             return;
         }
         try {
             String text = Config.read(dir);
             Config.write(dir, Config.setInText(text, r.key, r.values[index]));
         } catch (IOException e) {
-            Toast.makeText(this, Ca.CANT_SAVE, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, tx.get(R.string.cant_save), Toast.LENGTH_SHORT).show();
             return;
         }
         r.selected = index;
         r.value.setText(r.options[index]);
+        if ("language".equals(r.key)) rebuild();   // the whole panel follows the new language at once
     }
 
     void openPanel(Row r) {
@@ -357,6 +451,7 @@ public class SettingsActivity extends Activity {
 
     void closePanel() {
         panel.setVisibility(View.GONE);
+        panelNote.setVisibility(View.GONE);
         scroll.setVisibility(View.VISIBLE);
         panelRow = null;
         applyFocus();
@@ -385,7 +480,9 @@ public class SettingsActivity extends Activity {
             if (k == U) { if (panelIdx == 0) return; panelIdx--; }
             else if (k == D) { if (panelIdx >= panelRow.options.length - 1) return; panelIdx++; }
             else if (isOk(k)) {
-                Row r = panelRow; int i = panelIdx; closePanel(); persist(r, i);
+                Row r = panelRow; int i = panelIdx; closePanel();
+                if (r == resetRow) { resetChoice(i); return; }
+                persist(r, i);
                 if (r == hiddenRow) updateHiddenRow(Config.load(this).hidden.size());
                 return;
             }
@@ -406,6 +503,7 @@ public class SettingsActivity extends Activity {
             persist(r, next);
         }
         else if (isOk(k)) {
+            if (r == resetRow) { openResetPanel(); return; }
             if (r.isAction()) { r.action.run(); return; }
             if (r == hiddenRow) { openHiddenPanel(); return; }
             if (r.custom) { toast(r.customTip); return; }

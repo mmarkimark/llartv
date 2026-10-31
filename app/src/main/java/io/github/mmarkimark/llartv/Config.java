@@ -20,12 +20,14 @@ import java.util.Set;
  *   columns=6
  *   dock=com.google.android.youtube.tv,com.netflix.ninja,com.amazon.amazonvideo.livingroom
  *   hidden=com.example.someapp
+ *   order=com.netflix.ninja,com.example.someapp   (the grid order; empty or missing sorts by name)
  *   team_id=364
  *   team_name=LIVERPOOL FC
  *   wallpaper=bing               (default; an image URL, or off for a plain background)
  *   wallpaper_minutes=30         (default; 0 always shows the newest image)
  *   location=41.4235,2.2010      (latitude,longitude for the weather)
- *   news_source=automatic       (automatic, 3cat, bbc-mundo or bbc-world: the news feed)
+ *   language=ca                  (ca, es or en: the interface language; missing or unknown is Catalan)
+ *   news_source=automatic       (automatic, 3cat, bbc-mundo or bbc-world: the news feed; automatic follows language)
  *   news_rss=https://...         (a custom feed; it wins over the preset and is never overwritten by one)
  *   music_screen=off             (on: music while the screensaver is showing)
  *   music_url=https://...         (custom HTTPS audio; empty selects cached Holizna CC0 music)
@@ -44,10 +46,12 @@ final class Config {
     List<String> dock = new ArrayList<>();
     boolean dockSet = false;       // true once home.conf has a dock= line: the dock is the user's, however short
     Set<String> hidden = new LinkedHashSet<>();   // in the order of the file, so a rewrite keeps it
+    List<String> order = new ArrayList<>();       // the grid order (GridOrder); empty: by label
     String teamId = "", teamName = "";
     String wallpaper = "bing";       // "bing" or an image URL: refreshed daily (DailyWallpaper); empty or "off" = none
     int wallpaperMinutes = 30;       // > 0: rotate through the downloaded images (Bing: last 8) every N minutes
     double lat = 41.4235, lon = 2.2010;   // weather location (La Verneda, Barcelona)
+    String language = Language.DEFAULT;        // "ca", "es" or "en"; never the TV's system language
     String newsSource = NewsSource.AUTOMATIC;   // "automatic", "3cat", "bbc-mundo" or "bbc-world"
     String newsRss = "";           // a custom feed; empty when the preset decides
     boolean newsRssCustom = false; // true when home.conf sets news_rss, so the custom feed wins over the preset
@@ -98,11 +102,19 @@ final class Config {
         catch (IOException e) { return ""; }
     }
 
-    /** Replaces home.conf in dir; written to a temporary file first, so a reader never sees half a file. */
+    /**
+     * Replaces home.conf in dir; written to a temporary file first, so a reader never sees half a file. When the
+     * write fails, home.conf is left as it was and the temporary file (only a regular file of its own) is removed.
+     */
     static void write(File dir, String text) throws IOException {
         File tmp = new File(dir, FILE + ".tmp");
-        Files.write(tmp.toPath(), text.getBytes(StandardCharsets.UTF_8));
-        Files.move(tmp.toPath(), new File(dir, FILE).toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        try {
+            Files.write(tmp.toPath(), text.getBytes(StandardCharsets.UTF_8));
+            Files.move(tmp.toPath(), new File(dir, FILE).toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (IOException e) {
+            if (tmp.isFile() && !tmp.delete()) e.addSuppressed(new IOException(tmp.getPath()));   // left behind
+            throw e;
+        }
     }
 
     /** Applies one key=value line; unknown keys and unreadable values are ignored. */
@@ -113,6 +125,7 @@ final class Config {
                 break;
             case "dock": dock = split(v); dockSet = true; break;
             case "hidden": hidden = new LinkedHashSet<>(split(v)); break;
+            case "order": order = split(v); break;
             case "team_id": teamId = v; break;
             case "team_name": teamName = v; break;
             case "wallpaper": wallpaper = v.equalsIgnoreCase("off") ? "" : v; break;
@@ -121,6 +134,11 @@ final class Config {
                 String[] p = v.split(",");
                 try { if (p.length == 2) { double a = Double.parseDouble(p[0].trim()), b = Double.parseDouble(p[1].trim()); lat = a; lon = b; } }
                 catch (NumberFormatException ignored) {}
+                break;
+            }
+            case "language": {
+                String p = Language.parse(v);
+                language = v.trim().isEmpty() ? Language.DEFAULT : p.isEmpty() ? language : p;
                 break;
             }
             case "news_rss": newsRss = v; newsRssCustom = true; break;

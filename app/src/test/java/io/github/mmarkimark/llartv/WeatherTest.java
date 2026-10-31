@@ -30,45 +30,75 @@ public class WeatherTest {
         assertEquals(1234L, w.fetchedAt);
     }
 
+    static final Strings CA = LanguageTest.strings(Language.CA), ES = LanguageTest.strings(Language.ES),
+            EN = LanguageTest.strings(Language.EN);
+
     @Test public void lineAndRangeAreCatalan() throws Exception {
         Weather w = Weather.parse(JSON, 0);
-        assertEquals("16° · Serè", w.line());
-        assertEquals("Màx. 22° · Mín. 12°", w.range());
+        assertEquals("16° · Serè", w.line(CA));
+        assertEquals("Màx. 22° · Mín. 12°", w.range(CA));
+    }
+
+    @Test public void lineAndRangeFollowTheInterfaceLanguage() throws Exception {
+        Weather w = Weather.parse(JSON, 0);
+        assertEquals("16° · Despejado", w.line(ES));
+        assertEquals("Máx. 22° · Mín. 12°", w.range(ES));
+        assertEquals("16° · Clear", w.line(EN));
+        assertEquals("High 22° · Low 12°", w.range(EN));
+    }
+
+    @Test public void describesRepresentativeCodesInSpanishAndEnglish() {
+        assertEquals("Niebla", Weather.describe(ES, 45));
+        assertEquals("Tormenta con granizo", Weather.describe(ES, 99));
+        assertEquals("Fog", Weather.describe(EN, 48));
+        assertEquals("Snow showers", Weather.describe(EN, 86));
+        assertEquals("Thunderstorm with hail", Weather.describe(EN, 96));
+    }
+
+    @Test public void theCacheHoldsTheCodeNotATextSoALanguageChangeNeedsNoRefetch() throws Exception {
+        File dir = tmp.newFolder();
+        Weather.parse(JSON, 1L).save(dir);
+        Weather w = Weather.load(dir);
+        assertEquals("16° · Serè", w.line(CA));
+        assertEquals("16° · Clear", w.line(EN));
     }
 
     @Test public void negativeTemperaturesRoundAndShowSign() throws Exception {
         Weather w = Weather.parse(JSON.replace("16.4", "-2.6").replace("12.3", "-4.5"), 0);
         assertEquals(-3, w.temp);
         assertEquals(-4, w.min);   // Math.round(-4.5) == -4
-        assertEquals("-3° · Serè", w.line());
+        assertEquals("-3° · Serè", w.line(CA));
     }
 
     @Test public void describesRepresentativeCodesInCatalan() {
-        assertEquals("Serè", Weather.describe(0));
-        assertEquals("Poc ennuvolat", Weather.describe(1));
-        assertEquals("Mig ennuvolat", Weather.describe(2));
-        assertEquals("Ennuvolat", Weather.describe(3));
-        assertEquals("Boira", Weather.describe(45));
-        assertEquals("Boira", Weather.describe(48));
-        assertEquals("Plugim", Weather.describe(53));
-        assertEquals("Pluja", Weather.describe(61));
-        assertEquals("Pluja forta", Weather.describe(65));
-        assertEquals("Neu", Weather.describe(73));
-        assertEquals("Ruixats", Weather.describe(80));
-        assertEquals("Ruixats de neu", Weather.describe(85));
-        assertEquals("Tempesta", Weather.describe(95));
-        assertEquals("Tempesta amb calamarsa", Weather.describe(99));
+        assertEquals("Serè", Weather.describe(CA, 0));
+        assertEquals("Poc ennuvolat", Weather.describe(CA, 1));
+        assertEquals("Mig ennuvolat", Weather.describe(CA, 2));
+        assertEquals("Ennuvolat", Weather.describe(CA, 3));
+        assertEquals("Boira", Weather.describe(CA, 45));
+        assertEquals("Boira", Weather.describe(CA, 48));
+        assertEquals("Plugim", Weather.describe(CA, 53));
+        assertEquals("Pluja", Weather.describe(CA, 61));
+        assertEquals("Pluja forta", Weather.describe(CA, 65));
+        assertEquals("Neu", Weather.describe(CA, 73));
+        assertEquals("Ruixats", Weather.describe(CA, 80));
+        assertEquals("Ruixats de neu", Weather.describe(CA, 85));
+        assertEquals("Tempesta", Weather.describe(CA, 95));
+        assertEquals("Tempesta amb calamarsa", Weather.describe(CA, 99));
     }
 
     @Test public void everyOpenMeteoCodeHasText() {
         int[] codes = {0, 1, 2, 3, 45, 48, 51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 71, 73, 75, 77, 80, 81, 82, 85, 86, 95, 96, 99};
-        for (int c : codes) if (Weather.describe(c).isEmpty()) throw new AssertionError("no text for code " + c);
+        for (String lang : Language.OPTIONS) for (int c : codes) {
+            if (Weather.describe(LanguageTest.strings(lang), c).isEmpty()) throw new AssertionError(lang + ": no text for code " + c);
+        }
     }
 
     @Test public void unknownCodeLeavesOnlyTheTemperature() throws Exception {
-        assertEquals("", Weather.describe(42));
+        assertEquals("", Weather.describe(CA, 42));
         Weather w = Weather.parse(JSON.replace("\"weather_code\":0", "\"weather_code\":42"), 0);
-        assertEquals("16°", w.line());
+        assertEquals("16°", w.line(CA));
+        assertEquals("", Weather.describe(EN, 42));
     }
 
     @Test public void cacheRoundTrips() throws Exception {
