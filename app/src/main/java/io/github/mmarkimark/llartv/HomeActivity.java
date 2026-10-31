@@ -803,7 +803,7 @@ public class HomeActivity extends Activity {
         updateHero(animate);
         scrollPage(animate);
         moveHighlight(animate);
-        saveFocus();
+        // The focus is remembered in onPause, not here: this runs on every D-pad step (#56).
     }
 
     TileView gridTile(int pos) {
