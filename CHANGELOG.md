@@ -46,8 +46,9 @@ All notable changes to LlarTV are documented in this file. The format is based o
   APK. Offline ca/es/en credits provide the original titles, author, source and licence. Music stays off by
   default; custom HTTPS streams retain their own programming without forced rotation. Exit releases focus/player
   and timers; failures leave the visuals running silently. The full offline loop passed on an Android TV
-  emulator; real-TV rotation/normal exit and owner listening also passed. See the
-  [acceptance record](docs/v1.4-acceptance.md) for measured evidence and separate public-download gates.
+  emulator; real-TV rotation/normal exit and owner listening also passed, and the published assets were verified
+  over public HTTPS and on a cold-cache Android device. See the
+  [acceptance record](docs/v1.4-acceptance.md) for the measured evidence.
 - A failed `home.conf` write no longer leaves a `home.conf.tmp` file behind; `home.conf` itself is unchanged.
 
 ## [1.3] - 2026-10-30
