@@ -4,6 +4,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Locale;
@@ -40,8 +41,13 @@ final class Weather {
     }
 
     static Weather fetch(double lat, double lon) throws Exception {
-        return parse(DailyWallpaper.get(url(lat, lon)), System.currentTimeMillis());
+        return parse(read(DailyWallpaper.open(url(lat, lon))), System.currentTimeMillis());
     }
+
+    /** An Open-Meteo forecast is about 1 KB; a larger body fails the fetch and the cached weather stays. */
+    static final int MAX_BYTES = 256 * 1024;
+
+    static String read(HttpURLConnection c) throws Exception { return Http.text(c, MAX_BYTES); }
 
     /** The text of a WMO weather code as Open-Meteo uses them, in the interface language; empty for an unknown code. */
     static String describe(Strings s, int wmoCode) {
