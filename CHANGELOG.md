@@ -51,9 +51,9 @@ All notable changes to LlarTV are documented in this file. The format is based o
   once, the first time LlarTV reads its settings after the upgrade, from the external app folder to LlarTV's
   private files folder. The move is byte for byte (every value, comment and unknown line is kept), and the old
   copy is removed only after the new one has been checked; if the move cannot be completed, LlarTV keeps using
-  the old file and tries again next time. After the move, a `home.conf` put back in the old folder is ignored.
-  `scripts/config.sh`, the settings panel and the reset work as before; caches and pushed wallpaper images stay
-  where they were.
+  the old file and tries again next time. The move runs once (also on a new installation with nothing to move);
+  afterwards a `home.conf` or `dock.txt` put in the old folder is ignored. `scripts/config.sh`, the settings
+  panel and the reset work as before; caches and pushed wallpaper images stay where they were.
 
 ### Fixed
 

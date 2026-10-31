@@ -43,7 +43,7 @@ public class ConfigLocationTest {
     @Test public void aFreshInstallHasNothingToMoveAndUsesPrivateStorage() {
         assertEquals(ConfigLocation.Result.DONE, ConfigLocation.migrate(priv, ext));
         assertEquals(priv, ConfigLocation.resolve(priv, ext));
-        assertEquals(0, priv.list().length);
+        assertArrayEquals(new String[]{ConfigLocation.MARKER}, priv.list());   // only the record of the move
         assertEquals(0, ext.list().length);
     }
 
@@ -53,7 +53,8 @@ public class ConfigLocationTest {
         assertEquals(ConfigLocation.Result.DONE, ConfigLocation.migrate(priv, ext));
         assertArrayEquals(before, bytes(priv, Config.FILE));
         assertFalse(new File(ext, Config.FILE).exists());
-        assertEquals(1, priv.list().length);   // no temporary file left behind
+        assertEquals(2, priv.list().length);   // home.conf and the marker: no temporary file left behind
+        assertTrue(new File(priv, ConfigLocation.MARKER).isFile());
     }
 
     @Test public void anUpgradeMovesDockTxtToo() throws Exception {
@@ -199,6 +200,156 @@ public class ConfigLocationTest {
         put(priv, Config.FILE, "columns=4\n");
         assertEquals(ConfigLocation.Result.DONE, ConfigLocation.migrate(priv, null));
         assertEquals(priv, ConfigLocation.resolve(priv, null));
+    }
+
+    // ---- B1: once the move has run, the external folder is never looked at again
+
+    @Test public void aFreshInstallIgnoresAHomeConfThatAppearsLaterInTheOldFolder() throws Exception {
+        assertEquals(ConfigLocation.Result.DONE, ConfigLocation.migrate(priv, ext));
+        put(ext, Config.FILE, CONF);
+        assertEquals(ConfigLocation.Result.DONE, ConfigLocation.migrate(priv, ext));
+        assertEquals(priv, ConfigLocation.resolve(priv, ext));
+        assertFalse(new File(priv, Config.FILE).exists());
+        assertEquals(CONF, new String(bytes(ext, Config.FILE), StandardCharsets.UTF_8));   // left untouched
+        assertEquals(6, Config.parse(ConfigLocation.resolve(priv, ext)).columns);
+    }
+
+    @Test public void aFreshInstallIgnoresADockTxtThatAppearsLaterInTheOldFolder() throws Exception {
+        assertEquals(ConfigLocation.Result.DONE, ConfigLocation.migrate(priv, ext));
+        put(ext, ConfigLocation.DOCK, DOCK);
+        assertEquals(ConfigLocation.Result.DONE, ConfigLocation.migrate(priv, ext));
+        assertFalse(new File(priv, ConfigLocation.DOCK).exists());
+        assertEquals(DOCK, new String(bytes(ext, ConfigLocation.DOCK), StandardCharsets.UTF_8));
+    }
+
+    @Test public void withTheMarkerTheOldFolderIsNeverRead() throws Exception {
+        put(priv, ConfigLocation.MARKER, "");
+        put(ext, Config.FILE, CONF);
+        File f = new File(ext, Config.FILE);
+        assertTrue(f.setReadable(false));
+        assumeFalse("running as root: the file stays readable", f.canRead());
+        try {
+            assertEquals(ConfigLocation.Result.DONE, ConfigLocation.migrate(priv, ext));   // a read would fail
+            assertEquals(priv, ConfigLocation.resolve(priv, ext));
+        } finally {
+            assertTrue(f.setReadable(true));
+        }
+        assertFalse(new File(priv, Config.FILE).exists());
+        assertEquals(CONF, new String(bytes(ext, Config.FILE), StandardCharsets.UTF_8));
+    }
+
+    @Test public void anUpgradeThenAReappearingOldCopyIsIgnored() throws Exception {
+        put(ext, Config.FILE, CONF);
+        assertEquals(ConfigLocation.Result.DONE, ConfigLocation.migrate(priv, ext));
+        put(ext, Config.FILE, "columns=3\n");
+        put(ext, ConfigLocation.DOCK, DOCK);
+        assertEquals(ConfigLocation.Result.DONE, ConfigLocation.migrate(priv, ext));
+        assertEquals(CONF, new String(bytes(priv, Config.FILE), StandardCharsets.UTF_8));
+        assertFalse(new File(priv, ConfigLocation.DOCK).exists());
+        assertEquals("columns=3\n", new String(bytes(ext, Config.FILE), StandardCharsets.UTF_8));
+        assertEquals(DOCK, new String(bytes(ext, ConfigLocation.DOCK), StandardCharsets.UTF_8));
+    }
+
+    @Test public void anInstallOfThePreviousBuildWithAPrivateHomeConfIsTreatedAsMovedAndMarked() throws Exception {
+        put(priv, Config.FILE, "columns=4\n");   // moved (or saved) by a build without the marker
+        put(ext, ConfigLocation.DOCK, DOCK);
+        assertEquals(ConfigLocation.Result.DONE, ConfigLocation.migrate(priv, ext));
+        assertFalse(new File(priv, ConfigLocation.DOCK).exists());
+        assertEquals(DOCK, new String(bytes(ext, ConfigLocation.DOCK), StandardCharsets.UTF_8));
+        assertTrue(new File(priv, ConfigLocation.MARKER).isFile());
+        assertEquals("columns=4\n", new String(bytes(priv, Config.FILE), StandardCharsets.UTF_8));
+    }
+
+    @Test public void anInstallOfThePreviousBuildWithOnlyAPrivateDockTxtIsTreatedAsMoved() throws Exception {
+        put(priv, ConfigLocation.DOCK, DOCK);
+        put(ext, Config.FILE, CONF);
+        assertEquals(ConfigLocation.Result.DONE, ConfigLocation.migrate(priv, ext));
+        assertFalse(new File(priv, Config.FILE).exists());
+        assertEquals(CONF, new String(bytes(ext, Config.FILE), StandardCharsets.UTF_8));
+        assertTrue(new File(priv, ConfigLocation.MARKER).isFile());
+    }
+
+    @Test public void aFailedMoveWritesNoMarkerSoItIsRetried() throws Exception {
+        put(ext, Config.FILE, CONF);
+        File blocker = new File(priv, Config.FILE + ConfigLocation.TMP);
+        assertTrue(blocker.mkdir());
+        Files.write(new File(blocker, "keep").toPath(), new byte[]{1});
+        assertEquals(ConfigLocation.Result.FAILED, ConfigLocation.migrate(priv, ext));
+        assertFalse(new File(priv, ConfigLocation.MARKER).exists());
+        assertEquals(ext, ConfigLocation.resolve(priv, ext));
+    }
+
+    // ---- N2: an old folder that is not there (storage not ready) is not taken for a fresh install
+
+    @Test public void anOldFolderThatIsNotThereIsNotAFreshInstall() throws Exception {
+        File gone = new File(tmp.getRoot(), "not-mounted");
+        assertEquals(ConfigLocation.Result.UNKNOWN, ConfigLocation.migrate(priv, gone));
+        assertNull(ConfigLocation.resolve(priv, gone));
+        assertFalse(new File(priv, ConfigLocation.MARKER).exists());
+        File notADir = new File(tmp.getRoot(), "a-file");
+        assertTrue(notADir.createNewFile());
+        assertEquals(ConfigLocation.Result.UNKNOWN, ConfigLocation.migrate(priv, notADir));
+    }
+
+    @Test public void anUnlistableOldFolderIsNotAFreshInstall() throws Exception {
+        assertTrue(ext.setReadable(false));
+        assumeFalse("running as root: the folder stays readable", ext.canRead());
+        try {
+            assertEquals(ConfigLocation.Result.UNKNOWN, ConfigLocation.migrate(priv, ext));
+            assertFalse(new File(priv, ConfigLocation.MARKER).exists());
+        } finally {
+            assertTrue(ext.setReadable(true));
+        }
+    }
+
+    @Test public void anOldFolderThatIsNotThereIsFineOnceMovedOrMarked() throws Exception {
+        File gone = new File(tmp.getRoot(), "not-mounted");
+        put(priv, ConfigLocation.MARKER, "");
+        assertEquals(ConfigLocation.Result.DONE, ConfigLocation.migrate(priv, gone));
+        assertEquals(ConfigLocation.Result.DONE, ConfigLocation.migrate(priv, null));
+        File priv2 = tmp.newFolder("files2");
+        put(priv2, Config.FILE, "columns=4\n");
+        assertEquals(ConfigLocation.Result.DONE, ConfigLocation.migrate(priv2, gone));
+        assertEquals(priv2, ConfigLocation.resolve(priv2, gone));
+    }
+
+    // ---- N4
+
+    @Test public void anUnreadableOldDockTxtAloneFailsAndIsKept() throws Exception {
+        put(ext, ConfigLocation.DOCK, DOCK);
+        File f = new File(ext, ConfigLocation.DOCK);
+        assertTrue(f.setReadable(false));
+        assumeFalse("running as root: the file stays readable", f.canRead());
+        try {
+            assertEquals(ConfigLocation.Result.FAILED, ConfigLocation.migrate(priv, ext));
+            assertEquals(0, priv.list().length);   // no copy, no marker
+            assertEquals(ext, ConfigLocation.resolve(priv, ext));
+        } finally {
+            assertTrue(f.setReadable(true));
+        }
+        assertEquals(DOCK, new String(bytes(ext, ConfigLocation.DOCK), StandardCharsets.UTF_8));
+    }
+
+    @Test public void aCopyThatDiffersIsRemovedAndReported() throws Exception {
+        put(ext, Config.FILE, CONF);
+        put(priv, Config.FILE, CONF + "x");   // what a bad copy would hold
+        try {
+            ConfigLocation.verify(CONF.getBytes(StandardCharsets.UTF_8), new File(ext, Config.FILE), new File(priv, Config.FILE));
+            org.junit.Assert.fail("a copy that differs is not accepted");
+        } catch (java.io.IOException expected) {}
+        assertFalse(new File(priv, Config.FILE).exists());
+        assertEquals(CONF, new String(bytes(ext, Config.FILE), StandardCharsets.UTF_8));
+    }
+
+    @Test public void aSourceChangedDuringTheCopyIsReportedToo() throws Exception {
+        put(ext, Config.FILE, CONF + "y");    // the old file changed after it was read
+        put(priv, Config.FILE, CONF);
+        try {
+            ConfigLocation.verify(CONF.getBytes(StandardCharsets.UTF_8), new File(ext, Config.FILE), new File(priv, Config.FILE));
+            org.junit.Assert.fail("a source that changed is not accepted");
+        } catch (java.io.IOException expected) {}
+        assertFalse(new File(priv, Config.FILE).exists());
+        assertTrue(new File(ext, Config.FILE).exists());
     }
 
     @Test public void aMissingDirectoryReadsAsNoSettingsAndCannotBeWritten() {
