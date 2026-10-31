@@ -98,7 +98,8 @@ broadcasts, and network data is fetched only while the home screen is showing.
 **Other**
 
 - Optional "next match" card for a football club, using ESPN's public schedule. It hides itself if the feed fails.
-- All interface text is in Catalan, regardless of the system language.
+- Interface in Catalan (the default), Spanish or English, chosen under **Configuració → Idioma** or with
+  `language=`; it is independent of the TV's system language, time zone and clock format.
 
 ## Screenshots
 
@@ -211,7 +212,8 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 | `morning` | `08:00-11:00` | Morning panel time range; `off` turns it off. |
 | `night` | `23:00-08:00` | Night mode time range; `off` turns it off. |
 | `location` | `41.4235,2.2010` (Barcelona) | `latitude,longitude` used for the weather. |
-| `news_source` | `automatic` | News source: `automatic` (follows the interface language, Catalan until the language selector in v1.2), `3cat`, `bbc-mundo` or `bbc-world`. |
+| `language` | `ca` | Interface language: `ca` (Catalan), `es` (Spanish) or `en` (English). A new installation and an upgraded one without this line are in Catalan; an unknown value keeps Catalan. It never changes the TV's system language, time zone or clock format. |
+| `news_source` | `automatic` | News source: `automatic` (follows `language`: 3Cat, BBC News Mundo or BBC News World), `3cat`, `bbc-mundo` or `bbc-world`. |
 | `news_rss` | empty | Custom RSS feed for the morning headlines; it wins over `news_source` and is never overwritten by it. Remove the line to use a preset again. |
 | `music_screen` | `off` | Music during the screensaver: `on` or `off`. Off means no music download or player. |
 | `music_url` | empty | Empty selects cached Holizna CC0 music; a custom HTTPS audio URL overrides it without caching or looping. See [docs/screensaver-music.md](docs/screensaver-music.md). |
@@ -259,7 +261,8 @@ echo "sdk.dir=$ANDROID_HOME" > local.properties
 ```
 
 Unit tests run on the JVM and cover configuration parsing, time bands, colour handling, weather and news parsing,
-wallpaper selection and the Catalan text helpers.
+wallpaper selection, and the three interface languages (every text resolved from the resource files, with
+key, placeholder and plural parity).
 
 Project layout:
 

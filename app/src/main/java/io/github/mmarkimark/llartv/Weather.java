@@ -11,7 +11,7 @@ import java.util.Locale;
 /**
  * Current weather and today's max/min from Open-Meteo (no API key), for the morning panel and the screensaver.
  * HomeActivity fetches it and saves it to files/weather.cache; BingDream only reads that cache.
- * Condition texts are Catalan, whatever the TV's locale.
+ * The cache keeps the WMO code, not a text, so the condition shows in whatever the interface language is now.
  */
 final class Weather {
     static final String CACHE = "weather.cache";
@@ -43,38 +43,44 @@ final class Weather {
         return parse(DailyWallpaper.get(url(lat, lon)), System.currentTimeMillis());
     }
 
-    /** Short Catalan text for a WMO weather code as Open-Meteo uses them; empty for an unknown code. */
-    static String describe(int wmoCode) {
+    /** The text of a WMO weather code as Open-Meteo uses them, in the interface language; empty for an unknown code. */
+    static String describe(Strings s, int wmoCode) {
+        int id = condition(wmoCode);
+        return id == 0 ? "" : s.get(id);
+    }
+
+    /** The resource for a WMO code; 0 for an unknown one. */
+    static int condition(int wmoCode) {
         switch (wmoCode) {
-            case 0: return "Serè";
-            case 1: return "Poc ennuvolat";
-            case 2: return "Mig ennuvolat";
-            case 3: return "Ennuvolat";
-            case 45: case 48: return "Boira";
-            case 51: case 53: case 55: return "Plugim";
-            case 56: case 57: return "Plugim gelat";
-            case 61: case 63: return "Pluja";
-            case 65: return "Pluja forta";
-            case 66: case 67: return "Pluja gelada";
-            case 71: case 73: case 77: return "Neu";
-            case 75: return "Neu forta";
-            case 80: case 81: return "Ruixats";
-            case 82: return "Ruixats forts";
-            case 85: case 86: return "Ruixats de neu";
-            case 95: return "Tempesta";
-            case 96: case 99: return "Tempesta amb calamarsa";
-            default: return "";
+            case 0: return R.string.wx_clear;
+            case 1: return R.string.wx_mainly_clear;
+            case 2: return R.string.wx_partly_cloudy;
+            case 3: return R.string.wx_overcast;
+            case 45: case 48: return R.string.wx_fog;
+            case 51: case 53: case 55: return R.string.wx_drizzle;
+            case 56: case 57: return R.string.wx_freezing_drizzle;
+            case 61: case 63: return R.string.wx_rain;
+            case 65: return R.string.wx_heavy_rain;
+            case 66: case 67: return R.string.wx_freezing_rain;
+            case 71: case 73: case 77: return R.string.wx_snow;
+            case 75: return R.string.wx_heavy_snow;
+            case 80: case 81: return R.string.wx_showers;
+            case 82: return R.string.wx_heavy_showers;
+            case 85: case 86: return R.string.wx_snow_showers;
+            case 95: return R.string.wx_thunderstorm;
+            case 96: case 99: return R.string.wx_thunderstorm_hail;
+            default: return 0;
         }
     }
 
     /** "16° · Serè" (just "16°" for an unknown code). */
-    String line() {
-        String d = describe(code);
+    String line(Strings s) {
+        String d = describe(s, code);
         return d.isEmpty() ? temp + "°" : temp + "° · " + d;
     }
 
     /** "Màx. 22° · Mín. 12°". */
-    String range() { return "Màx. " + max + "° · Mín. " + min + "°"; }
+    String range(Strings s) { return s.get(R.string.weather_range, max, min); }
 
     /** Writes files/weather.cache as one tab-separated line, via a temp file so a reader never sees half of it. */
     void save(File dir) throws Exception {

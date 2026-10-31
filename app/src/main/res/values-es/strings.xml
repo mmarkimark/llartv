@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- LlarTV's texts in Spanish: the same names, placeholders and plurals as values/strings.xml (Catalan). -->
+<resources>
+    <!-- Home: the pills, the cards and the messages -->
+    <string name="inputs">Entradas</string>
+    <string name="wifi">Wi-Fi</string>
+    <string name="settings">Ajustes</string>
+    <string name="offline">Sin conexión</string>
+    <string name="ethernet">Ethernet</string>
+    <string name="connected">Conectado</string>
+    <string name="live_tv">TV en directo</string>
+    <string name="no_live_tv">Esta TV no tiene ninguna app de TV en directo</string>
+    <string name="cant_open">No se puede abrir %1$s</string>
+    <string name="not_available">No disponible</string>
+    <string name="cant_switch_input">No se puede cambiar de entrada</string>
+    <string name="weather">Tiempo</string>
+    <string name="news">Noticias</string>
+
+    <!-- Greetings -->
+    <string name="greeting_morning">Buenos días</string>
+    <string name="greeting_afternoon">Buenas tardes</string>
+    <string name="greeting_evening">Buenas tardes</string>
+    <string name="greeting_night">Buenas noches</string>
+
+    <!-- Dates -->
+    <string name="date_pattern">EEEE, d \'de\' MMMM</string>
+    <string name="weekday_pattern">EEEE</string>
+    <string name="short_day_pattern">EEE d MMM</string>
+
+    <!-- The next-match card -->
+    <string name="next_match">PRÓXIMO PARTIDO</string>
+    <string name="live_now">EN DIRECTO</string>
+    <string name="today">Hoy</string>
+    <string name="tomorrow">Mañana</string>
+    <string name="home_game">En casa</string>
+    <string name="away_game">Fuera</string>
+    <string name="versus">contra %1$s</string>
+    <string name="countdown_minutes">en %1$d min</string>
+    <string name="countdown_hours">en %1$d h %2$d min</string>
+    <plurals name="countdown_days">
+        <item quantity="one">en %1$d día</item>
+        <item quantity="other">en %1$d días</item>
+    </plurals>
+    <string name="kicked_off">empezó hace %1$d min</string>
+
+    <!-- Weather -->
+    <string name="wx_clear">Despejado</string>
+    <string name="wx_mainly_clear">Poco nuboso</string>
+    <string name="wx_partly_cloudy">Parcialmente nuboso</string>
+    <string name="wx_overcast">Nublado</string>
+    <string name="wx_fog">Niebla</string>
+    <string name="wx_drizzle">Llovizna</string>
+    <string name="wx_freezing_drizzle">Llovizna helada</string>
+    <string name="wx_rain">Lluvia</string>
+    <string name="wx_heavy_rain">Lluvia fuerte</string>
+    <string name="wx_freezing_rain">Lluvia helada</string>
+    <string name="wx_snow">Nieve</string>
+    <string name="wx_heavy_snow">Nieve fuerte</string>
+    <string name="wx_showers">Chubascos</string>
+    <string name="wx_heavy_showers">Chubascos fuertes</string>
+    <string name="wx_snow_showers">Chubascos de nieve</string>
+    <string name="wx_thunderstorm">Tormenta</string>
+    <string name="wx_thunderstorm_hail">Tormenta con granizo</string>
+    <string name="weather_range">Máx. %1$d° · Mín. %2$d°</string>
+
+    <!-- The age of a headline -->
+    <string name="age_now">ahora mismo</string>
+    <string name="age_minutes">hace %1$d min</string>
+    <string name="age_hours">hace %1$d h</string>
+    <string name="age_yesterday">ayer</string>
+    <plurals name="age_days">
+        <item quantity="one">hace %1$d día</item>
+        <item quantity="other">hace %1$d días</item>
+    </plurals>
+
+    <!-- LlarTV settings -->
+    <string name="settings_title">Ajustes de LlarTV</string>
+    <string name="system_settings">Ajustes del sistema</string>
+    <string name="language">Idioma</string>
+    <string name="clock">Reloj</string>
+    <string name="clock_system">Según el sistema</string>
+    <string name="clock_24">24 h</string>
+    <string name="clock_12">12 h</string>
+    <string name="weather_home">Tiempo en la pantalla</string>
+    <string name="weather_screen">Tiempo en el salvapantallas</string>
+    <string name="news_home">Noticias en la pantalla</string>
+    <string name="news_source">Fuente de noticias</string>
+    <string name="news_source_auto">Automático</string>
+    <string name="news_source_custom">Personalizada</string>
+    <string name="news_custom_tip">El feed personalizado tiene prioridad: elimina news_rss de home.conf para usar uno predefinido.</string>
+    <string name="music_screen">Música en el salvapantallas</string>
+    <string name="clock_screen">Reloj en el salvapantallas</string>
+    <string name="motion_screen">Movimiento en el salvapantallas</string>
+    <string name="wallpaper">Fondo de pantalla</string>
+    <string name="wallpaper_bing">Fotos de Bing</string>
+    <string name="wallpaper_plain">Fondo liso</string>
+    <string name="wallpaper_custom">Imagen propia</string>
+    <string name="wallpaper_custom_tip">La imagen propia tiene prioridad: cambia wallpaper con scripts/config.sh para usar Bing o un fondo liso</string>
+    <string name="photo_change">Cambio de foto</string>
+    <string name="photo_fixed">Fija (la más reciente)</string>
+    <string name="photo_every_minutes">Cada %1$d min</string>
+    <plurals name="photo_every_hours">
+        <item quantity="one">Cada hora</item>
+        <item quantity="other">Cada %1$d horas</item>
+    </plurals>
+    <string name="night_mode">Modo noche</string>
+    <string name="night_off">Desactivado</string>
+    <string name="on">Sí</string>
+    <string name="off">No</string>
+    <string name="never">Nunca</string>
+    <string name="morning_only">Solo por la mañana</string>
+    <string name="all_day">Todo el día</string>
+    <string name="cant_save">No se ha podido guardar</string>
+    <string name="start_screen">Iniciar el salvapantallas</string>
+    <string name="screen_not_selected">LlarTV no es el salvapantallas de la TV: elígelo en Ajustes del sistema &gt; Salvapantallas</string>
+    <string name="screen_disabled">El salvapantallas está desactivado: actívalo en Ajustes del sistema &gt; Salvapantallas</string>
+    <string name="screen_unchecked">No se puede comprobar qué salvapantallas tiene la TV</string>
+    <string name="screen_cant_start">Esta TV no permite iniciar el salvapantallas desde aquí</string>
+
+    <!-- The long-press menu of an app, and the hidden apps in the settings -->
+    <string name="add_to_dock">Añadir al dock</string>
+    <string name="remove_from_dock">Quitar del dock</string>
+    <string name="move_left">Mover a la izquierda</string>
+    <string name="move_right">Mover a la derecha</string>
+    <string name="move_up">Mover arriba</string>
+    <string name="move_down">Mover abajo</string>
+    <string name="hide">Ocultar</string>
+    <string name="app_info">Información de la app</string>
+    <string name="dock_full">El dock ya está lleno</string>
+    <string name="hidden_apps_title">Apps ocultas</string>
+    <string name="none">Ninguna</string>
+    <string name="no_hidden_apps">No hay ninguna app oculta</string>
+    <plurals name="hidden_apps">
+        <item quantity="one">%1$d app</item>
+        <item quantity="other">%1$d apps</item>
+    </plurals>
+</resources>
