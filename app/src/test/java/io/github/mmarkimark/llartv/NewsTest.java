@@ -1,13 +1,17 @@
 package io.github.mmarkimark.llartv;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.junit.Assert.assertNull;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.FileWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -144,5 +148,24 @@ public class NewsTest {
         assertNull(News.load(dir, source));
         try (FileWriter w = new FileWriter(new File(dir, "news.cache"))) { w.write("no tab here"); }
         assertNull(News.load(dir, source));
+    }
+
+    // ---------------------------------------------------------------- bounded feed size (Sentinel pass)
+
+    @Test public void aFeedUpToTheLimitIsReadWhole() throws Exception {
+        byte[] body = new byte[40_000];
+        body[39_999] = 7;
+        assertArrayEquals(body, News.readCapped(new ByteArrayInputStream(body), 40_000));
+    }
+
+    @Test public void aFeedOverTheLimitIsRefusedInsteadOfFillingTheMemory() {
+        try {
+            News.readCapped(new ByteArrayInputStream(new byte[40_001]), 40_000);
+            fail("an oversized feed must be refused");
+        } catch (IOException expected) { /* the fetch fails like any other network error */ }
+    }
+
+    @Test public void theFeedLimitLeavesRoomForRealFeeds() {
+        assertEquals(2 * 1024 * 1024, News.MAX_FEED_BYTES);   // real feeds are tens of KB
     }
 }
