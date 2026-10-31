@@ -203,7 +203,8 @@ public class LanguageTest {
      */
     static final Set<String> ALLOWED_LITERALS = new TreeSet<>(java.util.Arrays.asList(
             "Appearance.java: – ",   // the dash of a night range, the same in every language
-            // the providers' names and credits are never translated
+            // Providers, original recording titles and credits are external data, never translated.
+            "MusicTrack.java:Chill Wave", "MusicTrack.java:Dream Culture",
             "Ca.java:BBC News Mundo", "Ca.java:BBC News World", "NewsSource.java:BBC News",
             "NewsSource.java:BBC News Mundo · bbc.co.uk/news", "NewsSource.java:BBC News World · bbc.co.uk/news",
             "NewsSource.java:3Cat · 3cat.cat",
@@ -214,6 +215,23 @@ public class LanguageTest {
             "Weather.java:° · ", "Fixtures.java:UEFA ", "Fixtures.java:English ", "Fixtures.java:FA Community Shield",
             "Fixtures.java:Community Shield", "Fixtures.java:^\\\\d{4}-\\\\d{2} ",
             "DreamMusic.java:), staying silent"));   // the second line of a log call
+
+    @Test public void musicCreditsAreAccessibleInAllLanguagesWithOriginalAttributionAndLicenceLinks() {
+        String[] langs = {"ca", "es", "en"};
+        String[] headings = {"Crèdits de la música", "Créditos de la música", "Music credits"};
+        String[] buttons = {"Tancar", "Cerrar", "Close"};
+        for (int i = 0; i < langs.length; i++) {
+            Strings tx = strings(langs[i]);
+            assertEquals(headings[i], tx.get(R.string.music_credits));
+            assertEquals(buttons[i], tx.get(R.string.close));
+            String body = tx.get(R.string.music_credits_body);
+            for (String required : new String[]{"Dancing", "Holizna", "CC0 1.0",
+                    "https://opengameart.org/content/chillout-instrumentals-collection",
+                    "Chill Wave", "Dream Culture", "Kevin MacLeod (incompetech.com)",
+                    "CC BY 4.0", "https://creativecommons.org/licenses/by/4.0/"})
+                assertTrue(langs[i] + " missing attribution: " + required, body.contains(required));
+        }
+    }
 
     static final Pattern LITERAL = Pattern.compile("\"((?:[^\"\\\\]|\\\\.)*)\"");
 

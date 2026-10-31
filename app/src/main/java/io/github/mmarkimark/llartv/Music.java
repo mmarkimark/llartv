@@ -3,7 +3,7 @@ package io.github.mmarkimark.llartv;
 /**
  * The screensaver music (issue #17).
  *
- * Enabled music uses a once-downloaded CC0 Holizna track unless the owner supplies a custom HTTPS stream.
+ * Enabled music rotates verified cached tracks unless the owner supplies a custom HTTPS stream.
  * No audio is bundled in the APK. Playback belongs to the dream and failures leave it silent.
  */
 final class Music {

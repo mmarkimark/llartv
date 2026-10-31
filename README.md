@@ -2,7 +2,7 @@
 
 A lightweight, native home screen for Android TV. (*Llar* is Catalan for "home".)
 
-[![Release](https://img.shields.io/badge/release-v1.3-blue)](https://github.com/mmarkimark/llartv/releases/tag/v1.3)
+[![Release](https://img.shields.io/badge/release-v1.4-blue)](https://github.com/mmarkimark/llartv/releases/tag/v1.4)
 [![CI](https://github.com/mmarkimark/llartv/actions/workflows/ci.yml/badge.svg)](https://github.com/mmarkimark/llartv/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 ![Android TV 9+](https://img.shields.io/badge/Android%20TV-9%2B-informational)
@@ -11,8 +11,9 @@ A lightweight, native home screen for Android TV. (*Llar* is Catalan for "home".
 
 LlarTV replaces the stock Android TV launcher with a clean, fast home screen built for the remote: a large clock, a
 dock with your streaming apps, a full app grid, daily wallpapers and a matching screensaver. It is written in plain
-Java, uses about 30–40 MB of RAM, and does no background polling: the clock and network name update from system
-broadcasts, and network data is fetched only while the home screen is showing.
+Java, with measured foreground Home PSS of about 35 MiB on the emulator and 63 MiB on the reference TV.
+It does no background polling: the clock and network name update from system broadcasts, and network data is
+fetched only while the home screen is showing.
 
 > **Project status:** LlarTV is a personal project. It is developed and tested on a Xiaomi MiTV-MSSP3
 > (Android TV 11) and an Android TV 11 emulator. Other devices should work but are not regularly tested.
@@ -91,10 +92,13 @@ broadcasts, and network data is fetched only while the home screen is showing.
 - Daily wallpapers from Bing (the last eight images, optionally rotating) or from any image URL.
 - A built-in screensaver (*BingDream*) with a slow zoom and cross-fade over the wallpapers, the clock, the date
   and the current weather.
-- Optional screensaver music, off by default: switch it on from the settings menu to loop Holizna's CC0
-  "Dancing", downloaded once outside the APK and reused offline. A custom HTTPS stream can override it.
-  Music stops with the screensaver; failures leave the visuals running silently. Verified on the TV: audible
-  cached playback, an hour of looping with focus held and no traffic after the one-time download. See
+- Optional screensaver music, off by default: a cached playlist rotates approximately every two minutes
+  through Holizna's CC0 "Dancing" and Kevin MacLeod's CC BY 4.0 "Chill Wave" and "Dream Culture".
+  Original MP3s download outside the APK and are reused offline; the settings menu has offline music credits.
+  A custom HTTPS stream retains its own programming, without forced rotation. Music stops with the screensaver;
+  failures leave the visuals running silently. The full offline loop passed on an Android TV emulator;
+  three-track rotation and normal exit also passed on the reference TV, with owner-confirmed audible changes.
+  Public asset/Android cold-download verification remains a separate release step. See
   [docs/screensaver-music.md](docs/screensaver-music.md).
 
 **Other**
@@ -218,7 +222,7 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 | `news_source` | `automatic` | News source: `automatic` (follows `language`: 3Cat, BBC News Mundo or BBC News World), `3cat`, `bbc-mundo` or `bbc-world`. |
 | `news_rss` | empty | Custom RSS feed for the morning headlines; it wins over `news_source` and is never overwritten by it. Remove the line to use a preset again. |
 | `music_screen` | `off` | Music during the screensaver: `on` or `off`. Off means no music download or player. |
-| `music_url` | empty | Empty selects cached Holizna CC0 music; a custom HTTPS audio URL overrides it without caching or looping. See [docs/screensaver-music.md](docs/screensaver-music.md). |
+| `music_url` | empty | Empty selects the verified cached playlist; a custom HTTPS audio URL overrides it without caching or forced rotation. See [docs/screensaver-music.md](docs/screensaver-music.md). |
 | `clock_screen` | `on` | The time on the screensaver: `on` or `off`. Off hides the time only; the date, the weather and the photo credits stay. |
 | `motion_screen` | `on` | The slow zoom and drift of the screensaver photos: `on` or `off`. Off keeps each photo still; the photos still change every 25 seconds with a fade. |
 | `dock_tint` | `on` | Tint the dock band from the wallpaper; `off` uses a plain band. |
@@ -258,10 +262,13 @@ Preferences → Screen saver*.
 
 ## Performance
 
-LlarTV is kept small and fast: the released APK is about 4 MB, the app uses about 30–40 MB of RAM and it does no
-background polling. [`scripts/measure.sh`](scripts/measure.sh) records the APK size, the cold start, the Home
+LlarTV is kept small and fast: the v1.4 APK is 4,133,135 bytes, with foreground Home PSS about 35 MiB on the
+emulator and 63 MiB on the reference TV. Screensaver PSS is a different workload. It does no background polling. [`scripts/measure.sh`](scripts/measure.sh) records the APK size, the cold start, the Home
 return and the RAM on a connected TV or emulator. The measured baseline and the regression budgets used as release
 gates are in [`docs/performance/baseline-v1.0.md`](docs/performance/baseline-v1.0.md).
+The [v1.4 comparison](docs/performance/v1.4.md) and [acceptance record](docs/v1.4-acceptance.md) separate emulator,
+initial TV and controlled TV measurements. Both controlled candidate cohorts passed the paired TV budgets;
+initial over-budget data is retained, not hidden or replaced with emulator values. Public delivery checks are recorded separately.
 
 ## Building from source
 
