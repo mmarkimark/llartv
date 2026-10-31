@@ -2,10 +2,14 @@
 
 A lightweight, native home screen for Android TV. (*Llar* is Catalan for "home".)
 
-[![Release](https://img.shields.io/badge/release-v1.4-blue)](https://github.com/mmarkimark/llartv/releases/tag/v1.4)
+**Available in English, Catalan and Spanish** — choose the interface language in the LlarTV settings or with
+`language=`. The screenshots below show the English interface.
+
+[![Release](https://img.shields.io/badge/release-v1.5-blue)](https://github.com/mmarkimark/llartv/releases/tag/v1.5)
 [![CI](https://github.com/mmarkimark/llartv/actions/workflows/ci.yml/badge.svg)](https://github.com/mmarkimark/llartv/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 ![Android TV 9+](https://img.shields.io/badge/Android%20TV-9%2B-informational)
+![Languages: English, Catalan, Spanish](https://img.shields.io/badge/languages-English%20%C2%B7%20Catal%C3%A0%20%C2%B7%20Espa%C3%B1ol-informational)
 
 ![LlarTV home screen](docs/screenshots/day.jpg)
 
@@ -250,8 +254,15 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 | `team_id` | empty | ESPN team id for the next-match card (for example `83` for FC Barcelona). |
 | `team_name` | empty | Name shown on the next-match card. |
 
-Settings are stored on the TV in LlarTV's `home.conf` (one `key=value` per line). Remote wallpapers are refreshed
-at most every six hours, and only new Bing images are downloaded.
+Settings are stored on the TV in LlarTV's `home.conf` (one `key=value` per line), together with the optional
+`dock.txt`. The configuration lives in LlarTV's app-private storage; `scripts/config.sh` reads and writes it
+through the app over ADB, exactly as before. Versions up to 1.4 kept these files in the external app folder:
+the first start after the upgrade moves them once, byte for byte, and removes the old copies only after the new
+ones have been checked (if the move fails, the old file stays in use and the move is retried). The move happens
+once, also on a new installation with nothing to move: afterwards a `home.conf` or `dock.txt` placed in the old
+folder is ignored and left there. Other files stay where they were: the weather, news and wallpaper caches and
+pushed wallpaper images in the external app folder, and the music cache in private storage as before. Remote
+wallpapers are refreshed at most every six hours, and only new Bing images are downloaded.
 
 The news source can also be changed from the TV itself: **Configuració → Font de notícies** offers the presets.
 A custom `news_rss` feed has priority over them; remove it from `home.conf` to use a preset again.
@@ -279,14 +290,14 @@ Preferences → Screen saver*.
 
 ## Performance
 
-LlarTV is kept small and fast: the v1.4 APK is 4,133,135 bytes, with foreground Home PSS about 35 MiB on the
-emulator and 63 MiB on the reference TV. Screensaver PSS is a different workload. It does no background polling. [`scripts/measure.sh`](scripts/measure.sh) records the APK size, the cold start, the Home
-return and the RAM on a connected TV or emulator. The measured baseline and the regression budgets used as release
-gates are in [`docs/performance/baseline-v1.0.md`](docs/performance/baseline-v1.0.md).
-The [v1.4 comparison](docs/performance/v1.4.md) and [acceptance record](docs/v1.4-acceptance.md) separate emulator,
-initial TV and controlled TV measurements. Both controlled v1.4 cohorts passed the paired TV budgets;
-initial over-budget data is retained, not hidden or replaced with emulator values. The released APK is the exact
-artifact that passed those checks.
+LlarTV is kept small and fast: the v1.5 APK is 4,149,623 bytes (+0.40% over v1.4), with foreground Home PSS about
+40 MiB on the emulator and 63 MiB on the reference TV. Screensaver PSS is a different workload. It does no background
+polling. [`scripts/measure.sh`](scripts/measure.sh) records the APK size, the cold start, the Home return and the RAM
+on a connected TV or emulator. The measured baseline and the regression budgets used as release gates are in
+[`docs/performance/baseline-v1.0.md`](docs/performance/baseline-v1.0.md). The [v1.5 comparison](docs/performance/v1.5.md)
+records the emulator and reference-TV pairs against the published v1.4, including a first over-budget TV pair kept
+next to the larger matched sample that passed; earlier versions are in [v1.4](docs/performance/v1.4.md). The released
+APK is the exact artifact that passed those checks.
 
 ## Building from source
 
