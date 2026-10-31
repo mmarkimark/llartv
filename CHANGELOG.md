@@ -5,6 +5,8 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [1.5] - 2026-10-31
+
 ### Added
 
 - Hidden-app recovery guidance (#36): hiding an app from its long-press menu now shows a short message saying
@@ -215,7 +217,9 @@ First release.
 - Scripts to install, configure and uninstall LlarTV over ADB: `scripts/install.sh`, `scripts/config.sh` and
   `scripts/uninstall.sh`.
 
-[Unreleased]: https://github.com/mmarkimark/llartv/compare/v1.3...HEAD
+[Unreleased]: https://github.com/mmarkimark/llartv/compare/v1.5...HEAD
+[1.5]: https://github.com/mmarkimark/llartv/compare/v1.4...v1.5
+[1.4]: https://github.com/mmarkimark/llartv/compare/v1.3...v1.4
 [1.3]: https://github.com/mmarkimark/llartv/compare/v1.2...v1.3
 [1.2]: https://github.com/mmarkimark/llartv/compare/v1.1...v1.2
 [1.1]: https://github.com/mmarkimark/llartv/compare/v1.0...v1.1
