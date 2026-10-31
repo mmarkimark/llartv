@@ -46,7 +46,8 @@ fetched only while the home screen is showing.
   *Amagar* or *Informació de l'app*. *Moure* starts move mode (see below). The edits write `dock`, `hidden`
   and `order` to `home.conf`, a full dock says so and writes nothing, and hidden apps come back from
   **Configuració → Apps amagades** — a short message says so when you hide one, and only when the save succeeded.
-- Move mode (*Moure*): a highlighted banner at the top names the app and the keys. Each arrow moves the app one
+- Move mode (*Moure*): the app being moved has a warm amber outline instead of the usual white one, and a banner
+  just above the dock (in place of the large app name, which is hidden meanwhile) names it and the keys. Each arrow moves the app one
   step and you can keep going without reopening the menu — in the grid left/right one place (crossing rows) and
   up/down a whole row, in the dock left/right only; an arrow that would leave the row does nothing. **OK** saves
   the final place with one write to `home.conf`; **Back** (or MENU, Home, or leaving Home) undoes every step and

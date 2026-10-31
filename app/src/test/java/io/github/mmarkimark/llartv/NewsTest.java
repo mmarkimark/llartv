@@ -155,12 +155,12 @@ public class NewsTest {
     @Test public void aFeedUpToTheLimitIsReadWhole() throws Exception {
         byte[] body = new byte[40_000];
         body[39_999] = 7;
-        assertArrayEquals(body, News.readCapped(new ByteArrayInputStream(body), 40_000));
+        assertArrayEquals(body, Http.readCapped(new ByteArrayInputStream(body), 40_000));
     }
 
     @Test public void aFeedOverTheLimitIsRefusedInsteadOfFillingTheMemory() {
         try {
-            News.readCapped(new ByteArrayInputStream(new byte[40_001]), 40_000);
+            Http.readCapped(new ByteArrayInputStream(new byte[40_001]), 40_000);
             fail("an oversized feed must be refused");
         } catch (IOException expected) { /* the fetch fails like any other network error */ }
     }
