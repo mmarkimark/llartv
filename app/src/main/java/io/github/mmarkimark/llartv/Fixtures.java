@@ -3,8 +3,6 @@ package io.github.mmarkimark.llartv;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -34,13 +32,13 @@ final class Fixtures {
         c.setConnectTimeout(10000);
         c.setReadTimeout(15000);
         c.setRequestProperty("User-Agent", "LlarTV/2.0");
-        try (BufferedReader r = new BufferedReader(new InputStreamReader(c.getInputStream(), "UTF-8"))) {
-            StringBuilder sb = new StringBuilder();
-            String l;
-            while ((l = r.readLine()) != null) sb.append(l);
-            return sb.toString();
-        } finally { c.disconnect(); }
+        return read(c);
     }
+
+    /** A team schedule is tens of KB; a larger body, or any status but 200, fails the fetch (cached matches stay). */
+    static final int MAX_BYTES = 1024 * 1024;
+
+    static String read(HttpURLConnection c) throws Exception { return Http.text(c, MAX_BYTES); }
 
     static List<Match> parse(String json, String teamId) {
         List<Match> out = new ArrayList<>();

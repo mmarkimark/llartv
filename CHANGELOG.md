@@ -18,6 +18,10 @@ All notable changes to LlarTV are documented in this file. The format is based o
   announced to accessibility services) shows the mode, **OK** saves the final place with one `home.conf` write,
   and **Back**/MENU undoes every step. Leaving Home, pressing Home or an app install/removal drops unsaved steps.
   The saved `order` is the same one the equivalent single-step moves would have written.
+  Move mode is unmistakable (#57): the moving app's highlight has a thicker warm amber outline (normal selection
+  keeps its white hairline), the banner sits centred just above the dock band instead of covering the top-bar
+  buttons (and stays on screen when a long grid scrolls), and the large app name is hidden while moving, so it
+  never names a different app than the one being moved, grid included.
 
 - Content recovers when the Internet comes back (#38): while Home is visible, LlarTV follows Android's validated
   Internet state (no polling). When it changes from unusable to usable, only the content whose last download
@@ -25,6 +29,32 @@ All notable changes to LlarTV are documented in this file. The format is based o
   as before (a feature turned off everywhere still makes no request, one download per kind at a time). Joining a
   Wi-Fi network without Internet (or a captive portal) does not count, and repeated or flapping notifications
   recover at most once a minute. Previously the retry waited for the failure window (10 min to 3 h).
+
+- Quiet night screensaver (#37): two new settings, both off by default, so existing installations keep their
+  screensaver. `night_screen` (*Protector discret de nit* / *Salvapantallas discreto de noche* / *Quiet night
+  screensaver*) shows only the clock on black during the night band — no photos, credits, weather or motion, and the
+  clock even with `clock_screen=off`. `night_mute` (*Música en silenci de nit* / *Música en silencio de noche* /
+  *Silence music at night*) stops the screensaver music when the night band begins and starts a fresh session when
+  it ends, never two players at once; `music_screen=off` still never plays. A running screensaver follows the band
+  boundaries through its existing per-minute clock tick (no new polling). It quiets the screensaver content only;
+  it does not turn the backlight off.
+
+- Move mode is also spoken (#39): with TalkBack, each step announces the new position, OK announces that the
+  order was saved and Back announces that the move was undone, in the interface language.
+
+### Changed
+
+- Moving apps reuses the dock tiles instead of rebuilding them on every step, which removes visible jank while
+  holding an arrow (emulator: janky frames 19 → 1 in the worst run).
+
+### Fixed
+
+- A news feed larger than 2 MiB is refused like any other network error instead of being read whole into memory.
+- Football fixtures (#59): a response that is not HTTP 200 now counts as a failed fetch (the cached matches stay
+  and the usual retry applies) instead of being taken as an empty schedule. Every other download is size-bounded
+  too: fixtures 1 MiB, weather 256 KiB, the Bing image list 1 MiB and each wallpaper image 20 MiB. A larger body
+  fails like a network error, an image download is streamed to disk and never leaves a partial file, and the
+  previous image is kept.
 
 ## [1.4] - 2026-10-31
 
