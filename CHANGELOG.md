@@ -31,6 +31,14 @@ All notable changes to LlarTV are documented in this file. The format is based o
   time zone or clock format, nor other apps. `news_source=automatic` follows it (3Cat, BBC News Mundo, BBC News
   World); an explicit preset and a custom `news_rss` are kept as they are. Headlines, photo titles and credits
   are shown as their providers supply them.
+- Settings reset (#9): *Configuració → Restablir la configuració* shows what is reset and what is kept, with
+  *Cancel·lar* focused first; Cancel or Back changes nothing. Confirming removes the lines of the documented
+  `home.conf` keys, so their defaults come back (language Catalan, dock from `dock.txt` or the built-in list, no
+  hidden apps, grid by name) and stay after a restart; comments and unknown lines are kept verbatim. `dock.txt`,
+  wallpaper images, music and other caches, installed apps and Android settings (launcher, screensaver) are not
+  touched. A failed read or write is reported and leaves `home.conf` unchanged. Home follows a changed dock,
+  hidden list, grid order or column count when it is shown again.
+- A failed `home.conf` write no longer leaves a `home.conf.tmp` file behind; `home.conf` itself is unchanged.
 
 ## [1.3] - 2026-10-30
 

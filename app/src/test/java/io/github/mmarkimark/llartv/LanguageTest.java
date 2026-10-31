@@ -181,6 +181,19 @@ public class LanguageTest {
         assertEquals("en 4 días", strings(Language.ES).plural(R.plurals.countdown_days, 4));
     }
 
+    @Test public void theResetScopeNamesWhatStaysInEveryLanguage() {
+        for (String lang : Language.OPTIONS) {
+            Strings s = strings(lang);
+            String scope = s.get(R.string.reset_scope);
+            assertTrue(lang, scope.contains("dock.txt"));
+            assertTrue(lang, scope.contains("home.conf"));
+            assertNotEquals(lang, s.get(R.string.reset_cancel), s.get(R.string.reset_confirm));
+        }
+        assertEquals("Cancel·lar", strings(Language.CA).get(R.string.reset_cancel));
+        assertEquals("Cancelar", strings(Language.ES).get(R.string.reset_cancel));
+        assertEquals("Cancel", strings(Language.EN).get(R.string.reset_cancel));
+    }
+
     // ---------------------------------------------------------------- the literal audit
 
     /**
