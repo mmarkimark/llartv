@@ -8,12 +8,47 @@ import org.junit.Test;
 
 /** The news source presets (issue #12): which feed, which credit, and who wins when both are set. */
 public class NewsSourceTest {
-    @Test public void automaticResolvesToCatalanUntilTheLanguageSelectorLands() {
-        // "automatic" follows the interface language; the language selector is issue #11 (v1.2), so it is Catalan.
+    @Test public void automaticAloneIsTheCatalanPreset() {
         NewsSource s = NewsSource.preset(NewsSource.AUTOMATIC);
         assertEquals(NewsSource.URL_3CAT, s.url);
         assertEquals("3Cat", s.label);
         assertEquals(NewsSource.THREE_CAT, s.key);
+    }
+
+    @Test public void automaticFollowsTheInterfaceLanguage() {
+        assertEquals(NewsSource.THREE_CAT, withLanguage(Language.CA).key);
+        assertEquals(NewsSource.BBC_MUNDO, withLanguage(Language.ES).key);
+        assertEquals(NewsSource.URL_BBC_MUNDO, withLanguage(Language.ES).url);
+        assertEquals(NewsSource.BBC_WORLD, withLanguage(Language.EN).key);
+        assertEquals(NewsSource.URL_BBC_WORLD, withLanguage(Language.EN).url);
+        assertEquals(NewsSource.THREE_CAT, withLanguage("fr").key);   // an unknown language is Catalan
+    }
+
+    static NewsSource withLanguage(String lang) {
+        Config k = new Config();
+        k.set("language", lang);
+        return NewsSource.resolve(k);
+    }
+
+    @Test public void anExplicitPresetIgnoresTheLanguage() {
+        Config k = new Config();
+        k.set("news_source", NewsSource.THREE_CAT);
+        k.set("language", Language.EN);
+        assertEquals(NewsSource.THREE_CAT, NewsSource.resolve(k).key);
+        k.set("news_source", NewsSource.BBC_MUNDO);
+        assertEquals(NewsSource.BBC_MUNDO, NewsSource.resolve(k).key);
+    }
+
+    @Test public void aCustomFeedWinsInEveryLanguage() {
+        for (String lang : Language.OPTIONS) {
+            Config k = new Config();
+            k.set("news_rss", "https://example.org/rss");
+            k.set("language", lang);
+            NewsSource s = NewsSource.resolve(k);
+            assertEquals(lang, "https://example.org/rss", s.url);
+            assertEquals(lang, "custom:https://example.org/rss", s.key);
+            assertEquals(lang, "example.org", s.credit);
+        }
     }
 
     @Test public void eachPresetHasItsOwnFeed() {
@@ -74,16 +109,23 @@ public class NewsSourceTest {
         assertEquals(NewsSource.URL_3CAT, NewsSource.resolve(k).url);
     }
 
-    @Test public void theMenuLabelsMatchThePresetOrder() {
-        assertEquals(NewsSource.OPTIONS.length, Ca.NEWS_SOURCE_LABELS.length);
+    @Test public void theMenuOptionsKeepTheirOrder() {
+        // Ca.newsSources gives the labels in this order (CaTest pins them)
         assertEquals(NewsSource.AUTOMATIC, NewsSource.OPTIONS[0]);
         assertEquals(NewsSource.THREE_CAT, NewsSource.OPTIONS[1]);
         assertEquals(NewsSource.BBC_MUNDO, NewsSource.OPTIONS[2]);
         assertEquals(NewsSource.BBC_WORLD, NewsSource.OPTIONS[3]);
-        assertEquals(Ca.NEWS_SOURCE_AUTO, Ca.NEWS_SOURCE_LABELS[0]);
-        assertEquals(Ca.NEWS_SOURCE_3CAT, Ca.NEWS_SOURCE_LABELS[1]);
-        assertEquals(Ca.NEWS_SOURCE_MUNDO, Ca.NEWS_SOURCE_LABELS[2]);
-        assertEquals(Ca.NEWS_SOURCE_WORLD, Ca.NEWS_SOURCE_LABELS[3]);
+    }
+
+    @Test public void theCreditsAreTheSameInEveryLanguage() {
+        // the attribution is the provider's, so it is never translated
+        for (String lang : Language.OPTIONS) {
+            Config k = new Config();
+            k.set("language", lang);
+            k.set("news_source", NewsSource.BBC_WORLD);
+            assertEquals("BBC News World · bbc.co.uk/news", NewsSource.resolve(k).credit);
+            assertEquals("BBC News", NewsSource.resolve(k).label);
+        }
     }
 
     @Test public void theCustomKeyIsWrittenOnOneLine() {

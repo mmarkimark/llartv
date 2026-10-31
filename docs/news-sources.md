@@ -1,9 +1,13 @@
 # News sources
 
 LlarTV shows the latest headlines from an RSS feed in the morning panel. The source is chosen with the
-`news_source` setting: `automatic` (the default) follows the interface language, and the interface-language
-selector is issue #11, which lands in v1.2, so until then `automatic` resolves to Catalan (3Cat). The other
-values are the presets below, and a custom `news_rss` feed overrides every preset.
+`news_source` setting: `automatic` (the default) follows the interface language (`language`, issue #11): 3Cat
+in Catalan, BBC News Mundo in Spanish and BBC News World in English. The other values are the presets below,
+which stay as chosen whatever the language, and a custom `news_rss` feed overrides every preset.
+
+Changing the language with `automatic` switches the feed: the headlines cached for the previous source are not
+shown under the new one (the cache is keyed by the resolved source), and the new feed is fetched the next time
+the panel shows. The headlines and the credits are always the provider's own, never translated.
 
 ## The feeds
 

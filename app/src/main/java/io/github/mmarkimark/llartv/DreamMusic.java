@@ -15,7 +15,9 @@ import java.util.concurrent.Future;
 
 /** Android adapter for one dream. Each callback keeps its own session, never a later dream's player. */
 final class DreamMusic implements MusicPlayback.Output {
-    private final MusicPlayback session = new MusicPlayback(this);
+    private final MusicPlayback session;
+    private final Runnable rotation = this::rotate;
+    private int track;
     private final AudioManager audio;
     private final AudioFocusRequest focus;
     private final AudioAttributes attributes;
@@ -32,6 +34,7 @@ final class DreamMusic implements MusicPlayback.Output {
         this.url = url;
         this.ui = ui;
         local = Music.isDefault(url);
+        session = new MusicPlayback(this, local);
         cacheDir = context.getFilesDir();
         audio = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         attributes = new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
@@ -55,16 +58,18 @@ final class DreamMusic implements MusicPlayback.Output {
 
     @Override public void prepare() {
         if (!local) { preparePlayer(url.trim(), false); return; }
-        loader = Executors.newSingleThreadExecutor();
-        loading = loader.submit(() -> {
+        final ExecutorService worker = Executors.newSingleThreadExecutor();
+        final MusicTrack source = MusicTrack.at(track);
+        loader = worker;
+        loading = worker.submit(() -> {
             try {
-                File file = MusicCache.load(cacheDir);
-                ui.post(() -> session.sourceReady(() -> preparePlayer(file.getAbsolutePath(), true)));
+                File file = MusicCache.load(cacheDir, source);
+                ui.post(() -> session.sourceReady(() -> preparePlayer(file.getAbsolutePath(), false)));
             } catch (IOException | RuntimeException e) {
                 Log.i("LlarTV", "screensaver music: cache unavailable (" + MusicCache.failureReason(e)
                         + "), staying silent");
                 ui.post(session::failed);
-            } finally { loader.shutdown(); }
+            } finally { worker.shutdown(); }
         });
     }
 
@@ -72,9 +77,10 @@ final class DreamMusic implements MusicPlayback.Output {
         player = new MediaPlayer(); // created on the main thread, so MediaPlayer callbacks use the same looper
         player.setAudioAttributes(attributes);
         player.setLooping(loop);
-        player.setOnPreparedListener(mp -> session.prepared());
-        player.setOnCompletionListener(mp -> session.completed());
+        player.setOnPreparedListener(mp -> { if (mp == player) session.prepared(); });
+        player.setOnCompletionListener(mp -> { if (mp == player) session.completed(); });
         player.setOnErrorListener((mp, what, extra) -> {
+            if (mp != player) return true;
             Log.i("LlarTV", "screensaver music: stream failed (" + what + ", " + extra + "), staying silent");
             session.failed();
             return true;
@@ -96,14 +102,33 @@ final class DreamMusic implements MusicPlayback.Output {
 
     @Override public void start() {
         player.start();
-        Log.i("LlarTV", "screensaver music: playing" + (local ? " (cached loop)" : ""));
+        ui.removeCallbacks(rotation);
+        if (local) ui.postDelayed(rotation, MusicPlayback.ROTATE_MS);
+        Log.i("LlarTV", "screensaver music: playing" + (local ? " " + MusicTrack.at(track).title : ""));
     }
 
-    @Override public void pause() { player.pause(); }
+    private void rotate() { session.rotate(); }
+
+    @Override public void pause() {
+        ui.removeCallbacks(rotation);
+        player.pause();
+    }
+
+    @Override public void nextTrack() {
+        ui.removeCallbacks(rotation);
+        releasePlayer(); // release the old decoder before allocating the next; retain the focus request
+        track = (track + 1) % MusicTrack.COUNT;
+        prepare();
+    }
 
     @Override public void release() {
+        ui.removeCallbacks(rotation);
         if (loading != null) loading.cancel(true);
         if (loader != null) loader.shutdownNow();
+        releasePlayer();
+    }
+
+    private void releasePlayer() {
         if (player == null) return;
         MediaPlayer old = player;
         player = null;

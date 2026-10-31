@@ -2,12 +2,16 @@ package io.github.mmarkimark.llartv;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 
 public class ConfigFileTest {
     @Rule public TemporaryFolder tmp = new TemporaryFolder();
@@ -28,6 +32,33 @@ public class ConfigFileTest {
         assertEquals("dock_tint=off\n", Config.read(dir));
         assertEquals(6, Config.parse(dir).columns);
         assertFalse(new File(dir, "home.conf.tmp").exists());
+    }
+
+    @Test public void aFailedMoveKeepsTheOldFileAndLeavesNoTemporaryFile() throws Exception {
+        File dir = tmp.getRoot();
+        File conf = new File(dir, Config.FILE);
+        assertTrue(conf.mkdir());   // a non-empty directory cannot be replaced by the move
+        Files.write(new File(conf, "keep").toPath(), new byte[]{1});
+        try {
+            Config.write(dir, "columns=5\n");
+            fail("the move cannot succeed");
+        } catch (IOException expected) {}
+        assertTrue(new File(conf, "keep").exists());
+        assertFalse(new File(dir, Config.FILE + ".tmp").exists());   // no half-finished file is left behind
+    }
+
+    @Test public void aFailedTemporaryWriteKeepsTheOldFile() throws Exception {
+        File dir = tmp.getRoot();
+        Config.write(dir, "columns=5\n");
+        File blocker = new File(dir, Config.FILE + ".tmp");
+        assertTrue(blocker.mkdir());
+        Files.write(new File(blocker, "keep").toPath(), new byte[]{1});
+        try {
+            Config.write(dir, "columns=4\n");
+            fail("the temporary file cannot be written");
+        } catch (IOException expected) {}
+        assertEquals("columns=5\n", Config.read(dir));
+        assertTrue(new File(blocker, "keep").exists());   // only a temporary file of its own is ever removed
     }
 
     @Test public void noFileMeansDefaults() {

@@ -142,16 +142,16 @@ final class News {
         } finally { c.disconnect(); }
     }
 
-    /** Catalan relative age: "ara mateix", "fa 5 min", "fa 3 h", "ahir", "fa 2 dies"; empty when unknown. */
-    static String age(long published, long now) {
+    /** Relative age in the interface language: "ara mateix", "fa 5 min", "fa 3 h", "ahir", "fa 2 dies"; empty when unknown. */
+    static String age(Strings s, long published, long now) {
         if (published <= 0) return "";
         long min = (now - published) / 60_000L;
-        if (min < 1) return "ara mateix";
-        if (min < 60) return "fa " + min + " min";
+        if (min < 1) return s.get(R.string.age_now);
+        if (min < 60) return s.get(R.string.age_minutes, min);
         long h = min / 60;
-        if (h < 24) return "fa " + h + " h";
+        if (h < 24) return s.get(R.string.age_hours, h);
         long days = h / 24;
-        return days == 1 ? "ahir" : "fa " + days + " dies";
+        return days == 1 ? s.get(R.string.age_yesterday) : s.plural(R.plurals.age_days, (int) days);
     }
 
     /** Writes files/news.cache: a header with the format version and the source, then one item per line. */

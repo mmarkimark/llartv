@@ -99,6 +99,14 @@ final class HomeApps {
      * exactly its apps, however short (S4).
      */
     static Composed compose(List<String> dockOrder, List<String> installedByLabel, Set<String> hidden, boolean fill, int columns) {
+        return compose(dockOrder, installedByLabel, hidden, fill, columns, new ArrayList<>());
+    }
+
+    /**
+     * The same placement, then the grid rearranged by the grid order (GridOrder). The dock, its fill included,
+     * is placed first from the label order, so the grid order never changes the dock.
+     */
+    static Composed compose(List<String> dockOrder, List<String> installedByLabel, Set<String> hidden, boolean fill, int columns, List<String> order) {
         List<String> dock = new ArrayList<>(), grid = new ArrayList<>();
         for (String p : dockOrder) {
             if (dock.size() >= columns) break;
@@ -107,6 +115,6 @@ final class HomeApps {
         }
         for (String p : installedByLabel) if (!hidden.contains(p) && !dock.contains(p)) grid.add(p);
         if (fill) while (dock.size() < columns && !grid.isEmpty()) dock.add(grid.remove(0));
-        return new Composed(dock, grid);
+        return new Composed(dock, GridOrder.apply(order, grid));
     }
 }
