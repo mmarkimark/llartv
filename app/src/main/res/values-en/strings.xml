@@ -116,6 +116,13 @@
     <string name="screen_disabled">The screensaver is turned off: turn it on in System settings &gt; Screen saver</string>
     <string name="screen_unchecked">Can\'t check which screensaver the TV uses</string>
     <string name="screen_cant_start">This TV does not allow starting the screensaver from here</string>
+    <string name="reset_settings">Reset settings</string>
+    <string name="reset_scope">Restores the defaults of every LlarTV setting saved in home.conf: language (Catalan), clock, wallpaper and photos, night mode, weather, news, screensaver, music, columns, dock, hidden apps and grid order. Kept: the comments and unknown lines of home.conf, dock.txt, downloaded or copied images and music, installed apps and Android settings such as the launcher and the screensaver.</string>
+    <string name="reset_cancel">Cancel</string>
+    <string name="reset_confirm">Reset</string>
+    <string name="reset_done">Settings reset</string>
+    <string name="reset_already">The settings already have their defaults</string>
+    <string name="reset_failed">Couldn\'t reset: the settings are unchanged</string>
 
     <!-- The long-press menu of an app, and the hidden apps in the settings -->
     <string name="add_to_dock">Add to dock</string>

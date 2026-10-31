@@ -191,7 +191,10 @@ public class HomeActivity extends Activity {
 
     @Override protected void onResume() {
         super.onResume();
+        Config before = conf;
         conf = Config.load(this);          // LlarTV's own settings may have changed while we were away
+        // The tile sizes and the team are set up once in onCreate: a change to them (a settings reset) rebuilds Home.
+        if (before.columns != conf.columns || !before.teamId.equals(conf.teamId)) { recreate(); return; }
         bands = conf.bands();
         applyLanguage();
         IntentFilter f = new IntentFilter();
@@ -208,7 +211,8 @@ public class HomeActivity extends Activity {
         refreshMatchCard();
         maybeFetchFixtures();
         updateInputsPill();
-        if (loaded) afterLayout(() -> applyFocus(false));
+        if (appsChanged(before, conf)) loadApps();   // dock, hidden apps or grid order changed elsewhere
+        else if (loaded) afterLayout(() -> applyFocus(false));
     }
 
     @Override protected void onPause() {
@@ -550,6 +554,12 @@ public class HomeActivity extends Activity {
             for (Ui.AppEntry e : d) e.color = Ui.sampleColor(e.banner != null ? e.banner : e.icon);
             ui.post(() -> { installedByLabel = byLabel; bindApps(d, g); });
         }).start();
+    }
+
+    /** True when the dock, the hidden apps or the grid order differ, so the apps must be placed again. */
+    static boolean appsChanged(Config a, Config b) {
+        return a.dockSet != b.dockSet || !a.dock.equals(b.dock) || !new ArrayList<>(a.hidden).equals(new ArrayList<>(b.hidden))
+                || !a.order.equals(b.order);
     }
 
     /** Dock order: an explicit dock= list in home.conf (kept even when empty), else dock.txt in the app's files

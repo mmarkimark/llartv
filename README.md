@@ -81,6 +81,8 @@ broadcasts, and network data is fetched only while the home screen is showing.
   TV has no such entry, it shows why instead of starting anything else.
 - Apps amagades: the hidden apps, with their count as the value. OK opens the list by label (the package name
   when the app is not installed any more) and unhides one app, writing `hidden`.
+- Restablir la configuració: puts LlarTV's own settings back to their defaults after a confirmation that shows
+  what is reset and what is kept, with Cancel focused first (see [Resetting the settings](#resetting-the-settings)).
 - News source: 3Cat (Catalan), BBC News Mundo (Spanish) or BBC News World (English), with the source credited next
   to the headlines and the article link kept with them. A custom RSS feed always wins over the preset.
 
@@ -232,6 +234,17 @@ at most every six hours, and only new Bing images are downloaded.
 
 The news source can also be changed from the TV itself: **Configuració → Font de notícies** offers the presets.
 A custom `news_rss` feed has priority over them; remove it from `home.conf` to use a preset again.
+
+### Resetting the settings
+
+**Configuració → Restablir la configuració** puts every setting in the table above back to its default. It first
+shows what is reset and what is kept, with *Cancel·lar* focused; Cancel or Back changes nothing. *Restablir*
+removes the lines of those keys from `home.conf` (so the language is Catalan again, the dock comes from
+`dock.txt` or the built-in list, no app is hidden and the grid is sorted by name), with the same atomic write as
+every other setting. Comments, blank lines and unknown lines in `home.conf` are kept as they are, and nothing else
+is touched: not `dock.txt`, the downloaded or pushed wallpaper images, the music, other caches, the installed
+apps, nor Android settings such as the default launcher or screensaver. If the file cannot be read or written, a
+message says so and `home.conf` stays exactly as it was. `scripts/config.sh` keeps working afterwards.
 
 ## Screensaver
 

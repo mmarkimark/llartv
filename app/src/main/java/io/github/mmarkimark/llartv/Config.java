@@ -102,11 +102,19 @@ final class Config {
         catch (IOException e) { return ""; }
     }
 
-    /** Replaces home.conf in dir; written to a temporary file first, so a reader never sees half a file. */
+    /**
+     * Replaces home.conf in dir; written to a temporary file first, so a reader never sees half a file. When the
+     * write fails, home.conf is left as it was and the temporary file (only a regular file of its own) is removed.
+     */
     static void write(File dir, String text) throws IOException {
         File tmp = new File(dir, FILE + ".tmp");
-        Files.write(tmp.toPath(), text.getBytes(StandardCharsets.UTF_8));
-        Files.move(tmp.toPath(), new File(dir, FILE).toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        try {
+            Files.write(tmp.toPath(), text.getBytes(StandardCharsets.UTF_8));
+            Files.move(tmp.toPath(), new File(dir, FILE).toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (IOException e) {
+            if (tmp.isFile() && !tmp.delete()) e.addSuppressed(new IOException(tmp.getPath()));   // left behind
+            throw e;
+        }
     }
 
     /** Applies one key=value line; unknown keys and unreadable values are ignored. */

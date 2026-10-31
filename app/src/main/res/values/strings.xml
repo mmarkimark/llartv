@@ -120,6 +120,13 @@
     <string name="screen_disabled">El protector està desactivat: activa\'l a Configuració del sistema &gt; Protector de pantalla</string>
     <string name="screen_unchecked">No es pot comprovar quin protector té la TV</string>
     <string name="screen_cant_start">Aquesta TV no permet iniciar el protector des d\'aquí</string>
+    <string name="reset_settings">Restablir la configuració</string>
+    <string name="reset_scope">Torna als valors per defecte tots els ajustos de LlarTV desats a home.conf: idioma (català), rellotge, fons i fotos, mode nit, temps, notícies, protector, música, columnes, dock, apps amagades i ordre de la graella. Es mantenen els comentaris i les línies desconegudes de home.conf, dock.txt, les imatges i la música descarregades o copiades, les apps instal·lades i la configuració d\'Android, com el llançador i el protector de pantalla.</string>
+    <string name="reset_cancel">Cancel·lar</string>
+    <string name="reset_confirm">Restablir</string>
+    <string name="reset_done">S\'ha restablert la configuració</string>
+    <string name="reset_already">La configuració ja té els valors per defecte</string>
+    <string name="reset_failed">No s\'ha pogut restablir: la configuració no ha canviat</string>
 
     <!-- The long-press menu of an app, and the hidden apps in the settings -->
     <string name="add_to_dock">Afegir al dock</string>
