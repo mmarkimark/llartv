@@ -200,4 +200,20 @@ public class ConfigTest {
         assertEquals(ContentPolicy.ALL, k.weatherScreen);
         assertEquals(ContentPolicy.MORNING, k.newsHome);
     }
+
+    @Test public void theGridOrderIsOptionalAndKeepsTheFileOrder() {
+        Config k = new Config();
+        assertTrue(k.order.isEmpty());
+        k.set("order", "com.b, com.a,com.c");
+        assertEquals(java.util.Arrays.asList("com.b", "com.a", "com.c"), k.order);
+        k.set("order", "");
+        assertTrue(k.order.isEmpty());
+    }
+
+    @Test public void writingTheOrderKeepsCommentsAndUnknownLines() {
+        String text = "# mine\ncolumns=5\nfoo=bar # keep\n";
+        String out = Config.setInText(text, "order", "b,a");
+        assertEquals("# mine\ncolumns=5\nfoo=bar # keep\norder=b,a\n", out);
+        assertEquals("# mine\ncolumns=5\nfoo=bar # keep\norder=a,b\n", Config.setInText(out, "order", "a,b"));
+    }
 }

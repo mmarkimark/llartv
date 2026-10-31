@@ -42,9 +42,13 @@ broadcasts, and network data is fetched only while the home screen is showing.
 - A dock of up to six favourite apps; the focused app's name is shown above the dock.
 - A grid with every other launchable app. Helper apps without a TV entry point are left out automatically.
 - Press and hold OK on a dock or grid app for its action menu: *Afegir al dock* or *Treure del dock*, *Moure a
-  l'esquerra* / *Moure a la dreta* (dock apps only), *Amagar* or *Informació de l'app*. The edits write `dock`
-  and `hidden` to `home.conf` at once, a full dock says so and writes nothing, and hidden apps come back from
+  l'esquerra* / *Moure a la dreta*, *Moure amunt* / *Moure avall* (grid apps only, a whole row), *Amagar* or
+  *Informació de l'app*; a move that would leave its row of apps is not shown. The edits write `dock`, `hidden`
+  and `order` to `home.conf` at once, a full dock says so and writes nothing, and hidden apps come back from
   **Configuració → Apps amagades**.
+- Your own grid order: moving a grid app keeps it in place across restarts and app updates. A newly installed
+  app is added at the end without moving the others, and an uninstalled app leaves no gap. Moving a grid app
+  never changes the dock (see `order` under [Configuration](#configuration)).
 - Predictable D-pad navigation: Up/Down move exactly one row, the ends do not wrap, Back returns to the dock and
   Menu opens the app's info page. A short OK press launches the focused app; the last focused tile is remembered.
 
@@ -197,6 +201,7 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 | `columns` | `6` | Grid columns; the dock holds the same number of apps. 4–6 work best. |
 | `dock` | built-in list | Comma-separated package names for the dock, in order. Set with `--dock` or by holding OK on an app from the TV; when set, the dock shows exactly these apps (installed ones, up to `columns`) and is **not** filled from the grid — the automatic fill only applies to the built-in list and `dock.txt`. |
 | `hidden` | empty | Comma-separated package names to keep out of the grid and the dock (hide with the app's long-OK menu; recover them under **Configuració → Apps amagades**). Hiding never uninstalls or disables an app. |
+| `order` | empty | The grid order: comma-separated package names, with no fixed positions. Empty sorts the grid by name. The first move of a grid app from the TV writes every installed app in its current order; listed apps come first, in that order, and any other app follows by name, so a new install is added at the end. The dock is placed first and is never changed by `order` (an automatically filled dock still takes the first apps by name); an app taken out of the dock returns to its place in the order. Hidden apps keep their place and get it back when unhidden. An uninstalled app leaves no gap and is dropped from the list on the next move, so if it is reinstalled after that it counts as new and goes at the end; reinstalled before then, it returns to its old place. |
 | `wallpaper` | `bing` | `bing` for Bing's daily images, an image URL, or `off` for a plain background. |
 | `wallpaper_minutes` | `30` | Rotate through the downloaded images every N minutes; `0` shows the newest (*Fixa* in the menu). |
 | `morning` | `08:00-11:00` | Morning panel time range; `off` turns it off. |

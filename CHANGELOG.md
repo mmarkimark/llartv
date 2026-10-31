@@ -5,6 +5,16 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 ## [Unreleased]
 
+### Added
+
+- Grid order from the remote (#13): holding OK on a grid app now also offers *Moure a l'esquerra* / *Moure a la
+  dreta* and *Moure amunt* / *Moure avall* (a whole row); a move that would leave the grid is not shown. The order
+  is stored in the new optional `order` key of `home.conf` (also accepted by `scripts/config.sh`), written with the
+  same atomic, line-preserving write as the dock. Without `order` the grid stays sorted by name, as before. The
+  first move writes every installed app in its current order, so a newly installed app is added at the end
+  without moving the others; an uninstalled app leaves no gap. Moving a grid app never changes the dock, and an
+  automatically filled dock keeps taking the first apps by name. Hidden apps keep their place in the order.
+
 ## [1.3] - 2026-10-30
 
 The remote personalisation release: the settings open as a side panel like the Android TV ones, and the wallpaper,
