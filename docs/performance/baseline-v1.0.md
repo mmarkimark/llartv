@@ -199,3 +199,35 @@ the budgets and the results are referenced to the v1.0 TV baseline, against whic
 Raw values: cold start 1193, 1202, 1204, 1215, 1382 ms; Home return (home-intent) 591, 193, 223, 177, 174 ms; RAM
 57442, 59907, 59881 KB. The +152 ms cold-start delta noted for v1.2 did not repeat: with an unchanged start path the
 median is now below both v1.1 and v1.2, which supports reading it as run-to-run noise.
+
+## The v1.4 personal home screen build (Xiaomi MiTV-MSSP3, 2026-10-31)
+
+Build: the exact released v1.4 APK (`LlarTV.apk`, 4,133,135 bytes, SHA-256 `c072333c…372f`), the same artifact
+that was installed on the TV for the functional checks. v1.4 was measured against the published v1.3 on the same
+running TV twice; the full raw samples are in [v1.4 performance](v1.4.md).
+
+The first capture compared the long-installed published v1.3 with a freshly installed v1.4: cold start
+1087 → 1361 ms (+274 ms, +25.21%), HOME-intent return 261 → 186 ms and PSS 57,400 → 64,710 KB (+7,310 KB,
++12.74%), exceeding the cold-start and RAM allowances. The unequal installation state was an unrecorded
+confounder, so the owner authorized exactly one controlled comparison: reinstall v1.4, reinstall the exact
+published v1.3, then reinstall v1.4 again, all in place and with the reported compiler filter recorded before and
+after every cohort (six matching `run-from-apk`, reason `unknown` observations; nothing forced or cleared).
+
+| Metric | Fresh v1.3 | v1.4 (first) | v1.4 (last) | Budget | Result |
+| --- | --- | --- | --- | --- | --- |
+| APK bytes | 4,050,747 | 4,133,135 | 4,133,135 | +5% | Inside (+2.03%) |
+| Cold start, median | 1,294 ms | 1,395 ms | 1,339 ms | +150 ms and +15% | Inside (+101/+45 ms; +7.81%/+3.48%) |
+| HOME return, median | 186 ms | 175 ms | 191 ms | +40 ms and +40% | Inside (−11/+5 ms) |
+| RAM, TOTAL PSS, median | 64,093 KB | 64,278 KB | 64,262 KB | +4,096 KB and +10% | Inside (+185/+169 KB) |
+
+Raw values: cold start v1.4 first 1578, 1602, 1308, 1306, 1395 and last 1339, 1595, 2057, 1315, 1334; v1.3 1294,
+1292, 1332, 1293, 1362. HOME return: v1.4 first 621, 185, 171, 165, 175 and last 656, 191, 186, 176, 199; v1.3
+597, 186, 170, 189, 169. PSS: v1.4 first 62385, 64310, 64278 and last 62377, 64298, 64262; v1.3 62081, 64129,
+64093.
+
+Referenced to the v1.0 TV baseline (3,999,631 bytes / 1851.5 ms / 343 ms / 58,671 KB): APK +133,504 bytes
+(+3.34%), cold start −512.5 ms (−27.7%, last cohort), HOME return −152 ms (−44.3%) and RAM +5,591 KB (+9.53%).
+As with the v1.2 cold-start note, the absolute RAM figure exceeds the +4,096 KB line while the relative figure is
+inside +10%; the same-day paired comparison above is the release check the policy prescribes, and no budget was
+changed to accommodate either reading. The initial over-budget capture is retained with its unresolved cause;
+the large gap did not recur under matched conditions.

@@ -98,7 +98,7 @@ fetched only while the home screen is showing.
   A custom HTTPS stream retains its own programming, without forced rotation. Music stops with the screensaver;
   failures leave the visuals running silently. The full offline loop passed on an Android TV emulator;
   three-track rotation and normal exit also passed on the reference TV, with owner-confirmed audible changes.
-  Public asset/Android cold-download verification remains a separate release step. See
+  Public asset/Android cold-download verification passed with the published v1.4 release assets. See
   [docs/screensaver-music.md](docs/screensaver-music.md).
 
 **Other**
@@ -267,8 +267,9 @@ emulator and 63 MiB on the reference TV. Screensaver PSS is a different workload
 return and the RAM on a connected TV or emulator. The measured baseline and the regression budgets used as release
 gates are in [`docs/performance/baseline-v1.0.md`](docs/performance/baseline-v1.0.md).
 The [v1.4 comparison](docs/performance/v1.4.md) and [acceptance record](docs/v1.4-acceptance.md) separate emulator,
-initial TV and controlled TV measurements. Both controlled candidate cohorts passed the paired TV budgets;
-initial over-budget data is retained, not hidden or replaced with emulator values. Public delivery checks are recorded separately.
+initial TV and controlled TV measurements. Both controlled v1.4 cohorts passed the paired TV budgets;
+initial over-budget data is retained, not hidden or replaced with emulator values. The released APK is the exact
+artifact that passed those checks.
 
 ## Building from source
 

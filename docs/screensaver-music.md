@@ -63,11 +63,14 @@ The [official attribution instructions](https://incompetech.com/music/royalty-fr
 >
 > https://creativecommons.org/licenses/by/4.0/
 
-The original MP3s are not modified; playing an excerpt does not change the distributed file. The intended
-distribution is **separate v1.4 GitHub release assets**, not app hotlinks to the composer and not APK resources:
-`music-macleod-chill-wave-v1.mp3` and `music-macleod-dream-culture-v1.mp3`.
-Asset publication and Android playlist acceptance are still pending at this implementation stage. The same
-attribution is accessible offline through the music-credits row in the settings menu.
+The original MP3s are not modified; playing an excerpt does not change the distributed file. The distribution is
+**separate v1.4 GitHub release assets**, not app hotlinks to the composer and not APK resources:
+[`music-macleod-chill-wave-v1.mp3`](https://github.com/mmarkimark/llartv/releases/download/v1.4/music-macleod-chill-wave-v1.mp3)
+and [`music-macleod-dream-culture-v1.mp3`](https://github.com/mmarkimark/llartv/releases/download/v1.4/music-macleod-dream-culture-v1.mp3).
+Both assets are published with the [v1.4 release](https://github.com/mmarkimark/llartv/releases/tag/v1.4): their
+public HTTPS downloads, redirects and hashes are verified, and a cold-cache Android device downloaded both
+through the app with the pinned bytes. The same attribution is accessible offline through the music-credits row
+in the settings menu.
 
 Each cache file has its own byte/hash pin and temporary-file validation. GitHub downloads may follow at most
 two manually checked HTTPS redirects to the exact `release-assets.githubusercontent.com` host, without URL
@@ -91,7 +94,8 @@ A failed new-track download never replaces the already verified Dancing file. Al
 - **Custom URLs retain their previous behavior:** play directly over HTTPS, without caching or forced looping.
   A finite custom file plays once, then releases focus. A continuous station plays until it ends, fails or the dream
   exits. Actual codec support depends on the device. Use a direct audio URL, not a web page, with terms that permit
-  your use. The app keeps Android's default cleartext policy and does not accept HTTP music URLs.
+  your use. The app keeps Android's default cleartext policy and does not accept HTTP music URLs. The published
+  v1.4 playlist tracks are themselves verified against the pins above before playback.
 
 App-level messages use the `LlarTV` tag and do not include custom source URLs. Cache failures show a controlled
 reason (HTTP status, validation or storage category), or only the exception type for transport/system errors; raw
@@ -110,6 +114,14 @@ is required. The file is streamed from disk by the platform player, not loaded w
 
 Custom streams still consume data continuously. Estimates excluding overhead and reconnections:
 `MB/hour = kbps × 3600 / 8 / 1000` (decimal MB): 64 kbps ≈ 28.8 MB/h; 128 ≈ 57.6 MB/h; 192 ≈ 86.4 MB/h.
+
+**v1.4 playlist verification (2026-10-31).** The full three-track rotation passed on the reference Xiaomi
+MiTV-MSSP3 with locally seeded files (Dancing → Chill Wave → Dream Culture → Dancing at 120.157/120.178/120.123
+seconds; the owner confirmed hearing distinct tracks), and again on an Android 11 emulator where the two new
+tracks were downloaded live from the public v1.4 release URLs on a cold cache, with the on-device files matching
+the pins above. Exit released the player and the audio focus in both runs, and each device's original
+configuration was restored and verified afterwards. See the
+[v1.4 acceptance record](v1.4-acceptance.md) for the full evidence.
 
 **Historical single-track verification on the reference TV (Xiaomi MiTV-MSSP3, Android 11, 2026-10-30), later released in v1.2. This does not verify the v1.4 playlist.** A clean debug
 build of commit de57410 (123 JVM tests passing, APK 4,031,019 bytes, +0.43% versus v1.1) was installed over the
