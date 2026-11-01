@@ -19,6 +19,12 @@ All notable changes to LlarTV are documented in this file. The format is based o
   "Barcelona · Open-Meteo". The new optional `location_name` setting names the place; without it the default
   location is called Barcelona, another `location` shows only the source, and an empty value shows only the source.
 
+### Fixed
+
+- `scripts/config.sh` refused the `night_screen` and `night_mute` settings added in 1.5 ("Unknown setting"); it now
+  accepts every documented key, including the new `quote` and `location_name`, and a test keeps its list equal to
+  the settings LlarTV understands.
+
 ## [1.5] - 2026-10-31
 
 ### Added
