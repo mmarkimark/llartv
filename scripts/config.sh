@@ -19,7 +19,7 @@
 set -u
 # shellcheck source=scripts/lib.sh
 source "$(dirname "$0")/lib.sh"
-KEYS=" columns dock hidden order wallpaper wallpaper_minutes morning night location language news_source news_rss music_screen music_url clock_screen motion_screen dock_tint clock weather_home weather_screen news_home team_id team_name "
+KEYS=" columns dock hidden order wallpaper wallpaper_minutes morning night location location_name language news_source news_rss music_screen music_url clock_screen motion_screen night_screen night_mute dock_tint clock weather_home weather_screen news_home quote minimal team_id team_name "
 
 IP=""; SHOW=0; PICK=0; PAIRS=()
 while [ $# -gt 0 ]; do case "$1" in

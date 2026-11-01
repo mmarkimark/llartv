@@ -18,6 +18,8 @@
     <string name="not_available">No disponible</string>
     <string name="cant_switch_input">No es pot canviar d\'entrada</string>
     <string name="weather">Temps</string>
+    <string name="weather_credit">%1$s · Open-Meteo</string>
+    <string name="weather_source">Open-Meteo</string>
     <string name="news">Notícies</string>
 
     <!-- Greetings: Ca.greeting picks the slot for the hour in each language -->
@@ -89,6 +91,7 @@
     <string name="weather_screen">Temps al protector</string>
     <string name="news_home">Notícies a la pantalla</string>
     <string name="quote">Frase del dia</string>
+    <string name="minimal">Mode mínim</string>
     <string name="news_source">Font de notícies</string>
     <string name="news_source_auto">Automàtic</string>
     <string name="news_source_custom">Personalitzada</string>

@@ -88,6 +88,23 @@ public class ConfigTest {
         assertFalse(k.quote);
     }
 
+    @Test public void minimalModeIsOffByDefaultAndCanBeTurnedOn() {
+        Config k = new Config();
+        assertFalse(k.minimal);
+        k.set("minimal", "on");
+        assertTrue(k.minimal);
+        k.set("minimal", "off");
+        assertFalse(k.minimal);
+        k.set("minimal", "ON");
+        assertTrue(k.minimal);
+        k.set("minimal", "");
+        assertFalse(k.minimal);   // an empty value restores the default
+        k.set("minimal", "1");
+        assertTrue(k.minimal);
+        k.set("minimal", "no");
+        assertFalse(k.minimal);
+    }
+
     @Test public void hiddenAppsKeepTheOrderOfTheFile() {
         Config k = new Config();
         k.set("hidden", "z.app,a.app,m.app");
@@ -279,5 +296,30 @@ public class ConfigTest {
         assertEquals(Clock.H12, k.clock);
         Config.write(dir, Config.setInText(Config.read(dir), "language", Language.ES));
         assertEquals(before + "language=es\n", Config.read(dir));
+    }
+
+    // ---------------------------------------------------------------- weather location name (#70)
+
+    @Test public void theDefaultLocationIsNamedBarcelona() {
+        assertEquals("Barcelona", new Config().locationLabel());
+    }
+
+    @Test public void anExplicitLocationNameIsShownAsWritten() {
+        Config k = new Config();
+        k.set("location", "41.98,2.82");
+        k.set("location_name", "  Girona ");
+        assertEquals("Girona", k.locationLabel());
+    }
+
+    @Test public void anotherPlaceWithoutANameIsNotCalledBarcelona() {
+        Config k = new Config();
+        k.set("location", "41.98,2.82");
+        assertEquals("", k.locationLabel());   // only the source is shown
+    }
+
+    @Test public void anEmptyLocationNameShowsOnlyTheSource() {
+        Config k = new Config();
+        k.set("location_name", "");
+        assertEquals("", k.locationLabel());
     }
 }

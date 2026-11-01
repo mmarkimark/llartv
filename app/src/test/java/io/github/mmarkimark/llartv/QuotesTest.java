@@ -62,7 +62,7 @@ public class QuotesTest {
                 + "   \n"
                 + "only text\n"
                 + "two\tfields\n"
-                + "four\tfields\tare\ttoo many\n"
+                + "five\tfields\tare\ttoo\tmany\n"
                 + "\tno text\ts\n"
                 + "  \t  \t  \n"
                 + "second\t\ts2\n");
@@ -88,16 +88,28 @@ public class QuotesTest {
 
     // ---------------------------------------------------------------- the quote of a day
 
-    @Test public void januaryTheFirstIsTheFirstLine() {
-        assertEquals("q1", Quotes.pick(numbered(366), day(2026, Calendar.JANUARY, 1)).text);
-        assertEquals("q2", Quotes.pick(numbered(366), day(2026, Calendar.JANUARY, 2)).text);
-        assertEquals("q32", Quotes.pick(numbered(366), day(2026, Calendar.FEBRUARY, 1)).text);
+    @Test public void consecutiveDaysShowConsecutiveLines() {
+        List<Quotes.Quote> q = numbered(1000);
+        int i = q.indexOf(Quotes.pick(q, day(2026, Calendar.NOVEMBER, 1)));
+        assertSame(q.get((i + 1) % 1000), Quotes.pick(q, day(2026, Calendar.NOVEMBER, 2)));
+        assertSame(q.get((i + 30) % 1000), Quotes.pick(q, day(2026, Calendar.DECEMBER, 1)));
     }
 
-    @Test public void theLastDayOfALeapYearIsLine366AndOfOtherYearsLine365() {
-        assertEquals("q366", Quotes.pick(numbered(366), day(2028, Calendar.DECEMBER, 31)).text);
-        assertEquals("q365", Quotes.pick(numbered(366), day(2026, Calendar.DECEMBER, 31)).text);
-        assertEquals("q60", Quotes.pick(numbered(366), day(2028, Calendar.FEBRUARY, 29)).text);
+    @Test public void theNewYearContinuesInsteadOfStartingAgain() {
+        // with 1,000 quotes a year boundary must not jump back to the first line (about three years without repeats)
+        List<Quotes.Quote> q = numbered(1000);
+        int dec31 = q.indexOf(Quotes.pick(q, day(2026, Calendar.DECEMBER, 31)));
+        assertSame(q.get((dec31 + 1) % 1000), Quotes.pick(q, day(2027, Calendar.JANUARY, 1)));
+        int feb28 = q.indexOf(Quotes.pick(q, day(2028, Calendar.FEBRUARY, 28)));
+        assertSame(q.get((feb28 + 1) % 1000), Quotes.pick(q, day(2028, Calendar.FEBRUARY, 29)));
+    }
+
+    @Test public void aThousandQuotesLastAThousandDaysWithoutARepeat() {
+        List<Quotes.Quote> q = numbered(1000);
+        java.util.Set<Quotes.Quote> seen = new java.util.HashSet<>();
+        Calendar c = day(2026, Calendar.NOVEMBER, 1);
+        for (int d = 0; d < 1000; d++) { assertTrue(seen.add(Quotes.pick(q, c))); c.add(Calendar.DAY_OF_MONTH, 1); }
+        assertSame(Quotes.pick(q, day(2026, Calendar.NOVEMBER, 1)), Quotes.pick(q, c));   // day 1,001 starts over
     }
 
     @Test public void theSameQuoteAllDayAndANewOneAfterMidnight() {
@@ -111,11 +123,20 @@ public class QuotesTest {
 
     @Test public void fewerLinesThanDaysWrapAround() {
         List<Quotes.Quote> q = numbered(3);
-        assertEquals("q1", Quotes.pick(q, day(2026, Calendar.JANUARY, 1)).text);
-        assertEquals("q3", Quotes.pick(q, day(2026, Calendar.JANUARY, 3)).text);
-        assertEquals("q1", Quotes.pick(q, day(2026, Calendar.JANUARY, 4)).text);
-        assertEquals("q3", Quotes.pick(q, day(2028, Calendar.DECEMBER, 31)).text);   // day 366: (366 - 1) mod 3 = 2
+        Calendar c = day(2026, Calendar.JANUARY, 1);
+        Quotes.Quote first = Quotes.pick(q, c);
+        c.add(Calendar.DAY_OF_MONTH, 3);
+        assertSame(first, Quotes.pick(q, c));
         assertEquals("q1", Quotes.pick(numbered(1), day(2026, Calendar.JULY, 15)).text);
+    }
+
+    @Test public void anOptionalFourthFieldNamesTheTranslator() {
+        Quotes.Quote q = parse("Text\tSeneca\tsrc\tLlarTV\n").get(0);
+        assertEquals("Seneca", q.author);
+        assertEquals("LlarTV", q.translator);
+        assertEquals("", parse("Text\tSeneca\tsrc\n").get(0).translator);
+        assertTrue(parse("a\tb\tc\td\te\n").isEmpty());   // more than four fields is malformed
+        assertEquals("Text\n\u2014\u00A0Seneca", Quotes.format(q));   // the translator is only in docs/quotes.md
     }
 
     // ---------------------------------------------------------------- display
@@ -188,19 +209,34 @@ public class QuotesTest {
 
     // ---------------------------------------------------------------- the bundled corpora, once they exist
 
-    @Test public void theBundledFilesHaveAQuoteForEveryDayWithItsSource() throws Exception {
+    @Test public void theBundledFilesHaveAThousandQuotesWithTheirSource() throws Exception {
         File dir = assetsDir();
         for (String lang : Language.OPTIONS) {
             File f = new File(dir, "quotes/" + lang + ".tsv");
             assumeTrue("not bundled yet: " + f, f.isFile());
             List<Quotes.Quote> q;
             try (InputStream in = new FileInputStream(f)) { q = Quotes.parse(in); }
-            assertEquals(lang, 366, q.size());
+            assertEquals(lang, 1000, q.size());   // one thousand quotes per language (S2)
+            int sayings = 0;
             for (Quotes.Quote x : q) {
                 assertFalse(lang + ": " + x.text, x.source.isEmpty());
+                assertTrue(lang + ": " + x.text, x.source.startsWith("https://"));
                 assertNotNull(x.author);
+                if (x.author.isEmpty()) sayings++;
+                assertTrue(lang + ": a translator needs an author: " + x.text, x.translator.isEmpty() || !x.author.isEmpty());
+                assertTrue(lang + ": " + x.text, x.text.length() <= 160);
             }
+            assertTrue(lang + ": only " + sayings + " of " + q.size() + " sayings", sayings * 4 >= q.size() && sayings * 4 <= q.size() * 3);
+            assertTrue(lang + ": more than ten lines for one author", countAuthors(q) <= 10);
         }
+    }
+
+    static int countAuthors(List<Quotes.Quote> q) {
+        java.util.Map<String, Integer> n = new java.util.HashMap<>();
+        for (Quotes.Quote x : q) if (!x.author.isEmpty()) n.merge(x.author, 1, Integer::sum);
+        int max = 0;
+        for (int c : n.values()) max = Math.max(max, c);
+        return max;
     }
 
     static File assetsDir() {

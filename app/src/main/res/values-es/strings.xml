@@ -14,6 +14,8 @@
     <string name="not_available">No disponible</string>
     <string name="cant_switch_input">No se puede cambiar de entrada</string>
     <string name="weather">Tiempo</string>
+    <string name="weather_credit">%1$s · Open-Meteo</string>
+    <string name="weather_source">Open-Meteo</string>
     <string name="news">Noticias</string>
 
     <!-- Greetings -->
@@ -85,6 +87,7 @@
     <string name="weather_screen">Tiempo en el salvapantallas</string>
     <string name="news_home">Noticias en la pantalla</string>
     <string name="quote">Frase del día</string>
+    <string name="minimal">Modo mínimo</string>
     <string name="news_source">Fuente de noticias</string>
     <string name="news_source_auto">Automático</string>
     <string name="news_source_custom">Personalizada</string>

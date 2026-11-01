@@ -26,6 +26,7 @@ import java.util.Set;
  *   wallpaper=bing               (default; an image URL, or off for a plain background)
  *   wallpaper_minutes=30         (default; 0 always shows the newest image)
  *   location=41.4235,2.2010      (latitude,longitude for the weather)
+ *   location_name=Barcelona      (the place shown with the weather source)
  *   language=ca                  (ca, es or en: the interface language; missing or unknown is Catalan)
  *   news_source=automatic       (automatic, 3cat, bbc-mundo or bbc-world: the news feed; automatic follows language)
  *   news_rss=https://...         (a custom feed; it wins over the preset and is never overwritten by one)
@@ -41,6 +42,7 @@ import java.util.Set;
  *   weather_screen=all           (never, morning or all: the weather on the screensaver)
  *   news_home=morning            (never, morning or all: the news on the home screen)
  *   quote=on                     (off: no quote of the day under the date on Home)
+ *   minimal=off                  (on: minimal mode, see MinimalMode; the other settings are kept as they are)
  * Change it over adb with scripts/config.sh, which goes through SettingsReceiver.
  */
 final class Config {
@@ -53,7 +55,9 @@ final class Config {
     String teamId = "", teamName = "";
     String wallpaper = "bing";       // "bing" or an image URL: refreshed daily (DailyWallpaper); empty or "off" = none
     int wallpaperMinutes = 30;       // > 0: rotate through the downloaded images (Bing: last 8) every N minutes
-    double lat = 41.4235, lon = 2.2010;   // weather location (La Verneda, Barcelona)
+    static final double DEFAULT_LAT = 41.4235, DEFAULT_LON = 2.2010;
+    double lat = DEFAULT_LAT, lon = DEFAULT_LON;   // weather location (La Verneda, Barcelona)
+    String locationName;   // home.conf location_name; null when the line is absent (#70)
     String language = Language.DEFAULT;        // "ca", "es" or "en"; never the TV's system language
     String newsSource = NewsSource.AUTOMATIC;   // "automatic", "3cat", "bbc-mundo" or "bbc-world"
     String newsRss = "";           // a custom feed; empty when the preset decides
@@ -71,6 +75,7 @@ final class Config {
     int weatherScreen = ContentPolicy.ALL;      // the weather on the screensaver
     int newsHome = ContentPolicy.MORNING;      // the news on the home screen
     boolean quote = true;           // the quote of the day under the date on Home (Quotes)
+    boolean minimal = false;        // minimal mode (MinimalMode): overrides the content settings, rewrites none
 
     TimeBands bands() { return TimeBands.parse(morning, night); }
 
@@ -144,6 +149,7 @@ final class Config {
                 catch (NumberFormatException ignored) {}
                 break;
             }
+            case "location_name": locationName = v.trim(); break;
             case "language": {
                 String p = Language.parse(v);
                 language = v.trim().isEmpty() ? Language.DEFAULT : p.isEmpty() ? language : p;
@@ -179,6 +185,7 @@ final class Config {
             case "weather_screen": weatherScreen = ContentPolicy.parse(v, weatherScreen); break;
             case "news_home": newsHome = ContentPolicy.parse(v, newsHome); break;
             case "quote": quote = onOff(v, true); break;
+            case "minimal": minimal = onOff(v, false); break;
         }
     }
 
@@ -211,5 +218,14 @@ final class Config {
         List<String> out = new ArrayList<>();
         for (String s : Arrays.asList(v.split("[,\\s]+"))) if (!s.trim().isEmpty()) out.add(s.trim());
         return out;
+    }
+
+    /**
+     * The place shown with the weather source (#70): location_name as written (empty: none), else "Barcelona" for
+     * the default coordinates, and nothing for any other place, so a moved location is never named Barcelona.
+     */
+    String locationLabel() {
+        if (locationName != null) return locationName;
+        return lat == DEFAULT_LAT && lon == DEFAULT_LON ? "Barcelona" : "";
     }
 }

@@ -33,10 +33,10 @@ public class SettingsResetTest {
     static final String ALL_CHANGED = String.join("\n",
             "columns=5", "dock=com.netflix.ninja", "hidden=com.example.hidden", "order=com.b,com.a",
             "team_id=83", "team_name=FC BARCELONA", "wallpaper=https://example.com/me.jpg", "wallpaper_minutes=0",
-            "location=41.98,2.82", "language=en", "news_source=bbc-world", "news_rss=https://example.com/rss",
+            "location=41.98,2.82", "location_name=Girona", "language=en", "news_source=bbc-world", "news_rss=https://example.com/rss",
             "music_screen=on", "music_url=https://example.com/radio", "clock_screen=off", "motion_screen=off",
             "morning=07:00-10:00", "night=off", "dock_tint=off", "clock=24", "weather_home=all",
-            "weather_screen=never", "news_home=never", "night_screen=on", "night_mute=on", "quote=off") + "\n";
+            "weather_screen=never", "news_home=never", "night_screen=on", "night_mute=on", "quote=off", "minimal=on") + "\n";
 
     // ---------------------------------------------------------------- the text rule
 
