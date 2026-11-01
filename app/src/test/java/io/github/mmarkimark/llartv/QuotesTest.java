@@ -209,18 +209,24 @@ public class QuotesTest {
 
     // ---------------------------------------------------------------- the bundled corpora, once they exist
 
-    @Test public void theBundledFilesHaveAQuoteForEveryDayWithItsSource() throws Exception {
+    @Test public void theBundledFilesHaveAThousandQuotesWithTheirSource() throws Exception {
         File dir = assetsDir();
         for (String lang : Language.OPTIONS) {
             File f = new File(dir, "quotes/" + lang + ".tsv");
             assumeTrue("not bundled yet: " + f, f.isFile());
             List<Quotes.Quote> q;
             try (InputStream in = new FileInputStream(f)) { q = Quotes.parse(in); }
-            assertTrue(lang + ": " + q.size(), q.size() >= 366);   // at least a quote for every day; 1,000 planned (S2)
+            assertTrue(lang + ": " + q.size(), q.size() >= 366);   // one quote for every day; 1,000 per language (S2)
+            int sayings = 0;
             for (Quotes.Quote x : q) {
                 assertFalse(lang + ": " + x.text, x.source.isEmpty());
+                assertTrue(lang + ": " + x.text, x.source.startsWith("https://"));
                 assertNotNull(x.author);
+                if (x.author.isEmpty()) sayings++;
+                assertTrue(lang + ": a translator needs an author: " + x.text, x.translator.isEmpty() || !x.author.isEmpty());
+                assertTrue(lang + ": " + x.text, x.text.length() <= 160);
             }
+            assertTrue(lang + ": only " + sayings + " of " + q.size() + " sayings", sayings * 4 >= q.size() && sayings * 4 <= q.size() * 3);
         }
     }
 
