@@ -14,6 +14,8 @@
     <string name="not_available">Not available</string>
     <string name="cant_switch_input">Can\'t switch input</string>
     <string name="weather">Weather</string>
+    <string name="weather_credit">%1$s · Open-Meteo</string>
+    <string name="weather_source">Open-Meteo</string>
     <string name="news">News</string>
 
     <!-- Greetings -->
@@ -84,6 +86,8 @@
     <string name="weather_home">Weather on Home</string>
     <string name="weather_screen">Weather on the screensaver</string>
     <string name="news_home">News on Home</string>
+    <string name="quote">Quote of the day</string>
+    <string name="minimal">Minimal mode</string>
     <string name="news_source">News source</string>
     <string name="news_source_auto">Automatic</string>
     <string name="news_source_custom">Custom</string>

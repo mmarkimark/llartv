@@ -189,11 +189,13 @@ public class SettingsActivity extends Activity {
                 new String[]{Clock.SYSTEM, Clock.H24, Clock.H12}, null);
         clock.selected = Math.max(0, indexOf(clock.values, conf.clock));
         rows.add(clock);
+        addMinimalRow(conf);
         addWallpaperRows(conf);
         addNightRow(conf);
         addPolicyRow(tx.get(R.string.weather_home), "weather_home", conf.weatherHome);
         addPolicyRow(tx.get(R.string.weather_screen), "weather_screen", conf.weatherScreen);
         addPolicyRow(tx.get(R.string.news_home), "news_home", conf.newsHome);
+        addQuoteRow(conf);
         addSourceRow(conf);
         addScreensaverRows(conf);
         addMusicRow(conf);
@@ -288,6 +290,23 @@ public class SettingsActivity extends Activity {
         Row q = new Row(tx.get(R.string.night_mute), "night_mute", new String[]{tx.get(R.string.on), tx.get(R.string.off)}, new String[]{"on", "off"}, null);
         q.selected = conf.nightMute ? 0 : 1;
         rows.add(q);
+    }
+
+    /**
+     * Minimal mode (MinimalMode): on or off, off by default. It overrides the content rows under it without
+     * rewriting them, so they stay editable and keep their values for when it is switched off again.
+     */
+    void addMinimalRow(Config conf) {
+        Row r = new Row(tx.get(R.string.minimal), "minimal", new String[]{tx.get(R.string.on), tx.get(R.string.off)}, new String[]{"on", "off"}, null);
+        r.selected = conf.minimal ? 0 : 1;
+        rows.add(r);
+    }
+
+    /** The quote of the day under the date on Home (#69): on (the default) or off. */
+    void addQuoteRow(Config conf) {
+        Row r = new Row(tx.get(R.string.quote), "quote", new String[]{tx.get(R.string.on), tx.get(R.string.off)}, new String[]{"on", "off"}, null);
+        r.selected = conf.quote ? 0 : 1;
+        rows.add(r);
     }
 
     /** The screensaver music: on or off. The stream itself comes from the configuration, not from the remote. */
