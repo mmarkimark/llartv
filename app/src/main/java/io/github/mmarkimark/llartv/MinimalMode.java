@@ -7,7 +7,7 @@ package io.github.mmarkimark.llartv;
  * fields, and every one of them reads "off": no weather (Home and screensaver), no news, no quote, no wallpaper (a
  * black background, nothing downloaded, not even a pushed image), no screensaver photos (the clock and the date on
  * black), no football card or fixtures download, no screensaver music and the neutral dock colour instead of the
- * photo tint. The stored values are never rewritten, so switching it off brings back exactly what was chosen
+ * photo tint, and no focus glow behind the app name. The stored values are never rewritten, so switching it off brings back exactly what was chosen
  * before. This is the one place that decides it; callers never test Config.minimal themselves.
  */
 final class MinimalMode {
@@ -35,6 +35,9 @@ final class MinimalMode {
 
     /** The dock band takes its colour from the photo; false keeps the neutral colour. */
     static boolean dockTint(Config c) { return !c.minimal && c.dockTint; }
+
+    /** The soft glow behind the focused app's name, coloured from its banner; off in minimal mode (owner L15). */
+    static boolean focusGlow(Config c) { return !c.minimal; }
 
     /** The screensaver music option (Music.shouldPlay also needs a usable stream). */
     static boolean musicScreen(Config c) { return !c.minimal && c.musicScreen; }

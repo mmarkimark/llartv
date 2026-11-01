@@ -339,6 +339,7 @@ public class HomeActivity extends Activity {
         setGlow(glowColor);
         glow = new View(this);
         glow.setBackground(glowShape);
+        if (!MinimalMode.focusGlow(conf)) glow.setVisibility(View.GONE);
         FrameLayout.LayoutParams glp = new FrameLayout.LayoutParams(dp(1100), dp(720), Gravity.TOP | Gravity.START);
         glp.leftMargin = pad + dp(170) - dp(550);
         glp.topMargin = heroH - dp(60) - dp(360);
@@ -661,7 +662,8 @@ public class HomeActivity extends Activity {
             List<Ui.AppEntry> d = new ArrayList<>(), g = new ArrayList<>();
             for (String p : c.dock) d.add(map.get(p));
             for (String p : c.grid) g.add(map.get(p));
-            for (Ui.AppEntry e : d) e.color = Ui.sampleColor(e.banner != null ? e.banner : e.icon);
+            if (MinimalMode.focusGlow(conf))   // the glow colour is sampled only when the glow is shown
+                for (Ui.AppEntry e : d) e.color = Ui.sampleColor(e.banner != null ? e.banner : e.icon);
             ui.post(() -> { installedByLabel = byLabel; bindApps(d, g); });
         }).start();
     }
@@ -949,6 +951,12 @@ public class HomeActivity extends Activity {
     }
 
     void setGlow(int c) {
+        if (!MinimalMode.focusGlow(conf)) {   // minimal mode: no glow and no coloured shadow on the app name
+            if (glow != null) glow.setVisibility(View.GONE);   // buildUi calls this before the glow view exists
+            if (hero != null) hero.setShadowLayer(0, 0, 0, 0);
+            return;
+        }
+        if (glow != null) glow.setVisibility(View.VISIBLE);
         glowShape.setColors(new int[]{withAlpha(c, 0x52), withAlpha(c, 0x1A), 0x00000000});
         if (hero != null) hero.setShadowLayer(dp(26), 0, 0, withAlpha(c, 0xB0));
     }
