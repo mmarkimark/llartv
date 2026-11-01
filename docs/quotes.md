@@ -19,7 +19,7 @@ the interface language. This page explains where the quotes come from, how they 
   a translated quote: the public-domain translator, or `LlarTV` for a translation made for this project. Blank or
   malformed lines are skipped.
 - Days are counted continuously: each day shows the next line, and a file of *n* quotes repeats only after *n* days
-  (about 1,000 quotes per language are planned, close to three years without a repeat). It is the same quote all
+  (1,000 quotes per language, close to three years without a repeat). It is the same quote all
   day and changes at midnight.
 - The quote **follows the interface language** (`language`, *Configuració → Idioma*). If a language's file were
   missing or empty, the Catalan quotes are shown instead.
@@ -39,7 +39,7 @@ the interface language. This page explains where the quotes come from, how they 
 
 ## Selection rules
 
-- About half of each file are traditional sayings and half are quotes by classic authors; chosen to be
+- Each file has 1,000 lines, roughly half traditional sayings and half quotes by classic authors; chosen to be
   encouraging or to make you think.
 - Every author **died before 1956**, so their work is in the public domain in the European Union (life + 70
   years). No modern or copyrighted quotes are included.
