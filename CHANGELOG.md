@@ -5,13 +5,32 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 ## [Unreleased]
 
+## [1.6] - 2026-11-01
+
+### Added
+
+- Quote of the day (#69): a line under the date with a traditional saying or a quote by a classic author, in the
+  interface language. 1,000 quotes per language (Catalan, Spanish, English), bundled with the app: no network,
+  one quote a day and about three years without repeating. The `quote` setting turns it off.
+- Quiet night screensaver and minimal mode were delivered in 1.5; the minimal mode (#71) is one reversible switch
+  that hides and skips the weather, news, quote, wallpaper, screensaver photos and music, the football card and the
+  photo-tinted dock, without rewriting your other settings.
+- The weather card now names the place (#70): "Barcelona · Open-Meteo" by default, or the `location_name` you set.
+
+### Changed
+
+- The configuration (`home.conf`, `dock.txt`) now lives in app-private storage and is moved there once, byte for
+  byte, on upgrade. ADB configuration through `scripts/config.sh` is unchanged.
+- `scripts/config.sh` accepts every documented setting; `night_screen` and `night_mute` were refused since 1.5.
+
+
 ### Added
 
 - Quote of the day (#69): Home shows a discreet line under the date with a traditional saying or a quote by a
   classic author (died before 1956), at most two lines and then "— Author". The same quote all day and a new one
-  at midnight (line day-of-year of the file); it follows the interface language and uses the Catalan quotes when a
-  language has none. The quotes are bundled (`assets/quotes/ca.tsv`, `es.tsv`, `en.tsv`; 366 per language), so no
-  network is used. The night palette applies to it. New settings row *Frase del dia* / *Frase del día* /
+  at midnight (consecutive days show consecutive lines, so a file repeats only after as many days as it has quotes);
+  it follows the interface language and uses the Catalan quotes when a language has none. The quotes are bundled
+  (`assets/quotes/ca.tsv`, `es.tsv`, `en.tsv`), so no network is used. The night palette applies to it. New settings row *Frase del dia* / *Frase del día* /
   *Quote of the day* and `home.conf` key `quote=on|off` (default `on`; an empty value restores it; removed by the
   settings reset). Sources, selection rules and the CC BY-SA 4.0 attribution: [docs/quotes.md](docs/quotes.md).
 
@@ -244,7 +263,8 @@ First release.
 - Scripts to install, configure and uninstall LlarTV over ADB: `scripts/install.sh`, `scripts/config.sh` and
   `scripts/uninstall.sh`.
 
-[Unreleased]: https://github.com/mmarkimark/llartv/compare/v1.5...HEAD
+[Unreleased]: https://github.com/mmarkimark/llartv/compare/v1.6...HEAD
+[1.6]: https://github.com/mmarkimark/llartv/compare/v1.5...v1.6
 [1.5]: https://github.com/mmarkimark/llartv/compare/v1.4...v1.5
 [1.4]: https://github.com/mmarkimark/llartv/compare/v1.3...v1.4
 [1.3]: https://github.com/mmarkimark/llartv/compare/v1.2...v1.3
