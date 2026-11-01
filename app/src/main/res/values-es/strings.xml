@@ -87,6 +87,7 @@
     <string name="weather_screen">Tiempo en el salvapantallas</string>
     <string name="news_home">Noticias en la pantalla</string>
     <string name="quote">Frase del día</string>
+    <string name="minimal">Modo mínimo</string>
     <string name="news_source">Fuente de noticias</string>
     <string name="news_source_auto">Automático</string>
     <string name="news_source_custom">Personalizada</string>

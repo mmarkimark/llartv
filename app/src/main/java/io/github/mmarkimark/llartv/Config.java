@@ -42,6 +42,7 @@ import java.util.Set;
  *   weather_screen=all           (never, morning or all: the weather on the screensaver)
  *   news_home=morning            (never, morning or all: the news on the home screen)
  *   quote=on                     (off: no quote of the day under the date on Home)
+ *   minimal=off                  (on: minimal mode, see MinimalMode; the other settings are kept as they are)
  * Change it over adb with scripts/config.sh, which goes through SettingsReceiver.
  */
 final class Config {
@@ -74,6 +75,7 @@ final class Config {
     int weatherScreen = ContentPolicy.ALL;      // the weather on the screensaver
     int newsHome = ContentPolicy.MORNING;      // the news on the home screen
     boolean quote = true;           // the quote of the day under the date on Home (Quotes)
+    boolean minimal = false;        // minimal mode (MinimalMode): overrides the content settings, rewrites none
 
     TimeBands bands() { return TimeBands.parse(morning, night); }
 
@@ -183,6 +185,7 @@ final class Config {
             case "weather_screen": weatherScreen = ContentPolicy.parse(v, weatherScreen); break;
             case "news_home": newsHome = ContentPolicy.parse(v, newsHome); break;
             case "quote": quote = onOff(v, true); break;
+            case "minimal": minimal = onOff(v, false); break;
         }
     }
 
