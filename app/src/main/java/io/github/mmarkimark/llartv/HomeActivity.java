@@ -92,6 +92,11 @@ public class HomeActivity extends Activity {
     long wallStamp = -1;
     PageLayout page;
     TextView greeting, clock, date, hero;
+    // the quote of the day under the date (#69): the text (at most two lines), then "— Author" on a line of its own
+    TextView quoteText, quoteAuthor;
+    static Quotes.Library quoteLibrary;   // the bundled quotes, each language read once per process (off the main thread)
+    String quoteKey;                      // what the quote shows: language and day, or "off"; null before the first
+    boolean quoteLoading;
     GradientDrawable glowShape;
     View glow;
     int glowColor = 0xFF8E8E93;
@@ -106,7 +111,7 @@ public class HomeActivity extends Activity {
     ValueAnimator nightAnim;
     // morning panel (weather, news), top right under the pills
     LinearLayout panel, wxCard, newsCard, newsList;
-    TextView wxTemp, wxLine, wxRange;
+    TextView wxTemp, wxLine, wxRange, wxCredit;
     TextView newsCredit;
     final List<TextView> cardHeads = new ArrayList<>();   // the card headings, renamed on a language change
     final List<Integer> cardHeadIds = new ArrayList<>();  // their texts (the view tags hold the night-mode colours)
@@ -175,12 +180,14 @@ public class HomeActivity extends Activity {
 
         prefs = getSharedPreferences("home", MODE_PRIVATE);
         fonts = new Ui.Fonts(this);
+        // minimal mode (MinimalMode): no quote, no team, no wallpaper, no cards; none of them is built or read
+        if (!MinimalMode.on(conf) && quoteLibrary == null) quoteLibrary = new Quotes.Library(getApplicationContext().getAssets()::open);
         region = prefs.getInt("region", DOCK);
         if (region == MENU) region = TOP;
         topIdx = prefs.getInt("top", 0);
         dockIdx = prefs.getInt("dock", 0);
         restoreGridPkg = prefs.getString("gridPkg", null);
-        teamId = conf.teamId;
+        teamId = MinimalMode.teamId(conf);   // empty in minimal mode: no cached fixtures parsed, no card, no fetch
         lastFetch = prefs.getLong("fixFetched", 0);
         lastWallFetch = prefs.getLong("wallFetched", 0);
         String cached = prefs.getString("fixJson", null);
@@ -200,8 +207,9 @@ public class HomeActivity extends Activity {
         super.onResume();
         Config before = conf;
         conf = Config.load(this);          // LlarTV's own settings may have changed while we were away
-        // The tile sizes and the team are set up once in onCreate: a change to them (a settings reset) rebuilds Home.
-        if (before.columns != conf.columns || !before.teamId.equals(conf.teamId)) { recreate(); return; }
+        // The tile sizes, the team and the minimal-mode views are set up once in onCreate: a change to them (in the
+        // settings, a reset or scripts/config.sh) rebuilds Home.
+        if (MinimalMode.homeNeedsRebuild(before, conf)) { recreate(); return; }
         bands = conf.bands();
         applyLanguage();
         IntentFilter f = new IntentFilter();
@@ -305,10 +313,13 @@ public class HomeActivity extends Activity {
         root.setBackgroundColor(Color.BLACK);
         root.setClipChildren(false);
 
-        wall = new ImageView(this);
-        wall.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        wall.setAlpha(0.55f);
-        root.addView(wall, new FrameLayout.LayoutParams(-1, -1));
+        boolean minimal = MinimalMode.on(conf);   // minimal mode: no wallpaper view, no quote, no cards (black Home)
+        if (!minimal) {
+            wall = new ImageView(this);
+            wall.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            wall.setAlpha(0.55f);
+            root.addView(wall, new FrameLayout.LayoutParams(-1, -1));
+        }
 
         page = new PageLayout(this);
         page.setOrientation(LinearLayout.VERTICAL);
@@ -328,6 +339,7 @@ public class HomeActivity extends Activity {
         setGlow(glowColor);
         glow = new View(this);
         glow.setBackground(glowShape);
+        if (!MinimalMode.focusGlow(conf)) glow.setVisibility(View.GONE);
         FrameLayout.LayoutParams glp = new FrameLayout.LayoutParams(dp(1100), dp(720), Gravity.TOP | Gravity.START);
         glp.leftMargin = pad + dp(170) - dp(550);
         glp.topMargin = heroH - dp(60) - dp(360);
@@ -350,6 +362,28 @@ public class HomeActivity extends Activity {
         tl.addView(greeting, new LinearLayout.LayoutParams(-2, -2));
         tl.addView(clock, new LinearLayout.LayoutParams(-2, -2));
         tl.addView(date, new LinearLayout.LayoutParams(-2, -2));
+        if (!minimal) {
+            // the quote: smaller and dimmer than the date, kept clear of the cards on the right (380 dp wide)
+            int quoteW = W - 2 * pad - dp(380) - dp(48);
+            quoteText = text(300, 16, 0xFF8E8E93);
+            quoteText.setSingleLine(false);
+            quoteText.setMaxLines(2);
+            quoteText.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            quoteText.setMaxWidth(quoteW);
+            quoteText.setLineSpacing(dp(2), 1f);
+            quoteText.setVisibility(View.GONE);
+            quoteAuthor = text(300, 13, 0xFF8E8E93);
+            quoteAuthor.setLetterSpacing(0.02f);
+            quoteAuthor.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            quoteAuthor.setMaxWidth(quoteW);
+            quoteAuthor.setVisibility(View.GONE);
+            LinearLayout.LayoutParams qtp = new LinearLayout.LayoutParams(-2, -2);
+            qtp.topMargin = dp(14);
+            tl.addView(quoteText, qtp);
+            LinearLayout.LayoutParams qap = new LinearLayout.LayoutParams(-2, -2);
+            qap.topMargin = dp(4);
+            tl.addView(quoteAuthor, qap);
+        }
         FrameLayout.LayoutParams tlp = new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.START);
         tlp.leftMargin = pad;
         tlp.topMargin = dp(40);
@@ -371,93 +405,100 @@ public class HomeActivity extends Activity {
         prp.topMargin = dp(52);
         heroSec.addView(pillRow, prp);
 
-        // --- football card (top right, under the pills): next match, date/time, countdown
-        matchCard = new LinearLayout(this);
-        matchCard.setOrientation(LinearLayout.VERTICAL);
-        matchCard.setPadding(dp(22), dp(16), dp(22), dp(18));
-        GradientDrawable mcBg = new GradientDrawable();
-        mcBg.setColor(0x14FFFFFF);
-        mcBg.setCornerRadius(dp(22));
-        mcBg.setStroke(dp(1), 0x26FFFFFF);
-        matchCard.setBackground(mcBg);
-        LinearLayout labelRow = new LinearLayout(this);
-        labelRow.setOrientation(LinearLayout.HORIZONTAL);
-        labelRow.setGravity(Gravity.CENTER_VERTICAL);
-        View dot = new View(this);
-        GradientDrawable dotBg = new GradientDrawable();
-        dotBg.setShape(GradientDrawable.OVAL);
-        dotBg.setColor(getColor(R.color.fixture_accent));
-        dot.setBackground(dotBg);
-        LinearLayout.LayoutParams dlp = new LinearLayout.LayoutParams(dp(9), dp(9));
-        dlp.rightMargin = dp(9);
-        labelRow.addView(dot, dlp);
-        mLabel = text(500, 13, 0xFFAEAEB2);
-        mLabel.setLetterSpacing(0.08f);
-        mLabel.setText(matchLabel());
-        labelRow.addView(mLabel);
-        matchCard.addView(labelRow);
-        mTitle = text(300, 30, 0xFFFFFFFF);
-        LinearLayout.LayoutParams tlp2 = new LinearLayout.LayoutParams(-2, -2);
-        tlp2.topMargin = dp(8);
-        matchCard.addView(mTitle, tlp2);
-        mComp = text(300, 16, 0xFFAEAEB2);
-        LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(-2, -2);
-        clp.topMargin = dp(4);
-        matchCard.addView(mComp, clp);
-        LinearLayout whenRow = new LinearLayout(this);
-        whenRow.setOrientation(LinearLayout.HORIZONTAL);
-        whenRow.setGravity(Gravity.BOTTOM);
-        mWhen = text(400, 21, 0xFFFFFFFF);
-        mCountdown = text(300, 16, 0xFF8E8E93);
-        whenRow.addView(mWhen);
-        LinearLayout.LayoutParams cdp = new LinearLayout.LayoutParams(-2, -2);
-        cdp.leftMargin = dp(12);
-        whenRow.addView(mCountdown, cdp);
-        LinearLayout.LayoutParams wlp = new LinearLayout.LayoutParams(-2, -2);
-        wlp.topMargin = dp(12);
-        matchCard.addView(whenRow, wlp);
-        matchCard.setVisibility(View.GONE);
-        FrameLayout.LayoutParams mcp = new FrameLayout.LayoutParams(dp(380), -2, Gravity.TOP | Gravity.END);
-        mcp.rightMargin = pad;
-        mcp.topMargin = dp(52) + dp(42) + dp(26);
-        heroSec.addView(matchCard, mcp);
+        if (!minimal) {   // minimal mode builds neither the football card nor the morning panel
+            // --- football card (top right, under the pills): next match, date/time, countdown
+            matchCard = new LinearLayout(this);
+            matchCard.setOrientation(LinearLayout.VERTICAL);
+            matchCard.setPadding(dp(22), dp(16), dp(22), dp(18));
+            GradientDrawable mcBg = new GradientDrawable();
+            mcBg.setColor(0x14FFFFFF);
+            mcBg.setCornerRadius(dp(22));
+            mcBg.setStroke(dp(1), 0x26FFFFFF);
+            matchCard.setBackground(mcBg);
+            LinearLayout labelRow = new LinearLayout(this);
+            labelRow.setOrientation(LinearLayout.HORIZONTAL);
+            labelRow.setGravity(Gravity.CENTER_VERTICAL);
+            View dot = new View(this);
+            GradientDrawable dotBg = new GradientDrawable();
+            dotBg.setShape(GradientDrawable.OVAL);
+            dotBg.setColor(getColor(R.color.fixture_accent));
+            dot.setBackground(dotBg);
+            LinearLayout.LayoutParams dlp = new LinearLayout.LayoutParams(dp(9), dp(9));
+            dlp.rightMargin = dp(9);
+            labelRow.addView(dot, dlp);
+            mLabel = text(500, 13, 0xFFAEAEB2);
+            mLabel.setLetterSpacing(0.08f);
+            mLabel.setText(matchLabel());
+            labelRow.addView(mLabel);
+            matchCard.addView(labelRow);
+            mTitle = text(300, 30, 0xFFFFFFFF);
+            LinearLayout.LayoutParams tlp2 = new LinearLayout.LayoutParams(-2, -2);
+            tlp2.topMargin = dp(8);
+            matchCard.addView(mTitle, tlp2);
+            mComp = text(300, 16, 0xFFAEAEB2);
+            LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(-2, -2);
+            clp.topMargin = dp(4);
+            matchCard.addView(mComp, clp);
+            LinearLayout whenRow = new LinearLayout(this);
+            whenRow.setOrientation(LinearLayout.HORIZONTAL);
+            whenRow.setGravity(Gravity.BOTTOM);
+            mWhen = text(400, 21, 0xFFFFFFFF);
+            mCountdown = text(300, 16, 0xFF8E8E93);
+            whenRow.addView(mWhen);
+            LinearLayout.LayoutParams cdp = new LinearLayout.LayoutParams(-2, -2);
+            cdp.leftMargin = dp(12);
+            whenRow.addView(mCountdown, cdp);
+            LinearLayout.LayoutParams wlp = new LinearLayout.LayoutParams(-2, -2);
+            wlp.topMargin = dp(12);
+            matchCard.addView(whenRow, wlp);
+            matchCard.setVisibility(View.GONE);
+            FrameLayout.LayoutParams mcp = new FrameLayout.LayoutParams(dp(380), -2, Gravity.TOP | Gravity.END);
+            mcp.rightMargin = pad;
+            mcp.topMargin = dp(52) + dp(42) + dp(26);
+            heroSec.addView(matchCard, mcp);
 
-        // --- morning panel (same place as the football card, which it replaces from 08:00 to 11:00)
-        panel = new LinearLayout(this);
-        panel.setOrientation(LinearLayout.VERTICAL);
-        panel.setVisibility(View.GONE);
-        wxCard = card(R.string.weather);
-        LinearLayout wxRow = new LinearLayout(this);
-        wxRow.setOrientation(LinearLayout.HORIZONTAL);
-        wxRow.setGravity(Gravity.CENTER_VERTICAL);
-        wxTemp = text(200, 32, 0xFFFFFFFF);
-        wxTemp.setIncludeFontPadding(false);
-        LinearLayout wxText = new LinearLayout(this);
-        wxText.setOrientation(LinearLayout.VERTICAL);
-        wxLine = text(400, 15, 0xFFDCD9D2);
-        wxRange = text(300, 12, 0xFFA9A6A0);
-        wxText.addView(wxLine);
-        wxText.addView(wxRange);
-        wxRow.addView(wxTemp);
-        LinearLayout.LayoutParams wtp = new LinearLayout.LayoutParams(-2, -2);
-        wtp.leftMargin = dp(14);
-        wxRow.addView(wxText, wtp);
-        wxCard.addView(wxRow);
-        newsCard = card(R.string.news);
-        newsList = new LinearLayout(this);
-        newsList.setOrientation(LinearLayout.VERTICAL);
-        newsCard.addView(newsList);
-        newsCredit = text(300, 10, 0xFFA9A6A0);
-        newsCredit.setLetterSpacing(0.02f);
-        LinearLayout.LayoutParams ncp = new LinearLayout.LayoutParams(-2, -2);
-        ncp.topMargin = dp(6);
-        newsCard.addView(newsCredit, ncp);
-        for (View c : new View[]{wxCard, newsCard}) {
-            LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(-1, -2);
-            cp.bottomMargin = dp(8);
-            panel.addView(c, cp);
+            // --- morning panel (same place as the football card, which it replaces from 08:00 to 11:00)
+            panel = new LinearLayout(this);
+            panel.setOrientation(LinearLayout.VERTICAL);
+            panel.setVisibility(View.GONE);
+            wxCard = card(R.string.weather);
+            LinearLayout wxRow = new LinearLayout(this);
+            wxRow.setOrientation(LinearLayout.HORIZONTAL);
+            wxRow.setGravity(Gravity.CENTER_VERTICAL);
+            wxTemp = text(200, 32, 0xFFFFFFFF);
+            wxTemp.setIncludeFontPadding(false);
+            LinearLayout wxText = new LinearLayout(this);
+            wxText.setOrientation(LinearLayout.VERTICAL);
+            wxLine = text(400, 15, 0xFFDCD9D2);
+            wxRange = text(300, 12, 0xFFA9A6A0);
+            wxText.addView(wxLine);
+            wxText.addView(wxRange);
+            wxRow.addView(wxTemp);
+            LinearLayout.LayoutParams wtp = new LinearLayout.LayoutParams(-2, -2);
+            wtp.leftMargin = dp(14);
+            wxRow.addView(wxText, wtp);
+            wxCard.addView(wxRow);
+            wxCredit = text(300, 10, 0xFFA9A6A0);   // the place and the source, like the headlines' credit (#70)
+            wxCredit.setLetterSpacing(0.02f);
+            LinearLayout.LayoutParams wcp = new LinearLayout.LayoutParams(-2, -2);
+            wcp.topMargin = dp(6);
+            wxCard.addView(wxCredit, wcp);
+            newsCard = card(R.string.news);
+            newsList = new LinearLayout(this);
+            newsList.setOrientation(LinearLayout.VERTICAL);
+            newsCard.addView(newsList);
+            newsCredit = text(300, 10, 0xFFA9A6A0);
+            newsCredit.setLetterSpacing(0.02f);
+            LinearLayout.LayoutParams ncp = new LinearLayout.LayoutParams(-2, -2);
+            ncp.topMargin = dp(6);
+            newsCard.addView(newsCredit, ncp);
+            for (View c : new View[]{wxCard, newsCard}) {
+                LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(-1, -2);
+                cp.bottomMargin = dp(8);
+                panel.addView(c, cp);
+            }
+            heroSec.addView(panel, new FrameLayout.LayoutParams(mcp));
         }
-        heroSec.addView(panel, new FrameLayout.LayoutParams(mcp));
 
         // --- dock band
         FrameLayout band = new FrameLayout(this);
@@ -621,7 +662,8 @@ public class HomeActivity extends Activity {
             List<Ui.AppEntry> d = new ArrayList<>(), g = new ArrayList<>();
             for (String p : c.dock) d.add(map.get(p));
             for (String p : c.grid) g.add(map.get(p));
-            for (Ui.AppEntry e : d) e.color = Ui.sampleColor(e.banner != null ? e.banner : e.icon);
+            if (MinimalMode.focusGlow(conf))   // the glow colour is sampled only when the glow is shown
+                for (Ui.AppEntry e : d) e.color = Ui.sampleColor(e.banner != null ? e.banner : e.icon);
             ui.post(() -> { installedByLabel = byLabel; bindApps(d, g); });
         }).start();
     }
@@ -909,6 +951,12 @@ public class HomeActivity extends Activity {
     }
 
     void setGlow(int c) {
+        if (!MinimalMode.focusGlow(conf)) {   // minimal mode: no glow and no coloured shadow on the app name
+            if (glow != null) glow.setVisibility(View.GONE);   // buildUi calls this before the glow view exists
+            if (hero != null) hero.setShadowLayer(0, 0, 0, 0);
+            return;
+        }
+        if (glow != null) glow.setVisibility(View.VISIBLE);
         glowShape.setColors(new int[]{withAlpha(c, 0x52), withAlpha(c, 0x1A), 0x00000000});
         if (hero != null) hero.setShadowLayer(dp(26), 0, 0, withAlpha(c, 0xB0));
     }
@@ -1239,8 +1287,9 @@ public class HomeActivity extends Activity {
         pillText[0].setText(tx.get(R.string.inputs));
         pillText[2].setText(tx.get(R.string.settings));
         for (int i = 0; i < cardHeads.size(); i++) cardHeads.get(i).setText(Ca.upper(tx, tx.get(cardHeadIds.get(i))));
-        mLabel.setText(matchLabel());
+        if (mLabel != null) mLabel.setText(matchLabel());   // no football card in minimal mode
         wifiText.setText("");   // updateWifi writes it again in the new language
+        refreshQuote();         // the quote follows the interface language
     }
 
     /** "PROPER PARTIT", or the team's name in front of it. */
@@ -1255,6 +1304,7 @@ public class HomeActivity extends Activity {
         Date now = new Date();
         clock.setText(Clock.format(Clock.pattern(conf.clock, DateFormat.is24HourFormat(this)), tx.locale, now));
         date.setText(Ca.date(tx, now));
+        refreshQuote();
         int h = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
         greeting.setText(Ca.greeting(tx, h));
         if (matchCard != null) { refreshMatchCard(); maybeFetchFixtures(); }
@@ -1262,6 +1312,42 @@ public class HomeActivity extends Activity {
         maybeFetchWallpaper();
         updateNight();
         refreshMorning();
+    }
+
+    /**
+     * Shows the quote of the day (#69) for the interface language, or hides it when quote=off or there is none.
+     * Only does something when the day, the language or the setting changed. The first use of a language reads its
+     * file on a background thread and comes back here; afterwards it is cached for the life of the process.
+     */
+    void refreshQuote() {
+        if (quoteText == null) return;
+        String lang = tx.language;
+        Calendar c = Calendar.getInstance();
+        boolean on = MinimalMode.quote(conf);
+        String key = on ? lang + "/" + c.get(Calendar.YEAR) + "/" + c.get(Calendar.DAY_OF_YEAR) : "off";
+        if (key.equals(quoteKey)) return;
+        if (!on) { quoteKey = key; showQuote(null); return; }
+        List<Quotes.Quote> list = quoteLibrary.cached(lang);
+        if (list == null) {
+            if (quoteLoading) return;
+            quoteLoading = true;
+            final Quotes.Library lib = quoteLibrary;
+            new Thread(() -> {
+                lib.get(lang);
+                ui.post(() -> { quoteLoading = false; refreshQuote(); });
+            }, "quotes").start();
+            return;
+        }
+        quoteKey = key;
+        showQuote(Quotes.pick(list, c));
+    }
+
+    void showQuote(Quotes.Quote q) {
+        quoteText.setText(q == null ? "" : q.text);
+        quoteText.setVisibility(q == null ? View.GONE : View.VISIBLE);
+        String author = Quotes.author(q);
+        quoteAuthor.setText(author);
+        quoteAuthor.setVisibility(author.isEmpty() ? View.GONE : View.VISIBLE);
     }
 
     /** Fades night mode in or out over TimeBands.TRANSITION_S when the band changes; jumps straight there on resume. */
@@ -1281,7 +1367,7 @@ public class HomeActivity extends Activity {
 
     void applyNight(float amount) {
         nightNow = amount;
-        wall.setColorFilter(amount <= 0f ? null : new ColorMatrixColorFilter(Look.nightMatrix(amount)));
+        if (wall != null) wall.setColorFilter(amount <= 0f ? null : new ColorMatrixColorFilter(Look.nightMatrix(amount)));
         for (TextView t : inks) t.setTextColor(Look.ink((Integer) t.getTag(), amount));
         dockRow.setAlpha(1f - 0.2f * amount);
     }
@@ -1315,7 +1401,9 @@ public class HomeActivity extends Activity {
      * the file changes.
      */
     void loadWallpaper() {
-        File f = DailyWallpaper.shown(conf.wallpaper, getExternalFilesDir(null), conf.wallpaperMinutes,
+        // minimal mode: no image view at all, nothing listed or decoded, and the band keeps its neutral colour
+        if (wall == null || !MinimalMode.wallpaperShown(conf)) return;
+        File f = DailyWallpaper.shown(MinimalMode.wallpaper(conf), getExternalFilesDir(null), conf.wallpaperMinutes,
                 System.currentTimeMillis());
         long stamp = f == null ? 0 : f.getName().hashCode() * 31L + (f.lastModified() ^ f.length());
         if (stamp == wallStamp) return;
@@ -1331,7 +1419,7 @@ public class HomeActivity extends Activity {
         o.inPreferredConfig = Bitmap.Config.RGB_565;
         Bitmap b = BitmapFactory.decodeFile(f.getPath(), o);
         wall.setImageBitmap(b);
-        int avg = conf.dockTint && b != null ? Ui.averageRgb(b) : 0;
+        int avg = MinimalMode.dockTint(conf) && b != null ? Ui.averageRgb(b) : 0;
         bandBg.setColor(Look.bandTint((avg >> 16) & 0xFF, (avg >> 8) & 0xFF, avg & 0xFF));
     }
 
@@ -1339,14 +1427,14 @@ public class HomeActivity extends Activity {
 
     /** Downloads the wallpaper images in the background, only while home is showing. Failures retry after 15 min. */
     void maybeFetchWallpaper() {
-        if (conf.wallpaper.isEmpty() || wallFetching) return;
+        if (MinimalMode.wallpaper(conf).isEmpty() || wallFetching) return;   // off or minimal mode: nothing downloaded
         File dir = getExternalFilesDir(null);
         long now = System.currentTimeMillis();
         boolean have = new File(dir, DailyWallpaper.LIST).exists();   // no list yet (first run or upgrade): fetch now
         if (have && now - lastWallFetch < WALL_REFETCH_EVERY) return;
         if (!have && now - lastWallFetch < 15 * 60_000L) return;
         wallFetching = true;
-        String source = conf.wallpaper;
+        String source = MinimalMode.wallpaper(conf);
         new Thread(() -> {
             boolean ok;
             try { DailyWallpaper.download(source, dir); ok = true; } catch (Exception e) { ok = false; }
@@ -1402,15 +1490,20 @@ public class HomeActivity extends Activity {
         Calendar c = Calendar.getInstance();
         boolean morning = bands.at(c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE)) == TimeBands.Band.MORNING;
         // The weather is only fetched when a surface still wants it; the screensaver only reads the cache.
-        if (ContentPolicy.wants(conf.weatherHome) || ContentPolicy.wants(conf.weatherScreen)) maybeFetchWeather(dir, now);
-        boolean showWx = ContentPolicy.shows(conf.weatherHome, morning);
-        boolean showNews = ContentPolicy.shows(conf.newsHome, morning);
+        // In minimal mode the panel is never built (panel is null above), and these all read never anyway.
+        if (ContentPolicy.wants(MinimalMode.weatherHome(conf)) || ContentPolicy.wants(MinimalMode.weatherScreen(conf))) maybeFetchWeather(dir, now);
+        boolean showWx = ContentPolicy.shows(MinimalMode.weatherHome(conf), morning);
+        boolean showNews = ContentPolicy.shows(MinimalMode.newsHome(conf), morning);
         if (showNews) maybeFetchNews(dir, now);
         if (!showWx && !showNews) { panel.setVisibility(View.GONE); return; }
 
         Weather w = showWx ? Weather.load(dir) : null;
         boolean hasWx = w != null && now - w.fetchedAt < 6 * 3600_000L;
-        if (hasWx) { wxTemp.setText(w.temp + "°"); wxLine.setText(Weather.describe(tx, w.code)); wxRange.setText(w.range(tx)); }
+        if (hasWx) {
+            wxTemp.setText(w.temp + "°"); wxLine.setText(Weather.describe(tx, w.code)); wxRange.setText(w.range(tx));
+            String place = conf.locationLabel();
+            wxCredit.setText(place.isEmpty() ? tx.get(R.string.weather_source) : tx.get(R.string.weather_credit, place));
+        }
         wxCard.setVisibility(hasWx ? View.VISIBLE : View.GONE);
 
         NewsSource source = NewsSource.resolve(conf);

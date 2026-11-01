@@ -149,9 +149,9 @@ public class LanguageTest {
     static {
         SAME_AS_CATALAN.put("values-es", new TreeSet<>(java.util.Arrays.asList("wifi", "ethernet", "clock_24", "clock_12",
                 "language", "on", "off", "not_available", "versus", "photo_every_minutes", "wallpaper_bing",
-                "hidden_apps", "weekday_pattern", "short_day_pattern")));
+                "hidden_apps", "weekday_pattern", "short_day_pattern", "weather_credit", "weather_source")));
         SAME_AS_CATALAN.put("values-en", new TreeSet<>(java.util.Arrays.asList("wifi", "ethernet", "clock_24", "clock_12",
-                "hidden_apps", "weekday_pattern", "short_day_pattern")));
+                "hidden_apps", "weekday_pattern", "short_day_pattern", "weather_credit", "weather_source")));
     }
 
     @Test public void translationsAreNotLeftInCatalan() throws Exception {
