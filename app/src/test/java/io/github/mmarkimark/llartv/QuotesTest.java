@@ -216,7 +216,7 @@ public class QuotesTest {
             assumeTrue("not bundled yet: " + f, f.isFile());
             List<Quotes.Quote> q;
             try (InputStream in = new FileInputStream(f)) { q = Quotes.parse(in); }
-            assertTrue(lang + ": " + q.size(), q.size() >= 366);   // one quote for every day; 1,000 per language (S2)
+            assertEquals(lang, 1000, q.size());   // one thousand quotes per language (S2)
             int sayings = 0;
             for (Quotes.Quote x : q) {
                 assertFalse(lang + ": " + x.text, x.source.isEmpty());
@@ -227,7 +227,16 @@ public class QuotesTest {
                 assertTrue(lang + ": " + x.text, x.text.length() <= 160);
             }
             assertTrue(lang + ": only " + sayings + " of " + q.size() + " sayings", sayings * 4 >= q.size() && sayings * 4 <= q.size() * 3);
+            assertTrue(lang + ": more than ten lines for one author", countAuthors(q) <= 10);
         }
+    }
+
+    static int countAuthors(List<Quotes.Quote> q) {
+        java.util.Map<String, Integer> n = new java.util.HashMap<>();
+        for (Quotes.Quote x : q) if (!x.author.isEmpty()) n.merge(x.author, 1, Integer::sum);
+        int max = 0;
+        for (int c : n.values()) max = Math.max(max, c);
+        return max;
     }
 
     static File assetsDir() {
