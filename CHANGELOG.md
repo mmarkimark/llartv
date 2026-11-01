@@ -9,9 +9,9 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 - Quote of the day (#69): Home shows a discreet line under the date with a traditional saying or a quote by a
   classic author (died before 1956), at most two lines and then "— Author". The same quote all day and a new one
-  at midnight (line day-of-year of the file); it follows the interface language and uses the Catalan quotes when a
-  language has none. The quotes are bundled (`assets/quotes/ca.tsv`, `es.tsv`, `en.tsv`; 366 per language), so no
-  network is used. The night palette applies to it. New settings row *Frase del dia* / *Frase del día* /
+  at midnight (consecutive days show consecutive lines, so a file repeats only after as many days as it has quotes);
+  it follows the interface language and uses the Catalan quotes when a language has none. The quotes are bundled
+  (`assets/quotes/ca.tsv`, `es.tsv`, `en.tsv`), so no network is used. The night palette applies to it. New settings row *Frase del dia* / *Frase del día* /
   *Quote of the day* and `home.conf` key `quote=on|off` (default `on`; an empty value restores it; removed by the
   settings reset). Sources, selection rules and the CC BY-SA 4.0 attribution: [docs/quotes.md](docs/quotes.md).
 

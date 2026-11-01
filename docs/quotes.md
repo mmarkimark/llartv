@@ -8,17 +8,19 @@ the interface language. This page explains where the quotes come from, how they 
 - The quotes are bundled with the app, one file per interface language:
   `app/src/main/assets/quotes/ca.tsv`, `es.tsv` and `en.tsv`. **No network is used**: nothing is downloaded,
   and the quote shows the same with or without Internet.
-- One quote per line, three fields separated by a tab:
+- One quote per line, three or four fields separated by a tab:
 
   ```text
-  text<TAB>author<TAB>source
+  text<TAB>author<TAB>source[<TAB>translator]
   ```
 
   `author` is empty for a traditional saying. `source` is the page the quote was checked against (a Wikiquote,
-  Viquidites or Wikisource page). Blank or malformed lines are skipped.
-- Each file has 366 lines, one for every day of a leap year. The quote of a day is line *day-of-year*: 1 January
-  shows line 1 and 31 December shows line 365 (line 366 in a leap year). It is the same quote all day and changes
-  at midnight.
+  Viquidites or Wikisource page, in the original language for a translated quote). `translator` is present only for
+  a translated quote: the public-domain translator, or `LlarTV` for a translation made for this project. Blank or
+  malformed lines are skipped.
+- Days are counted continuously: each day shows the next line, and a file of *n* quotes repeats only after *n* days
+  (about 1,000 quotes per language are planned, close to three years without a repeat). It is the same quote all
+  day and changes at midnight.
 - The quote **follows the interface language** (`language`, *Configuració → Idioma*). If a language's file were
   missing or empty, the Catalan quotes are shown instead.
 - Home shows the text in at most two lines, then the author as "— Author" on a line of its own (a saying has no
@@ -43,6 +45,18 @@ the interface language. This page explains where the quotes come from, how they 
   years). No modern or copyrighted quotes are included.
 - Sayings are traditional: anonymous, of popular origin, not the invention of a living writer.
 - Every line names the page it was checked against in its `source` field.
+- Translations: a quote by an author who wrote in another language is used only with a public-domain translation
+  (translator died before 1956, named in the `translator` field) or with a translation made for LlarTV from the
+  public-domain original (`translator` = `LlarTV`). Only the author's name is shown on screen.
+
+### Catalan spelling
+
+Catalan quotes from historical public-domain editions are shown with their spelling normalised to current IEC norms;
+wording is unchanged. Normalisation covers accents and diacritics (es → és, dóna → dona), apostrophes and
+contractions ('ls → els, lo → el), conjunctions and prepositions (y → i, ab → amb, pera → per a), hyphens (fer-les,
+tornar-hi) and old letter forms (th, ch, h, ss → current spelling). Words, word order and meaning are not changed;
+lines that could not be normalised without changing words were left out. Each line's source column links to the
+original page, where the historical spelling can be read.
 
 ## Licence and attribution
 
@@ -52,7 +66,7 @@ compiled from Wikiquote are used under the
 
 > Quotes compiled from Wikiquote (Viquidites, Wikiquote en español, English Wikiquote), contributors of the
 > respective Wikiquote projects, licensed under CC BY-SA 4.0. The page each quote comes from is given in the
-> `source` field of `assets/quotes/*.tsv`. Changes: selected, trimmed to one line and arranged one per day.
+> `source` field of `assets/quotes/*.tsv`. Changes: selected, trimmed to one line, Catalan spelling normalised, and arranged one per day.
 
 Under the ShareAlike terms, the three quote files (`app/src/main/assets/quotes/*.tsv`) are distributed under
 CC BY-SA 4.0. This does not change the licence of the rest of LlarTV, which stays under the [MIT License](../LICENSE).
