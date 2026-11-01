@@ -9,28 +9,12 @@ All notable changes to LlarTV are documented in this file. The format is based o
 
 ### Added
 
-- Quote of the day (#69): a line under the date with a traditional saying or a quote by a classic author, in the
-  interface language. 1,000 quotes per language (Catalan, Spanish, English), bundled with the app: no network,
-  one quote a day and about three years without repeating. The `quote` setting turns it off.
-- Quiet night screensaver and minimal mode were delivered in 1.5; the minimal mode (#71) is one reversible switch
-  that hides and skips the weather, news, quote, wallpaper, screensaver photos and music, the football card and the
-  photo-tinted dock, without rewriting your other settings.
-- The weather card now names the place (#70): "Barcelona · Open-Meteo" by default, or the `location_name` you set.
-
-### Changed
-
-- The configuration (`home.conf`, `dock.txt`) now lives in app-private storage and is moved there once, byte for
-  byte, on upgrade. ADB configuration through `scripts/config.sh` is unchanged.
-- `scripts/config.sh` accepts every documented setting; `night_screen` and `night_mute` were refused since 1.5.
-
-
-### Added
-
 - Quote of the day (#69): Home shows a discreet line under the date with a traditional saying or a quote by a
   classic author (died before 1956), at most two lines and then "— Author". The same quote all day and a new one
   at midnight (consecutive days show consecutive lines, so a file repeats only after as many days as it has quotes);
   it follows the interface language and uses the Catalan quotes when a language has none. The quotes are bundled
-  (`assets/quotes/ca.tsv`, `es.tsv`, `en.tsv`), so no network is used. The night palette applies to it. New settings row *Frase del dia* / *Frase del día* /
+  (`assets/quotes/ca.tsv`, `es.tsv`, `en.tsv`), so no network is used: 1,000 quotes per language, so the same one
+  comes back only after about 2.7 years. The night palette applies to it. New settings row *Frase del dia* / *Frase del día* /
   *Quote of the day* and `home.conf` key `quote=on|off` (default `on`; an empty value restores it; removed by the
   settings reset). Sources, selection rules and the CC BY-SA 4.0 attribution: [docs/quotes.md](docs/quotes.md).
 
@@ -38,7 +22,7 @@ All notable changes to LlarTV are documented in this file. The format is based o
   "Barcelona · Open-Meteo". The new optional `location_name` setting names the place; without it the default
   location is called Barcelona, another `location` shows only the source, and an empty value shows only the source.
 
-- Minimal mode: one reversible switch for a faster Home, settings row *Mode mínim* / *Modo mínimo* /
+- Minimal mode (#71): one reversible switch for a faster Home, settings row *Mode mínim* / *Modo mínimo* /
   *Minimal mode* and `home.conf` key `minimal=on|off` (default `off`; an empty value restores it; removed by the
   settings reset; accepted by `scripts/config.sh`). While on: no weather on Home or the screensaver, no news, no
   quote, no wallpaper (black background, nothing downloaded), no screensaver photos (the clock and the date on
