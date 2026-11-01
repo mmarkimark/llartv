@@ -18,6 +18,8 @@
     <string name="not_available">No disponible</string>
     <string name="cant_switch_input">No es pot canviar d\'entrada</string>
     <string name="weather">Temps</string>
+    <string name="weather_credit">%1$s · Open-Meteo</string>
+    <string name="weather_source">Open-Meteo</string>
     <string name="news">Notícies</string>
 
     <!-- Greetings: Ca.greeting picks the slot for the hour in each language -->

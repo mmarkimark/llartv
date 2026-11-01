@@ -242,7 +242,7 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 ```sh
 ./scripts/config.sh --dock                         # choose the dock apps from a list
 ./scripts/config.sh night=22:30-07:30 columns=5    # change one or more settings
-./scripts/config.sh location=41.98,2.82            # weather for another place (latitude,longitude)
+./scripts/config.sh location=41.98,2.82 location_name=Girona   # weather for another place, with its name
 ./scripts/config.sh night=                         # an empty value restores the default
 ./scripts/config.sh --show                         # show what you have changed
 ```
@@ -258,6 +258,7 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 | `morning` | `08:00-11:00` | Morning panel time range; `off` turns it off. |
 | `night` | `23:00-08:00` | Night mode time range; `off` turns it off. |
 | `location` | `41.4235,2.2010` (Barcelona) | `latitude,longitude` used for the weather. |
+| `location_name` | `Barcelona` | The place shown with the weather source on the weather card ("Barcelona · Open-Meteo"). Without this line it is `Barcelona` only for the default `location`; for another place set it, for example `location_name=Girona`. An empty value shows only the source. |
 | `language` | `ca` | Interface language: `ca` (Catalan), `es` (Spanish) or `en` (English). A new installation and an upgraded one without this line are in Catalan; an unknown value keeps Catalan. It never changes the TV's system language, time zone or clock format. |
 | `news_source` | `automatic` | News source: `automatic` (follows `language`: 3Cat, BBC News Mundo or BBC News World), `3cat`, `bbc-mundo` or `bbc-world`. |
 | `news_rss` | empty | Custom RSS feed for the morning headlines; it wins over `news_source` and is never overwritten by it. Remove the line to use a preset again. |

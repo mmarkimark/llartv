@@ -15,6 +15,10 @@ All notable changes to LlarTV are documented in this file. The format is based o
   *Quote of the day* and `home.conf` key `quote=on|off` (default `on`; an empty value restores it; removed by the
   settings reset). Sources, selection rules and the CC BY-SA 4.0 attribution: [docs/quotes.md](docs/quotes.md).
 
+- Weather location and source (#70): the weather card now ends with the place and the source, for example
+  "Barcelona · Open-Meteo". The new optional `location_name` setting names the place; without it the default
+  location is called Barcelona, another `location` shows only the source, and an empty value shows only the source.
+
 ## [1.5] - 2026-10-31
 
 ### Added

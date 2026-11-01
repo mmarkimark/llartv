@@ -25,7 +25,7 @@ final class SettingsReset {
     /** The keys Config understands and the README documents; the test keeps the three lists equal. */
     static final List<String> KEYS = Collections.unmodifiableList(Arrays.asList(
             "columns", "dock", "hidden", "order", "team_id", "team_name", "wallpaper", "wallpaper_minutes",
-            "location", "language", "news_source", "news_rss", "music_screen", "music_url", "clock_screen",
+            "location", "location_name", "language", "news_source", "news_rss", "music_screen", "music_url", "clock_screen",
             "motion_screen", "morning", "night", "dock_tint", "clock", "weather_home", "weather_screen", "news_home",
             "night_screen", "night_mute", "quote"));
     private static final Set<String> KNOWN = new LinkedHashSet<>(KEYS);

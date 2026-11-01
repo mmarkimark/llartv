@@ -111,7 +111,7 @@ public class HomeActivity extends Activity {
     ValueAnimator nightAnim;
     // morning panel (weather, news), top right under the pills
     LinearLayout panel, wxCard, newsCard, newsList;
-    TextView wxTemp, wxLine, wxRange;
+    TextView wxTemp, wxLine, wxRange, wxCredit;
     TextView newsCredit;
     final List<TextView> cardHeads = new ArrayList<>();   // the card headings, renamed on a language change
     final List<Integer> cardHeadIds = new ArrayList<>();  // their texts (the view tags hold the night-mode colours)
@@ -469,6 +469,11 @@ public class HomeActivity extends Activity {
         wtp.leftMargin = dp(14);
         wxRow.addView(wxText, wtp);
         wxCard.addView(wxRow);
+        wxCredit = text(300, 10, 0xFFA9A6A0);   // the place and the source, like the headlines' credit (#70)
+        wxCredit.setLetterSpacing(0.02f);
+        LinearLayout.LayoutParams wcp = new LinearLayout.LayoutParams(-2, -2);
+        wcp.topMargin = dp(6);
+        wxCard.addView(wxCredit, wcp);
         newsCard = card(R.string.news);
         newsList = new LinearLayout(this);
         newsList.setOrientation(LinearLayout.VERTICAL);
@@ -1473,7 +1478,11 @@ public class HomeActivity extends Activity {
 
         Weather w = showWx ? Weather.load(dir) : null;
         boolean hasWx = w != null && now - w.fetchedAt < 6 * 3600_000L;
-        if (hasWx) { wxTemp.setText(w.temp + "°"); wxLine.setText(Weather.describe(tx, w.code)); wxRange.setText(w.range(tx)); }
+        if (hasWx) {
+            wxTemp.setText(w.temp + "°"); wxLine.setText(Weather.describe(tx, w.code)); wxRange.setText(w.range(tx));
+            String place = conf.locationLabel();
+            wxCredit.setText(place.isEmpty() ? tx.get(R.string.weather_source) : tx.get(R.string.weather_credit, place));
+        }
         wxCard.setVisibility(hasWx ? View.VISIBLE : View.GONE);
 
         NewsSource source = NewsSource.resolve(conf);

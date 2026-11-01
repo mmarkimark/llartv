@@ -14,6 +14,8 @@
     <string name="not_available">No disponible</string>
     <string name="cant_switch_input">No se puede cambiar de entrada</string>
     <string name="weather">Tiempo</string>
+    <string name="weather_credit">%1$s · Open-Meteo</string>
+    <string name="weather_source">Open-Meteo</string>
     <string name="news">Noticias</string>
 
     <!-- Greetings -->
