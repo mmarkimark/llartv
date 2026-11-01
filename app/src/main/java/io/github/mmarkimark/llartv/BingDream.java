@@ -25,7 +25,8 @@ import java.util.concurrent.Executors;
  * zoom-and-drift ("Ken Burns") and a cross-fade, plus the clock, the date and each image's title and caption.
  * Images and weather use the local cache; optional music streams from the configured HTTPS URL.
  * In the night band the optional quiet visual (night_screen) shows only the clock on black and the optional night
- * silence (night_mute) holds the music back; see NightQuiet. The band is checked at start, on every per-minute clock
+ * silence (night_mute) holds the music back; see NightQuiet. Minimal mode (MinimalMode) shows the clock and the date on
+ * black all the time: no photos, no weather and no music. The band is checked at start, on every per-minute clock
  * tick and with every image, so a running session follows both boundaries without any extra polling.
  * Any remote key closes it.
  * Enable with: adb shell settings put secure screensaver_components io.github.mmarkimark.llartv/.BingDream
@@ -129,7 +130,8 @@ public class BingDream extends DreamService {
         long now = System.currentTimeMillis();
         if (tx != null) time.setText(Clock.time(clockPref, android.text.format.DateFormat.is24HourFormat(this),
                 tx.locale, new java.util.Date(now)));
-        if (tx != null && quietShown) date.setText(Ca.date(tx, new java.util.Date(now)));   // no photos to refresh it
+        // no photos to refresh it (quiet night, minimal mode or nothing downloaded): the tick rolls it over at midnight
+        if (tx != null && (quietShown || slides == null || slides.isEmpty())) date.setText(Ca.date(tx, new java.util.Date(now)));
         checkNight();   // the per-minute tick also catches the night band's start and end while no photo changes
         ui.postDelayed(clockTick, Clock.untilNextMinute(now));
     }
@@ -141,7 +143,7 @@ public class BingDream extends DreamService {
         java.util.Calendar c = java.util.Calendar.getInstance();
         boolean morning = bands != null
                 && bands.at(c.get(java.util.Calendar.HOUR_OF_DAY) * 60 + c.get(java.util.Calendar.MINUTE)) == TimeBands.Band.MORNING;
-        Weather w = ContentPolicy.shows(conf.weatherScreen, morning) ? Weather.load(getExternalFilesDir(null)) : null;
+        Weather w = ContentPolicy.shows(MinimalMode.weatherScreen(conf), morning) ? Weather.load(getExternalFilesDir(null)) : null;
         boolean fresh = w != null && System.currentTimeMillis() - w.fetchedAt < 6 * 3600_000L;
         if (fresh) weather.setText(w.line(tx));
         weather.setVisibility(fresh ? View.VISIBLE : View.GONE);
@@ -229,16 +231,16 @@ public class BingDream extends DreamService {
         motion = conf.motionScreen;
         clockScreen = conf.clockScreen;
         quiet = new NightQuiet(conf.nightScreen, conf.nightMute);
-        shouldPlay = Music.shouldPlay(conf);
+        shouldPlay = Music.shouldPlay(conf);   // false in minimal mode
         File dir = getExternalFilesDir(null);
-        slides = DailyWallpaper.slides(conf.wallpaper, dir);
+        slides = DailyWallpaper.slides(MinimalMode.wallpaper(conf), dir);   // none in minimal mode: clock and date on black
         applyNight();
         boolean n = inNight();
         lastNight = n;   // the first check only records the band: the music is decided right here
         this.conf = conf;
         showQuiet(quiet.quiet(n), false);   // also shows the weather unless the quiet visual hides it
         if (quiet.musicAllowed(shouldPlay, n)) startMusic(conf);
-        if (quietShown || slides.isEmpty()) return;   // quiet night, nothing downloaded or wallpaper=off: clock on black
+        if (quietShown || slides.isEmpty()) return;   // quiet night, minimal mode, nothing downloaded or wallpaper=off: clock on black
         // start on the image the home screen is showing, so the screensaver picks up where home left off
         File now = DailyWallpaper.current(dir, conf.wallpaperMinutes, System.currentTimeMillis());
         for (int i = 0; i < slides.size(); i++) if (slides.get(i).file.equals(now)) index = i;

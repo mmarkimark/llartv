@@ -50,6 +50,17 @@ public class MusicTest {
         }
     }
 
+    @Test public void minimalModeSilencesItWithoutForgettingTheChoice() {
+        Config k = new Config();
+        k.set("music_screen", "on");
+        k.set("music_url", "https://example.org/lofi.mp3");
+        k.set("minimal", "on");
+        assertFalse(Music.shouldPlay(k));
+        assertTrue(k.musicScreen);   // the stored choice is kept
+        k.set("minimal", "off");
+        assertTrue(Music.shouldPlay(k));
+    }
+
     @Test public void onlyAnHttpsStreamCounts() {
         assertTrue(Music.isStream("https://example.org/lofi.mp3"));
         assertTrue(Music.isStream("  https://example.org/lofi.mp3  "));

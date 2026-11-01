@@ -8,7 +8,7 @@ dock of your favourite apps and a full-screen photo, instead of rows of recommen
 **Available in English, Catalan and Spanish** — choose the interface language in the LlarTV settings or with
 `language=`. The screenshots below show the English interface.
 
-[![Release](https://img.shields.io/badge/release-v1.5-blue)](https://github.com/mmarkimark/llartv/releases/tag/v1.5)
+[![Release](https://img.shields.io/badge/release-v1.6-blue)](https://github.com/mmarkimark/llartv/releases/tag/v1.6)
 [![CI](https://github.com/mmarkimark/llartv/actions/workflows/ci.yml/badge.svg)](https://github.com/mmarkimark/llartv/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 ![Android TV 9+](https://img.shields.io/badge/Android%20TV-9%2B-informational)
@@ -48,6 +48,10 @@ fetched only while the home screen is showing.
 - **Quote of the day** under the date: a traditional saying or a quote by a classic author, the same all day and
   a new one at midnight, in the interface language. The quotes are bundled with the app (no network); turn it off
   with *Frase del dia* in the settings or `quote=off`. Sources and licence: [docs/quotes.md](docs/quotes.md).
+- **Minimal mode** for a faster, quieter Home: *Mode mínim* in the settings or `minimal=on`. One switch turns off
+  the weather, the news, the quote, the wallpaper and the screensaver photos (the clock and the date on black), the
+  football card, the screensaver music and the photo-tinted dock, and Home neither builds nor downloads any of
+  them. Your other settings are kept, so switching it off brings back exactly what you had.
 - Top bar with **Inputs** (HDMI/AV sources through the TV input framework, plus Live TV when available), **Wi-Fi**
   (current network name) and **Settings**. The Inputs button hides itself on devices with nothing to switch to.
 - A dock of up to six favourite apps; the focused app's name is shown above the dock.
@@ -274,6 +278,7 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 | `weather_screen` | `all` | Weather on the screensaver: `never`, `morning` or `all`. |
 | `news_home` | `morning` | News on the home screen: `never`, `morning` or `all`. |
 | `quote` | `on` | The quote of the day under the date on the home screen: `on` or `off`. It follows `language`; see [docs/quotes.md](docs/quotes.md). |
+| `minimal` | `off` | Minimal mode: `on` shows no weather, news, quote, wallpaper (black background, nothing downloaded), screensaver photos (clock and date on black), football card or fixtures download, screensaver music, and uses the neutral dock colour. The other settings keep their values, so `off` brings them back unchanged. |
 | `team_id` | empty | ESPN team id for the next-match card (for example `83` for FC Barcelona). |
 | `team_name` | empty | Name shown on the next-match card. |
 
@@ -313,14 +318,15 @@ Preferences → Screen saver*.
 
 ## Performance
 
-LlarTV is kept small and fast: the v1.5 APK is 4,149,623 bytes (+0.40% over v1.4), with foreground Home PSS about
-40 MiB on the emulator and 63 MiB on the reference TV. Screensaver PSS is a different workload. It does no background
+LlarTV is kept small and fast: the v1.6 APK is 4,326,621 bytes (+4.27% over v1.5, mostly the bundled quotes), with
+foreground Home PSS about 40 MiB on the emulator and 63 MiB on the reference TV. Screensaver PSS is a different workload. It does no background
 polling. [`scripts/measure.sh`](scripts/measure.sh) records the APK size, the cold start, the Home return and the RAM
 on a connected TV or emulator. The measured baseline and the regression budgets used as release gates are in
-[`docs/performance/baseline-v1.0.md`](docs/performance/baseline-v1.0.md). The [v1.5 comparison](docs/performance/v1.5.md)
-records the emulator and reference-TV pairs against the published v1.4, including a first over-budget TV pair kept
-next to the larger matched sample that passed; earlier versions are in [v1.4](docs/performance/v1.4.md). The released
-APK is the exact artifact that passed those checks.
+[`docs/performance/baseline-v1.0.md`](docs/performance/baseline-v1.0.md). The [v1.6 comparison](docs/performance/v1.6.md)
+records the emulator pair against the published v1.5 (the reference-TV pair is still open), the
+[v1.5 comparison](docs/performance/v1.5.md) the earlier emulator and reference-TV pairs against the published v1.4,
+including a first over-budget TV pair kept next to the larger matched sample that passed; earlier versions are in
+[v1.4](docs/performance/v1.4.md). The released APK is the exact artifact that passed those checks.
 
 ## Building from source
 
