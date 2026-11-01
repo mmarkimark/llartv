@@ -88,6 +88,23 @@ public class ConfigTest {
         assertFalse(k.quote);
     }
 
+    @Test public void minimalModeIsOffByDefaultAndCanBeTurnedOn() {
+        Config k = new Config();
+        assertFalse(k.minimal);
+        k.set("minimal", "on");
+        assertTrue(k.minimal);
+        k.set("minimal", "off");
+        assertFalse(k.minimal);
+        k.set("minimal", "ON");
+        assertTrue(k.minimal);
+        k.set("minimal", "");
+        assertFalse(k.minimal);   // an empty value restores the default
+        k.set("minimal", "1");
+        assertTrue(k.minimal);
+        k.set("minimal", "no");
+        assertFalse(k.minimal);
+    }
+
     @Test public void hiddenAppsKeepTheOrderOfTheFile() {
         Config k = new Config();
         k.set("hidden", "z.app,a.app,m.app");

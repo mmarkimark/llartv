@@ -9,9 +9,12 @@ package io.github.mmarkimark.llartv;
 final class Music {
     private Music() {}
 
-    /** No network or player is used while the option is off. An invalid custom URL never falls back silently. */
+    /**
+     * No network or player is used while the option is off or minimal mode is on (MinimalMode). An invalid custom
+     * URL never falls back silently.
+     */
     static boolean shouldPlay(Config conf) {
-        return conf.musicScreen && (isDefault(conf.musicUrl) || isStream(conf.musicUrl));
+        return MinimalMode.musicScreen(conf) && (isDefault(conf.musicUrl) || isStream(conf.musicUrl));
     }
 
     static boolean isDefault(String url) { return url == null || url.trim().isEmpty(); }

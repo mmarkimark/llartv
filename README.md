@@ -48,6 +48,10 @@ fetched only while the home screen is showing.
 - **Quote of the day** under the date: a traditional saying or a quote by a classic author, the same all day and
   a new one at midnight, in the interface language. The quotes are bundled with the app (no network); turn it off
   with *Frase del dia* in the settings or `quote=off`. Sources and licence: [docs/quotes.md](docs/quotes.md).
+- **Minimal mode** for a faster, quieter Home: *Mode mínim* in the settings or `minimal=on`. One switch turns off
+  the weather, the news, the quote, the wallpaper and the screensaver photos (the clock and the date on black), the
+  football card, the screensaver music and the photo-tinted dock, and Home neither builds nor downloads any of
+  them. Your other settings are kept, so switching it off brings back exactly what you had.
 - Top bar with **Inputs** (HDMI/AV sources through the TV input framework, plus Live TV when available), **Wi-Fi**
   (current network name) and **Settings**. The Inputs button hides itself on devices with nothing to switch to.
 - A dock of up to six favourite apps; the focused app's name is shown above the dock.
@@ -274,6 +278,7 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 | `weather_screen` | `all` | Weather on the screensaver: `never`, `morning` or `all`. |
 | `news_home` | `morning` | News on the home screen: `never`, `morning` or `all`. |
 | `quote` | `on` | The quote of the day under the date on the home screen: `on` or `off`. It follows `language`; see [docs/quotes.md](docs/quotes.md). |
+| `minimal` | `off` | Minimal mode: `on` shows no weather, news, quote, wallpaper (black background, nothing downloaded), screensaver photos (clock and date on black), football card or fixtures download, screensaver music, and uses the neutral dock colour. The other settings keep their values, so `off` brings them back unchanged. |
 | `team_id` | empty | ESPN team id for the next-match card (for example `83` for FC Barcelona). |
 | `team_name` | empty | Name shown on the next-match card. |
 

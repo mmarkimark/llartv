@@ -19,6 +19,13 @@ All notable changes to LlarTV are documented in this file. The format is based o
   "Barcelona · Open-Meteo". The new optional `location_name` setting names the place; without it the default
   location is called Barcelona, another `location` shows only the source, and an empty value shows only the source.
 
+- Minimal mode: one reversible switch for a faster Home, settings row *Mode mínim* / *Modo mínimo* /
+  *Minimal mode* and `home.conf` key `minimal=on|off` (default `off`; an empty value restores it; removed by the
+  settings reset; accepted by `scripts/config.sh`). While on: no weather on Home or the screensaver, no news, no
+  quote, no wallpaper (black background, nothing downloaded), no screensaver photos (the clock and the date on
+  black), no football card or fixtures download, no screensaver music and the neutral dock colour. Home does not
+  build, load or fetch any of them. The other settings are not rewritten, so switching it off restores them exactly.
+
 ### Fixed
 
 - `scripts/config.sh` refused the `night_screen` and `night_mute` settings added in 1.5 ("Unknown setting"); it now
