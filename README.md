@@ -2,6 +2,9 @@
 
 A lightweight, native home screen for Android TV. (*Llar* is Catalan for "home".)
 
+**The goal:** a light, fast Android TV home screen inspired by Apple's tvOS — a calm screen with a large clock, a
+dock of your favourite apps and a full-screen photo, instead of rows of recommendations and ads.
+
 **Available in English, Catalan and Spanish** — choose the interface language in the LlarTV settings or with
 `language=`. The screenshots below show the English interface.
 
@@ -209,6 +212,21 @@ or to uninstall.
 
 This removes LlarTV and puts back the TV's own launcher and screensaver, exactly as they were.
 
+### Recommended: debloat the TV too
+
+LlarTV only replaces the home screen. The apps and services the manufacturer preinstalled are still there and can
+keep using memory and network in the background. For a really light TV we recommend debloating it as well, as we
+did on our own TV, with the toolkit LlarTV grew out of:
+
+- [android-tv-debloat](https://github.com/amirulmzlan/android-tv-debloat) by Amirul Mazlan, and the
+  [wakjenal fork](https://github.com/wakjenal/android-tv-debloat) LlarTV was started from;
+- [cleanyourtv](https://github.com/Gathin23/cleanyourtv) by Gathin, the original project, which debloats any
+  Android or Google TV over Wi-Fi.
+
+These toolkits belong to their authors and are not part of LlarTV. Read their instructions first, keep the apps you
+use, and prefer disabling packages to uninstalling them, so you can bring them back. LlarTV's own scripts only turn
+off the stock launcher when it would take the Home button back, and `uninstall.sh` restores it.
+
 ## Configuration
 
 LlarTV works without any configuration. To change something, run `scripts/config.sh` with one or more
@@ -365,7 +383,10 @@ LlarTV started from the launcher of an Android TV debloating toolkit. Its lineag
 | [tv-vibehack](https://github.com/Gathin23/cleanyourtv) (now *cleanyourtv*) | [Gathin](https://github.com/Gathin23) | Original launcher design and concept (MIT) |
 | [android-tv-debloat](https://github.com/amirulmzlan/android-tv-debloat) | [Amirul Mazlan](https://github.com/amirulmzlan) | TvHome, the native launcher LlarTV is built on (MIT) |
 | [android-tv-debloat](https://github.com/wakjenal/android-tv-debloat) (fork) | [wakjenal](https://github.com/wakjenal) | Fork LlarTV was started from |
-| LlarTV (this repository) | [mmarkimark](https://github.com/mmarkimark) | Bing wallpapers, screensaver, time-of-day modes, weather and news, Catalan interface |
+| LlarTV (this repository) | [mmarkimark](https://github.com/mmarkimark) | Bing wallpapers, screensaver, time-of-day modes, weather and news, Catalan, Spanish and English interface |
+
+Thank you to Gathin, Amirul Mazlan and wakjenal: their debloating toolkits and their Apple TV-style launcher are
+where LlarTV started, and we used them to clean up our own TV before building on top of them.
 
 Third-party resources:
 
