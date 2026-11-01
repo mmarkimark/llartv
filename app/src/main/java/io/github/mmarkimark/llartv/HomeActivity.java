@@ -92,6 +92,11 @@ public class HomeActivity extends Activity {
     long wallStamp = -1;
     PageLayout page;
     TextView greeting, clock, date, hero;
+    // the quote of the day under the date (#69): the text (at most two lines), then "— Author" on a line of its own
+    TextView quoteText, quoteAuthor;
+    static Quotes.Library quoteLibrary;   // the bundled quotes, each language read once per process (off the main thread)
+    String quoteKey;                      // what the quote shows: language and day, or "off"; null before the first
+    boolean quoteLoading;
     GradientDrawable glowShape;
     View glow;
     int glowColor = 0xFF8E8E93;
@@ -175,6 +180,7 @@ public class HomeActivity extends Activity {
 
         prefs = getSharedPreferences("home", MODE_PRIVATE);
         fonts = new Ui.Fonts(this);
+        if (quoteLibrary == null) quoteLibrary = new Quotes.Library(getApplicationContext().getAssets()::open);
         region = prefs.getInt("region", DOCK);
         if (region == MENU) region = TOP;
         topIdx = prefs.getInt("top", 0);
@@ -350,6 +356,26 @@ public class HomeActivity extends Activity {
         tl.addView(greeting, new LinearLayout.LayoutParams(-2, -2));
         tl.addView(clock, new LinearLayout.LayoutParams(-2, -2));
         tl.addView(date, new LinearLayout.LayoutParams(-2, -2));
+        // the quote: smaller and dimmer than the date, kept clear of the cards on the right (380 dp wide)
+        int quoteW = W - 2 * pad - dp(380) - dp(48);
+        quoteText = text(300, 16, 0xFF8E8E93);
+        quoteText.setSingleLine(false);
+        quoteText.setMaxLines(2);
+        quoteText.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        quoteText.setMaxWidth(quoteW);
+        quoteText.setLineSpacing(dp(2), 1f);
+        quoteText.setVisibility(View.GONE);
+        quoteAuthor = text(300, 13, 0xFF8E8E93);
+        quoteAuthor.setLetterSpacing(0.02f);
+        quoteAuthor.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        quoteAuthor.setMaxWidth(quoteW);
+        quoteAuthor.setVisibility(View.GONE);
+        LinearLayout.LayoutParams qtp = new LinearLayout.LayoutParams(-2, -2);
+        qtp.topMargin = dp(14);
+        tl.addView(quoteText, qtp);
+        LinearLayout.LayoutParams qap = new LinearLayout.LayoutParams(-2, -2);
+        qap.topMargin = dp(4);
+        tl.addView(quoteAuthor, qap);
         FrameLayout.LayoutParams tlp = new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.START);
         tlp.leftMargin = pad;
         tlp.topMargin = dp(40);
@@ -1241,6 +1267,7 @@ public class HomeActivity extends Activity {
         for (int i = 0; i < cardHeads.size(); i++) cardHeads.get(i).setText(Ca.upper(tx, tx.get(cardHeadIds.get(i))));
         mLabel.setText(matchLabel());
         wifiText.setText("");   // updateWifi writes it again in the new language
+        refreshQuote();         // the quote follows the interface language
     }
 
     /** "PROPER PARTIT", or the team's name in front of it. */
@@ -1255,6 +1282,7 @@ public class HomeActivity extends Activity {
         Date now = new Date();
         clock.setText(Clock.format(Clock.pattern(conf.clock, DateFormat.is24HourFormat(this)), tx.locale, now));
         date.setText(Ca.date(tx, now));
+        refreshQuote();
         int h = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
         greeting.setText(Ca.greeting(tx, h));
         if (matchCard != null) { refreshMatchCard(); maybeFetchFixtures(); }
@@ -1262,6 +1290,41 @@ public class HomeActivity extends Activity {
         maybeFetchWallpaper();
         updateNight();
         refreshMorning();
+    }
+
+    /**
+     * Shows the quote of the day (#69) for the interface language, or hides it when quote=off or there is none.
+     * Only does something when the day, the language or the setting changed. The first use of a language reads its
+     * file on a background thread and comes back here; afterwards it is cached for the life of the process.
+     */
+    void refreshQuote() {
+        if (quoteText == null) return;
+        String lang = tx.language;
+        Calendar c = Calendar.getInstance();
+        String key = conf.quote ? lang + "/" + c.get(Calendar.YEAR) + "/" + c.get(Calendar.DAY_OF_YEAR) : "off";
+        if (key.equals(quoteKey)) return;
+        if (!conf.quote) { quoteKey = key; showQuote(null); return; }
+        List<Quotes.Quote> list = quoteLibrary.cached(lang);
+        if (list == null) {
+            if (quoteLoading) return;
+            quoteLoading = true;
+            final Quotes.Library lib = quoteLibrary;
+            new Thread(() -> {
+                lib.get(lang);
+                ui.post(() -> { quoteLoading = false; refreshQuote(); });
+            }, "quotes").start();
+            return;
+        }
+        quoteKey = key;
+        showQuote(Quotes.pick(list, c));
+    }
+
+    void showQuote(Quotes.Quote q) {
+        quoteText.setText(q == null ? "" : q.text);
+        quoteText.setVisibility(q == null ? View.GONE : View.VISIBLE);
+        String author = Quotes.author(q);
+        quoteAuthor.setText(author);
+        quoteAuthor.setVisibility(author.isEmpty() ? View.GONE : View.VISIBLE);
     }
 
     /** Fades night mode in or out over TimeBands.TRANSITION_S when the band changes; jumps straight there on resume. */

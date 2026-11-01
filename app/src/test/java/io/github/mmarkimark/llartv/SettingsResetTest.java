@@ -36,7 +36,7 @@ public class SettingsResetTest {
             "location=41.98,2.82", "language=en", "news_source=bbc-world", "news_rss=https://example.com/rss",
             "music_screen=on", "music_url=https://example.com/radio", "clock_screen=off", "motion_screen=off",
             "morning=07:00-10:00", "night=off", "dock_tint=off", "clock=24", "weather_home=all",
-            "weather_screen=never", "news_home=never", "night_screen=on", "night_mute=on") + "\n";
+            "weather_screen=never", "news_home=never", "night_screen=on", "night_mute=on", "quote=off") + "\n";
 
     // ---------------------------------------------------------------- the text rule
 

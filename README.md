@@ -45,6 +45,9 @@ fetched only while the home screen is showing.
 **Home screen**
 
 - Greeting, large clock and date, rendered with the Outfit typeface.
+- **Quote of the day** under the date: a traditional saying or a quote by a classic author, the same all day and
+  a new one at midnight, in the interface language. The quotes are bundled with the app (no network); turn it off
+  with *Frase del dia* in the settings or `quote=off`. Sources and licence: [docs/quotes.md](docs/quotes.md).
 - Top bar with **Inputs** (HDMI/AV sources through the TV input framework, plus Live TV when available), **Wi-Fi**
   (current network name) and **Settings**. The Inputs button hides itself on devices with nothing to switch to.
 - A dock of up to six favourite apps; the focused app's name is shown above the dock.
@@ -269,6 +272,7 @@ the remote. Both ways write to the same file, so it does not matter which one yo
 | `weather_home` | `morning` | Weather on the home screen: `never`, `morning` or `all`. |
 | `weather_screen` | `all` | Weather on the screensaver: `never`, `morning` or `all`. |
 | `news_home` | `morning` | News on the home screen: `never`, `morning` or `all`. |
+| `quote` | `on` | The quote of the day under the date on the home screen: `on` or `off`. It follows `language`; see [docs/quotes.md](docs/quotes.md). |
 | `team_id` | empty | ESPN team id for the next-match card (for example `83` for FC Barcelona). |
 | `team_name` | empty | Name shown on the next-match card. |
 
@@ -393,6 +397,9 @@ Third-party resources:
 - [Outfit](https://fonts.google.com/specimen/Outfit) typeface, licensed under the
   [SIL Open Font License 1.1](app/src/main/assets/fonts/OFL.txt).
 - Weather data by [Open-Meteo](https://open-meteo.com/) (CC BY 4.0).
+- Quotes of the day compiled from [Wikiquote](https://www.wikiquote.org/) / Viquidites (CC BY-SA 4.0),
+  [Wikisource](https://wikisource.org/) and traditional sayings; sources and attribution in
+  [docs/quotes.md](docs/quotes.md).
 - Wallpapers and their titles are provided by Microsoft Bing and remain the property of their respective owners.
 
 ## License

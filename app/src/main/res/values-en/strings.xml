@@ -84,6 +84,7 @@
     <string name="weather_home">Weather on Home</string>
     <string name="weather_screen">Weather on the screensaver</string>
     <string name="news_home">News on Home</string>
+    <string name="quote">Quote of the day</string>
     <string name="news_source">News source</string>
     <string name="news_source_auto">Automatic</string>
     <string name="news_source_custom">Custom</string>

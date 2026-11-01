@@ -73,6 +73,21 @@ public class ConfigTest {
         assertTrue(k.motionScreen);
     }
 
+    @Test public void theQuoteOfTheDayIsOnByDefaultAndCanBeTurnedOff() {
+        Config k = new Config();
+        assertTrue(k.quote);
+        k.set("quote", "off");
+        assertFalse(k.quote);
+        k.set("quote", "on");
+        assertTrue(k.quote);
+        k.set("quote", "no");
+        assertFalse(k.quote);
+        k.set("quote", "");
+        assertTrue(k.quote);    // an empty value restores the default
+        k.set("quote", "OFF");
+        assertFalse(k.quote);
+    }
+
     @Test public void hiddenAppsKeepTheOrderOfTheFile() {
         Config k = new Config();
         k.set("hidden", "z.app,a.app,m.app");

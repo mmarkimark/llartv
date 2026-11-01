@@ -88,6 +88,7 @@
     <string name="weather_home">Temps a la pantalla</string>
     <string name="weather_screen">Temps al protector</string>
     <string name="news_home">Notícies a la pantalla</string>
+    <string name="quote">Frase del dia</string>
     <string name="news_source">Font de notícies</string>
     <string name="news_source_auto">Automàtic</string>
     <string name="news_source_custom">Personalitzada</string>
