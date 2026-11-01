@@ -16,9 +16,10 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * The quote of the day on Home (issue #69). The quotes are bundled, one file per interface language
  * (assets/quotes/ca.tsv, es.tsv, en.tsv; see docs/quotes.md), one quote per line:
- *   text<TAB>author<TAB>source       (author empty for a traditional saying; source = the page it was checked against)
- * The day's quote is line (day-of-year - 1), wrapping around when a file has fewer lines than the year has days:
- * the same quote all day, a new one at midnight. It follows the interface language; a language without a usable
+ *   text<TAB>author<TAB>source[<TAB>translator]   (author empty for a traditional saying; source = the page it was
+ *   checked against; translator only for a translated quote)
+ * Days are counted continuously, so consecutive days show consecutive lines and a file of n quotes repeats only every
+ * n days: the same quote all day, a new one at midnight. It follows the interface language; a language without a usable
  * file shows the Catalan one. No network is ever used.
  *
  * Everything but the Opener given to a Library is plain Java, so it is tested on the JVM.
@@ -28,7 +29,10 @@ final class Quotes {
 
     static final class Quote {
         final String text, author, source;
-        Quote(String text, String author, String source) { this.text = text; this.author = author; this.source = source; }
+        final String translator;   // empty: the author's own words; else who translated them (docs/quotes.md)
+        Quote(String text, String author, String source, String translator) {
+            this.text = text; this.author = author; this.source = source; this.translator = translator;
+        }
     }
 
     /** Opens a bundled file by its asset path (AssetManager::open on the TV). */
@@ -43,7 +47,8 @@ final class Quotes {
         catch (IOException e) { return new ArrayList<>(); }
     }
 
-    /** The quotes of TSV text: blank lines, lines without exactly three fields and lines without a text are skipped. */
+    /** The quotes of TSV text (text, author, source, optional translator): blank lines, lines with fewer than three or
+     *  more than four fields and lines without a text are skipped. */
     static List<Quote> parse(Reader r) {
         List<Quote> out = new ArrayList<>();
         BufferedReader b = r instanceof BufferedReader ? (BufferedReader) r : new BufferedReader(r);
@@ -54,19 +59,24 @@ final class Quotes {
                 if (first && line.startsWith("\uFEFF")) line = line.substring(1);
                 first = false;
                 String[] f = line.split("\t", -1);
-                if (f.length != 3) continue;
+                if (f.length < 3 || f.length > 4) continue;
                 String text = f[0].trim();
                 if (text.isEmpty()) continue;
-                out.add(new Quote(text, f[1].trim(), f[2].trim()));
+                out.add(new Quote(text, f[1].trim(), f[2].trim(), f.length == 4 ? f[3].trim() : ""));
             }
         } catch (IOException ignored) {}
         return out;
     }
 
-    /** The quote of the day c falls on; null when there are none. */
+    /**
+     * The quote of the local day c falls on; null when there are none. Days are counted continuously (epoch days), so
+     * consecutive days show consecutive lines across year ends and a file of n quotes repeats only every n days.
+     */
     static Quote pick(List<Quote> quotes, Calendar c) {
         if (quotes == null || quotes.isEmpty()) return null;
-        return quotes.get((c.get(Calendar.DAY_OF_YEAR) - 1) % quotes.size());
+        long day = java.time.LocalDate.of(c.get(Calendar.YEAR), c.get(Calendar.MONTH) + 1, c.get(Calendar.DAY_OF_MONTH))
+                .toEpochDay();
+        return quotes.get((int) Math.floorMod(day, (long) quotes.size()));
     }
 
     /** "— Author" (a no-break space after the dash, so it never ends a line), or empty for a saying. */
