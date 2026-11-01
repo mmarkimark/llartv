@@ -15,9 +15,10 @@ the interface language. This page explains where the quotes come from, how they 
   ```
 
   `author` is empty for a traditional saying. `source` is the page the quote was checked against (a Wikiquote,
-  Viquidites or Wikisource page, in the original language for a translated quote). `translator` is present only for
-  a translated quote: the public-domain translator, or `LlarTV` for a translation made for this project. Blank or
-  malformed lines are skipped.
+  Viquidites or Wikisource page): the page carrying the text as shown, or — for an `LlarTV` translation — the
+  original-language page it was translated from. `translator` is present only for a translated quote: the
+  public-domain translator, or `LlarTV` for a translation made for this project. Blank or malformed lines are
+  skipped.
 - Days are counted continuously: each day shows the next line, and a file of *n* quotes repeats only after *n* days
   (1,000 quotes per language, close to three years without a repeat). It is the same quote all
   day and changes at midnight.
