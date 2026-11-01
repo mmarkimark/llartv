@@ -123,4 +123,13 @@ public class MinimalModeTest {
         Config on2 = everythingOn(); on2.set("minimal", "on"); on2.set("quote", "off");
         assertFalse(MinimalMode.homeNeedsRebuild(after, on2));
     }
+
+    @Test public void theFocusGlowIsOffOnlyInMinimalMode() {
+        Config k = new Config();
+        assertTrue(MinimalMode.focusGlow(k));    // normal Home keeps the soft glow behind the app name
+        k.set("minimal", "on");
+        assertFalse(MinimalMode.focusGlow(k));   // owner: "apaga"
+        k.set("minimal", "off");
+        assertTrue(MinimalMode.focusGlow(k));
+    }
 }
